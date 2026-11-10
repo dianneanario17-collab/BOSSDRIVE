@@ -125,7 +125,7 @@
 
             <div class="dashboard-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h6 class="fw-bold mb-0 text-uppercase small" id="rentalOverviewTitle"><i class="fas fa-chart-bar text-danger me-2"></i>{{ $monthlyRentals['title'] }}</h6>
+                    <h6 class="fw-bold mb-0 text-uppercase small" id="rentalOverviewTitle"><i class="fas fa-chart-line text-danger me-2"></i>{{ $monthlyRentals['title'] }}</h6>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <div class="btn-group btn-group-sm" role="group" aria-label="Rental overview period">
                             @foreach (['year' => 'Year', 'month' => 'Month', 'week' => 'Week', 'day' => 'Day'] as $period => $label)
@@ -136,7 +136,7 @@
                     </div>
                 </div>
                 <div style="height: 280px;">
-                    <canvas id="rentalBarChart"></canvas>
+                    <canvas id="rentalOverviewChart"></canvas>
                 </div>
             </div>
             
@@ -200,17 +200,20 @@
 
     <script>
         // Rental Overview
-        const ctx = document.getElementById('rentalBarChart').getContext('2d');
+        const ctx = document.getElementById('rentalOverviewChart').getContext('2d');
         const rentalChart = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: @json($monthlyRentals['labels']),
                 datasets: [{
                     label: 'Units Rented',
                     data: @json($monthlyRentals['values']),
-                    backgroundColor: '#dc3545', // BossDrive Red
-                    borderRadius: 5,
-                    barThickness: 35
+                    borderColor: '#dc3545',
+                    backgroundColor: '#dc3545',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.3
                 }]
             },
             options: {
@@ -312,7 +315,7 @@
                 document.getElementById('activeUsersCount').textContent = data.activeUserCount;
                 document.getElementById('totalRentalsCount').textContent = data.totalRentals;
                 document.getElementById('rentalOverviewTitle').innerHTML =
-                    '<i class="fas fa-chart-bar text-danger me-2"></i>' + data.chart.title;
+                    '<i class="fas fa-chart-line text-danger me-2"></i>' + data.chart.title;
                 rentalChart.data.labels = data.chart.labels;
                 rentalChart.data.datasets[0].data = data.chart.values;
                 rentalChart.update();
