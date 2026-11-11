@@ -229,6 +229,12 @@
                 </div>
             </div>
 
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                <input type="search" id="vehicleSearchInput" class="form-control" placeholder="Search by vehicle, brand, car number, category, or status..." aria-label="Search vehicles">
+                <button type="button" class="btn btn-outline-secondary d-none" id="clearVehicleSearch" aria-label="Clear vehicle search"><i class="fas fa-times"></i></button>
+            </div>
+
             <div id="filterBanner" class="alert alert-danger py-2 px-3 filter-active-banner d-none d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-filter me-2"></i>Showing filtered results: <span id="filterLabel"></span></span>
                 <button class="btn btn-sm btn-outline-danger fw-bold" onclick="clearStatFilter()">Clear Filter</button>
@@ -1156,6 +1162,22 @@
 
         // ================= STAT FILTER STATE =================
         let currentStatFilter = 'all';
+        let currentVehicleSearch = '';
+
+        const vehicleSearchInput = document.getElementById('vehicleSearchInput');
+        const clearVehicleSearchButton = document.getElementById('clearVehicleSearch');
+        vehicleSearchInput.addEventListener('input', function () {
+            currentVehicleSearch = vehicleSearchInput.value.trim().toLocaleLowerCase();
+            clearVehicleSearchButton.classList.toggle('d-none', currentVehicleSearch === '');
+            renderFleet();
+        });
+        clearVehicleSearchButton.addEventListener('click', function () {
+            vehicleSearchInput.value = '';
+            currentVehicleSearch = '';
+            clearVehicleSearchButton.classList.add('d-none');
+            renderFleet();
+            vehicleSearchInput.focus();
+        });
 
         // ================= SCHEDULE BANNER HELPERS =================
         // Formats a start/end ISO date range into something like
@@ -1217,9 +1239,17 @@
             const filterBanner = document.getElementById('filterBanner');
             const filterLabel = document.getElementById('filterLabel');
 
-            const visibleFleet = currentStatFilter === 'all'
-                ? fleet
-                : fleet.filter(function(v){ return v.status === currentStatFilter; });
+            const visibleFleet = fleet.filter(function (vehicle) {
+                const matchesStatus = currentStatFilter === 'all' || vehicle.status === currentStatFilter;
+                const searchableText = [
+                    vehicle.name,
+                    vehicle.brand_name,
+                    vehicle.plate,
+                    vehicle.category,
+                    vehicle.status
+                ].join(' ').toLocaleLowerCase();
+                return matchesStatus && (!currentVehicleSearch || searchableText.includes(currentVehicleSearch));
+            });
 
             // Highlight active stat card
             document.querySelectorAll('.stat-card').forEach(function(card) {
@@ -1227,9 +1257,14 @@
             });
 
             // Show/hide filter banner
-            if (currentStatFilter !== 'all') {
+            if (currentStatFilter !== 'all' || currentVehicleSearch) {
                 filterBanner.classList.remove('d-none');
-                filterLabel.innerText = currentStatFilter === 'Rented' ? 'Active Rentals' : currentStatFilter;
+                const activeFilters = [];
+                if (currentStatFilter !== 'all') {
+                    activeFilters.push(currentStatFilter === 'Rented' ? 'Active Rentals' : currentStatFilter);
+                }
+                if (currentVehicleSearch) activeFilters.push('Search: "' + vehicleSearchInput.value.trim() + '"');
+                filterLabel.innerText = activeFilters.join(' · ');
             } else {
                 filterBanner.classList.add('d-none');
             }
@@ -1237,9 +1272,9 @@
             if (visibleFleet.length === 0) {
                 grid.innerHTML = '';
                 emptyMsg.classList.remove('d-none');
-                emptyMsg.querySelector('p.fw-bold').innerText = currentStatFilter === 'all'
+                emptyMsg.querySelector('p.fw-bold').innerText = currentStatFilter === 'all' && !currentVehicleSearch
                     ? 'No vehicles in the fleet yet.'
-                    : 'No vehicles match this filter.';
+                    : 'No vehicles match your search or filter.';
                 updateStatCounts();
                 return;
             }
@@ -1256,7 +1291,7 @@
                 const filteredUnits = entry[1];
                 const units = fleet.filter(function (vehicle) { return vehicle.name === modelName; });
                 let selectedId = selectedUnitByModel[modelName];
-                if (!units.some(function (unit) { return unit.id === selectedId; })) {
+                if (!filteredUnits.some(function (unit) { return unit.id === selectedId; })) {
                     const preferred = filteredUnits.find(function (unit) { return unit.status === 'Available'; }) || filteredUnits[0];
                     selectedId = preferred.id;
                     selectedUnitByModel[modelName] = selectedId;
