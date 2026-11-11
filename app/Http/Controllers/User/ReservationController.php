@@ -90,7 +90,10 @@ class ReservationController extends Controller
         $user = $request->user();
         $documentsApproved = $user->documents_verified_at
             && (! $user->documents_rejected_at || $user->documents_rejected_at <= $user->documents_verified_at);
-        $vehicles = Vehicle::withCount('reservations')->orderBy('name')->orderBy('id')->get();
+        $vehicles = Vehicle::withCount('reservations')
+            ->orderBy('name')
+            ->orderBy('id')
+            ->get();
         $existingDocuments = $documentsApproved ? $user->reservations()
             ->whereIn('status', ['verified', 'processing', 'released', 'completed'])
             ->whereNotNull('document_paths')
@@ -108,51 +111,68 @@ class ReservationController extends Controller
         $calendarReservations = Reservation::whereNotIn('status', ['cancelled', 'void', 'completed'])
             ->get()
             ->keyBy('id');
+        $activeVehicleIds = $calendarReservations->pluck('vehicle_id')
+            ->filter()
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+        $lastReturnedAtByVehicle = Reservation::query()
+            ->where('status', 'completed')
+            ->whereNotNull('vehicle_id')
+            ->select('vehicle_id')
+            ->selectRaw('MAX(COALESCE(return_condition_checked_at, return_date)) as last_returned_at')
+            ->groupBy('vehicle_id')
+            ->get()
+            ->pluck('last_returned_at', 'vehicle_id');
 
         return view('user.reservation', [
             'priceGuides' => PriceGuide::current(),
-            'vehicles' => $vehicles->map(fn (Vehicle $vehicle) => [
-                'id' => $vehicle->id,
-                'name' => $vehicle->name,
-                'brand_name' => $vehicle->brand_name ?? '',
-                'plate' => $vehicle->plate,
-                'price' => (float) $vehicle->price,
-                'category' => $vehicle->category ?? '',
-                'transmission' => $vehicle->transmission ?? '',
-                'fuel' => $vehicle->fuel ?? '',
-                'capacity' => (string) ($vehicle->capacity ?? ''),
-                'capacity_type' => $vehicle->capacity_type ?: (($vehicle->capacity ?? null) ? $vehicle->capacity.' Seater' : ''),
-                'status' => ucfirst($vehicle->status) === 'Unavailable' ? 'Maintenance' : ucfirst($vehicle->status),
-                'image_path' => $vehicle->image_path,
-                'photo' => $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.png'),
-                'rating' => (float) $vehicle->rating,
-                'timesRented' => $vehicle->reservations_count,
-                'feedbacks' => $vehicle->feedbacks ?? [],
-                'damageLog' => $vehicle->damage_log ?? [],
-                'schedule' => collect($vehicle->schedule ?? [])
-                    ->filter(fn (array $entry): bool => ($entry['type'] ?? null) === 'Maintenance'
-                        || isset($entry['reservationId'], $calendarReservations[$entry['reservationId']]))
-                    ->map(function (array $entry) use ($calendarReservations): array {
-                        if (($entry['type'] ?? null) === 'Maintenance'
-                            || ! isset($entry['reservationId'], $calendarReservations[$entry['reservationId']])) {
-                            return $entry;
-                        }
-                        $reservation = $calendarReservations[$entry['reservationId']];
-                        $entry['type'] = $reservation->status === 'released' ? 'Rented' : 'Reserved';
-                        $entry['start'] = $reservation->pickup_date->toDateString();
-                        $entry['end'] = $reservation->return_date->toDateString();
+            'vehicles' => $vehicles->map(function (Vehicle $vehicle) use ($activeVehicleIds, $lastReturnedAtByVehicle, $calendarReservations): array {
+                return [
+                    'id' => $vehicle->id,
+                    'name' => $vehicle->name,
+                    'brand_name' => $vehicle->brand_name ?? '',
+                    'plate' => $vehicle->plate,
+                    'price' => (float) $vehicle->price,
+                    'category' => $vehicle->category ?? '',
+                    'transmission' => $vehicle->transmission ?? '',
+                    'fuel' => $vehicle->fuel ?? '',
+                    'capacity' => (string) ($vehicle->capacity ?? ''),
+                    'capacity_type' => $vehicle->capacity_type ?: (($vehicle->capacity ?? null) ? $vehicle->capacity.' Seater' : ''),
+                    'status' => ucfirst($vehicle->status) === 'Unavailable' ? 'Maintenance' : ucfirst($vehicle->status),
+                    'image_path' => $vehicle->image_path,
+                    'photo' => $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg'),
+                    'rating' => (float) $vehicle->rating,
+                    'timesRented' => $vehicle->reservations_count,
+                    'feedbacks' => $vehicle->feedbacks ?? [],
+                    'damageLog' => $vehicle->damage_log ?? [],
+                    'schedule' => collect($vehicle->schedule ?? [])
+                        ->filter(fn (array $entry): bool => ($entry['type'] ?? null) === 'Maintenance'
+                            || isset($entry['reservationId'], $calendarReservations[$entry['reservationId']]))
+                        ->map(function (array $entry) use ($calendarReservations): array {
+                            if (($entry['type'] ?? null) === 'Maintenance'
+                                || ! isset($entry['reservationId'], $calendarReservations[$entry['reservationId']])) {
+                                return $entry;
+                            }
+                            $reservation = $calendarReservations[$entry['reservationId']];
+                            $entry['type'] = $reservation->status === 'released' ? 'Rented' : 'Reserved';
+                            $entry['start'] = $reservation->pickup_date->toDateString();
+                            $entry['end'] = $reservation->return_date->toDateString();
 
-                        return $entry;
-                    })
-                    ->values()
-                    ->all(),
-                'currentReservation' => isset($activeReservations[$vehicle->id]) ? [
-                    'pickup_date' => $activeReservations[$vehicle->id]->pickup_date->toDateString(),
-                    'return_date' => $activeReservations[$vehicle->id]->return_date->toDateString(),
-                    'status' => $activeReservations[$vehicle->id]->status,
-                ] : null,
-                'bookingWindow' => $vehicle->bookingWindow(),
-            ])->values()->all(),
+                            return $entry;
+                        })
+                        ->values()
+                        ->all(),
+                    'currentReservation' => isset($activeReservations[$vehicle->id]) ? [
+                        'pickup_date' => $activeReservations[$vehicle->id]->pickup_date->toDateString(),
+                        'return_date' => $activeReservations[$vehicle->id]->return_date->toDateString(),
+                        'status' => $activeReservations[$vehicle->id]->status,
+                    ] : null,
+                    'bookingWindow' => $vehicle->bookingWindow(
+                        in_array($vehicle->id, $activeVehicleIds, true),
+                        $lastReturnedAtByVehicle->get($vehicle->id)
+                    ),
+                ];
+            })->values()->all(),
             'paymentSettings' => PaymentSetting::current(),
             'hasExistingDocuments' => $hasExistingDocuments,
             'selectedVehicleId' => $request->integer('vehicle_id') ?: null,

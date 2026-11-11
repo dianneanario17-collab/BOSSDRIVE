@@ -20,6 +20,7 @@ class ActiveRentalController extends Controller
         $activeVehicle = null;
         $activeReservations = $request->user()->reservations()
             ->whereIn('status', ['verified', 'processing', 'released'])
+            ->with('vehicleUnit:id,price,image_path')
             ->latest()
             ->get();
         $reservationId = $request->integer('reservation_id')

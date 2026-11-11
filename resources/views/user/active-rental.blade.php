@@ -20,8 +20,8 @@
 <div class="status-card"><div class="card-accent"></div><div class="p-5 text-center"><i class="fas fa-hourglass-half text-warning fa-2x mb-3"></i><h5 class="fw-bold">No Active Rental Yet</h5><p class="text-muted small mb-0">Your Active Rental will open automatically after Admin confirms your documents.</p><a href="{{ route('user.dashboard') }}" class="btn btn-outline-danger rounded-pill fw-bold mt-3">Back to Dashboard</a></div></div>
 @else
 @php
-    $carImages = ['Toyota Vios'=>'car1.png','Mitsubishi Mirage'=>'car2.png','Honda Civic'=>'car3.png','Toyota Fortuner'=>'car4.png'];
-    $image = $carImages[$reservation->vehicle] ?? 'car1.png';
+    $carImages = ['Toyota Vios'=>'car1.jpg','Mitsubishi Mirage'=>'car2.jpg','Honda Civic'=>'car3.jpg','Toyota Fortuner'=>'car4.jpg'];
+    $image = $carImages[$reservation->vehicle] ?? 'car1.jpg';
     $released = $reservation->status === 'released';
 @endphp
 <div class="status-card">
@@ -30,7 +30,7 @@
         <div class="row g-4">
             <div class="col-lg-4">
                 <div class="car-preview mb-3">
-                    <img src="{{ asset('image/'.$image) }}" class="img-fluid" style="max-height:180px">
+                    <img src="{{ $activeVehicle?->image_path ? asset('storage/'.$activeVehicle->image_path) : asset('image/'.$image) }}" alt="{{ $reservation->vehicle }}" class="img-fluid" width="280" height="180" decoding="async" fetchpriority="high" style="max-height:180px">
                     <h5 class="fw-bold mt-2">{{ $reservation->vehicle }}</h5>
                     <small class="text-muted">Car No: {{ $activeVehicle?->plate ?? 'Not assigned' }}</small>
                     <small class="text-muted fw-bold">{{ $reservation->control_number }}</small>

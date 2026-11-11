@@ -160,17 +160,17 @@
                     <div class="guest-vehicle-grid-item">
                         <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative">
                             <span id="guest-status-{{ $vehicle->id }}" class="status-badge bg-{{ $statusColor }} {{ $statusColor === 'warning' ? 'text-dark' : 'text-white' }}">{{ $status }}</span>
-                            <div class="p-4 text-center bg-white"><img src="{{ $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.png') }}" alt="{{ $vehicle->name }}" class="img-fluid vehicle-card-image" style="height: 140px; max-width: 240px; object-fit: contain;"></div>
+                            <div class="p-4 text-center bg-white"><img src="{{ $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg') }}" alt="{{ $vehicle->name }}" class="img-fluid vehicle-card-image" width="240" height="140" loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async" fetchpriority="{{ $loop->first ? 'high' : 'auto' }}" style="height: 140px; max-width: 240px; object-fit: contain;"></div>
                             <div class="p-4 pt-0 bg-white catalog-card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div><h5 id="guest-title-{{ $vehicle->id }}" class="fw-bold mb-0">{{ $vehicle->name }} Unit #{{ $modelUnits->search(fn ($unit) => $unit['id'] === $vehicle->id) + 1 }}</h5>@if($vehicle->brand_name)<small class="text-muted d-block">{{ $vehicle->brand_name }}</small>@endif<small class="text-muted"><i class="fas fa-history me-1"></i>{{ $vehicle->reservations_count }} Times Rented</small></div>
-                                    <div class="text-end"><div class="rating-stars">{!! str_repeat('<i class="fas fa-star"></i>', (int) round($vehicle->rating)) !!}</div><a class="view-feedback" href="#feedback-{{ $vehicle->id }}" data-bs-toggle="modal">{{ count($feedbacks) }} Feedback{{ count($feedbacks) === 1 ? '' : 's' }}</a></div>
+                                    <div><h5 id="guest-title-{{ $vehicle->id }}" class="fw-bold mb-0">{{ $vehicle->name }} Unit #{{ $modelUnits->search(fn ($unit) => $unit['id'] === $vehicle->id) + 1 }}</h5><small id="guest-brand-{{ $vehicle->id }}" class="text-muted d-block {{ $vehicle->brand_name ? '' : 'd-none' }}">{{ $vehicle->brand_name }}</small><small id="guest-times-{{ $vehicle->id }}" class="text-muted"><i class="fas fa-history me-1"></i>{{ $vehicle->reservations_count }} Times Rented</small></div>
+                                    <div class="text-end"><div id="guest-rating-{{ $vehicle->id }}" class="rating-stars">{!! str_repeat('<i class="fas fa-star"></i>', (int) round($vehicle->rating)) !!}</div><a id="guest-feedback-{{ $vehicle->id }}" class="view-feedback" href="#feedback-{{ $vehicle->id }}" data-bs-toggle="modal">{{ count($feedbacks) }} Feedback{{ count($feedbacks) === 1 ? '' : 's' }}</a></div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2 mb-3">
                                     <button type="button" class="car-info-tag clickable border-0" data-card-id="{{ $vehicle->id }}" data-model="{{ $vehicle->name }}" data-units="{{ json_encode($modelUnits) }}" onclick="showGuestUnits(this)"><i class="fas fa-layer-group me-1"></i>Stock: {{ $modelUnits->count() }} Unit{{ $modelUnits->count() === 1 ? '' : 's' }}</button>
                                     <span class="car-info-tag" id="guest-category-{{ $vehicle->id }}">{{ $displayCategory }}</span>
                                     <button type="button" class="specifications-button" id="guest-specs-button-{{ $vehicle->id }}" data-card-id="{{ $vehicle->id }}" data-unit-id="{{ $vehicle->id }}" onclick="showGuestSpecifications(this)"><i class="fas fa-list-ul" aria-hidden="true"></i>View Specifications</button>
-                                    <span class="car-info-tag">{{ count($damageLogs) }} Condition Log{{ count($damageLogs) === 1 ? '' : 's' }}</span>
+                                    <span id="guest-damage-{{ $vehicle->id }}" class="car-info-tag">{{ count($damageLogs) }} Condition Log{{ count($damageLogs) === 1 ? '' : 's' }}</span>
                                 </div>
                                 <div class="small text-muted mb-1" id="guest-unit-{{ $vehicle->id }}"><strong>Car No:</strong> {{ $vehicle->plate }}</div>
                                 <div class="small fw-bold mb-3" id="guest-schedule-{{ $vehicle->id }}"></div>
@@ -200,7 +200,7 @@
                                     </div>
                                 @endif
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div><span class="h5 fw-bold text-danger">₱{{ number_format($vehicle->price, 2) }}</span><small class="text-muted">/day</small></div>
+                                    <div><span id="guest-price-{{ $vehicle->id }}" class="h5 fw-bold text-danger">₱{{ number_format($vehicle->price, 2) }}</span><small class="text-muted">/day</small></div>
                                     <a href="{{ $status === 'Available' ? route('login', ['vehicle_id' => $vehicle->id]) : '#' }}" class="btn {{ $status === 'Available' ? 'btn-dark' : 'btn-secondary disabled' }} rounded-pill px-4 rent-now-link" data-loading-label="Opening rental form..." @if($status !== 'Available') aria-disabled="true" @endif>{{ $status === 'Available' ? 'Rent Now' : 'Unavailable' }}</a>
                                 </div>
                                 </div>
@@ -482,9 +482,37 @@
         }
 
         function selectGuestUnit(unit, index, cardId, modelName, status) {
-            document.getElementById('guest-title-' + cardId).textContent = modelName + ' Unit #' + (index + 1);
+            const currentModelName = unit.name || modelName;
+            const card = document.getElementById('guest-status-' + cardId).closest('.card');
+            document.getElementById('guest-title-' + cardId).textContent = currentModelName + ' Unit #' + (index + 1);
             document.getElementById('guest-unit-' + cardId).innerHTML = '<strong>Car No:</strong> ' + escapeGuestHtml(unit.plate || 'Not assigned');
             document.getElementById('guest-category-' + cardId).textContent = displayGuestCategory(unit.category);
+            const brand = document.getElementById('guest-brand-' + cardId);
+            brand.textContent = unit.brand_name || '';
+            brand.classList.toggle('d-none', !unit.brand_name);
+            if (unit.timesRented !== undefined) {
+                document.getElementById('guest-times-' + cardId).innerHTML = '<i class="fas fa-history me-1"></i>' + Number(unit.timesRented || 0) + ' Times Rented';
+            }
+            if (unit.rating !== undefined) {
+                document.getElementById('guest-rating-' + cardId).innerHTML = '<i class="fas fa-star"></i>'.repeat(Math.max(0, Math.round(Number(unit.rating) || 0)));
+            }
+            if (unit.feedbacks !== undefined) {
+                const feedbackCount = (unit.feedbacks || []).length;
+                document.getElementById('guest-feedback-' + cardId).textContent = feedbackCount + ' Feedback' + (feedbackCount === 1 ? '' : 's');
+            }
+            if (unit.damageLog !== undefined) {
+                const damageCount = (unit.damageLog || []).filter(function (entry) {
+                    return entry.hasDamage !== false;
+                }).length;
+                document.getElementById('guest-damage-' + cardId).textContent = damageCount + ' Condition Log' + (damageCount === 1 ? '' : 's');
+            }
+            const image = card.querySelector('.vehicle-card-image');
+            if (unit.photo && image.src !== unit.photo) image.src = unit.photo;
+            image.alt = currentModelName;
+            const price = document.getElementById('guest-price-' + cardId);
+            if (price && Number.isFinite(Number(unit.price))) {
+                price.textContent = '₱' + Number(unit.price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
             document.getElementById('guest-specs-button-' + cardId).dataset.unitId = String(unit.id);
             const badge = document.getElementById('guest-status-' + cardId);
             badge.textContent = status;
@@ -654,15 +682,20 @@
             };
         }
 
+        let guestAvailabilityEtag = '';
         async function syncGuestAvailability() {
             if (document.hidden || document.querySelector('.modal.show')) return;
 
             try {
+                const headers = {'Accept': 'application/json'};
+                if (guestAvailabilityEtag) headers['If-None-Match'] = guestAvailabilityEtag;
                 const response = await fetch('{{ route('vehicles.availability') }}', {
-                    headers: {'Accept': 'application/json'},
+                    headers: headers,
                     cache: 'no-store'
                 });
+                if (response.status === 304) return;
                 if (!response.ok) throw new Error('Vehicle availability refresh failed: ' + response.status);
+                guestAvailabilityEtag = response.headers.get('ETag') || '';
                 const data = await response.json();
                 const signature = JSON.stringify(data);
                 if (signature === guestAvailabilitySignature) return;
@@ -677,6 +710,20 @@
                         if (!live) return unit;
                         return Object.assign({}, unit, {
                             status: live.status.toLowerCase(),
+                            name: live.name,
+                            brand_name: live.brand_name,
+                            price: live.price,
+                            photo: live.photo,
+                            rating: live.rating,
+                            timesRented: live.timesRented,
+                            feedbacks: live.feedbacks,
+                            damageLog: live.damageLog,
+                            plate: live.plate,
+                            category: live.category,
+                            transmission: live.transmission,
+                            fuel: live.fuel,
+                            capacity: live.capacity,
+                            capacity_type: live.capacity_type,
                             bookingWindow: live.bookingWindow || unit.bookingWindow,
                             schedule: live.schedule || []
                         });
@@ -691,6 +738,7 @@
                     if (!selectedUnit) return;
                     const selectedLive = liveVehicles.get(selectedId);
                     if (!selectedLive) return;
+                    stockButton.dataset.model = selectedUnit.name || stockButton.dataset.model;
                     const status = selectedLive.status === 'Rented'
                         ? (selectedLive.currentReservation && selectedLive.currentReservation.status === 'released'
                             ? 'Ongoing Rental'
@@ -710,6 +758,9 @@
         renderCalendar();
         syncGuestAvailability();
         setInterval(syncGuestAvailability, 5000);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) syncGuestAvailability();
+        });
         document.getElementById('bookingModal').addEventListener('show.bs.modal', event => {
             const trigger = event.relatedTarget;
             if (trigger) {

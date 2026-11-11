@@ -1277,7 +1277,7 @@
                 '<div class="col-md-6" id="vehicle-card-' + v.id + '">' +
                     '<div class="vehicle-card">' +
                         '<span class="status-badge ' + st.class + '">' + v.status + '</span>' +
-                        '<div class="vehicle-photo-wrap"><img src="' + photoSrc + '" class="img-fluid"></div>' +
+                        '<div class="vehicle-photo-wrap"><img src="' + photoSrc + '" alt="' + escapeHtml(v.name) + '" class="img-fluid" width="240" height="140" loading="' + (index < 2 ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (index === 0 ? 'high' : 'auto') + '"></div>' +
                         '<div class="p-4 pt-0">' +
                             '<div class="d-flex justify-content-between align-items-start mb-1">' +
                                 '<div>' +
@@ -3193,15 +3193,20 @@
         renderFleet();
 
         let liveAvailabilitySignature = '';
+        let liveAvailabilityEtag = '';
         async function syncFleetAvailability() {
             if (document.hidden || document.querySelector('.modal.show')) return;
 
             try {
+                const headers = {'Accept': 'application/json'};
+                if (liveAvailabilityEtag) headers['If-None-Match'] = liveAvailabilityEtag;
                 const response = await fetch('{{ route('vehicles.availability') }}', {
-                    headers: {'Accept': 'application/json'},
+                    headers: headers,
                     cache: 'no-store'
                 });
+                if (response.status === 304) return;
                 if (!response.ok) throw new Error('Vehicle availability refresh failed: ' + response.status);
+                liveAvailabilityEtag = response.headers.get('ETag') || '';
                 const data = await response.json();
                 const signature = JSON.stringify(data);
                 if (signature === liveAvailabilitySignature) return;
@@ -3216,6 +3221,21 @@
                     vehicle.status = live.status === 'Rented' && live.currentReservation?.status === 'released'
                         ? 'Ongoing'
                         : (live.status === 'Rented' ? 'Reserved' : live.status);
+                    vehicle.name = live.name;
+                    vehicle.brand_name = live.brand_name;
+                    vehicle.plate = live.plate;
+                    vehicle.price = live.price;
+                    vehicle.category = live.category;
+                    vehicle.transmission = live.transmission;
+                    vehicle.fuel = live.fuel;
+                    vehicle.capacity = live.capacity;
+                    vehicle.capacity_type = live.capacity_type;
+                    vehicle.photo = live.photo;
+                    vehicle.imagePath = live.image_path;
+                    vehicle.rating = live.rating;
+                    vehicle.timesRented = live.timesRented;
+                    vehicle.feedbacks = live.feedbacks || [];
+                    vehicle.damageLog = live.damageLog || [];
                     vehicle.currentReservation = live.currentReservation;
                     vehicle.schedule = live.schedule || [];
                 });
@@ -3233,6 +3253,9 @@
         }
         syncFleetAvailability();
         setInterval(syncFleetAvailability, 5000);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) syncFleetAvailability();
+        });
     </script>
 </body>
 </html>

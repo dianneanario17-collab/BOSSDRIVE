@@ -1110,7 +1110,7 @@ class AdminManagementController extends Controller
                     'capacity' => (string) ($vehicle->capacity ?? ''),
                     'capacity_type' => $vehicle->capacity_type ?: (($vehicle->capacity ?? null) ? $vehicle->capacity.' Seater' : ''),
                     'status' => ucfirst($vehicle->status) === 'Unavailable' ? 'Maintenance' : ucfirst($vehicle->status),
-                    'photo' => $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.png'),
+                    'photo' => $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg'),
                     'imagePath' => $vehicle->image_path,
                     'rating' => (float) $vehicle->rating,
                     'timesRented' => $vehicle->reservations_count,

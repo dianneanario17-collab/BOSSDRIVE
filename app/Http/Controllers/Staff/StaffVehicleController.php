@@ -79,7 +79,7 @@ class StaffVehicleController extends Controller
                 'status' => ucfirst($vehicle->status) === 'Unavailable' ? 'Maintenance' : ucfirst($vehicle->status),
                 'photo' => $vehicle->image_path
                     ? asset('storage/'.$vehicle->image_path)
-                    : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.png'),
+                    : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg'),
                 'imagePath' => $vehicle->image_path,
                 'rating' => (float) $vehicle->rating,
                 'timesRented' => $vehicle->reservations_count,

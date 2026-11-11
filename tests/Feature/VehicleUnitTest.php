@@ -72,6 +72,37 @@ class VehicleUnitTest extends TestCase
             ->assertJsonPath('reservations.0.controlNumber', 'LIVE-AVAILABILITY-0001');
     }
 
+    public function test_vehicle_availability_supports_conditional_refreshes(): void
+    {
+        Vehicle::create([
+            'name' => 'ETag Test Sedan',
+            'plate' => 'ETAG 1001',
+            'price' => 1800,
+            'status' => 'available',
+        ]);
+
+        $response = $this->getJson(route('vehicles.availability'))
+            ->assertOk()
+            ->assertJsonPath('vehicles.0.name', 'ETag Test Sedan');
+        $etag = $response->headers->get('ETag');
+
+        $this->assertNotEmpty($etag);
+        $this->travel(2)->seconds();
+        $this->withHeaders(['If-None-Match' => $etag])
+            ->get(route('vehicles.availability'))
+            ->assertStatus(304)
+            ->assertHeader('ETag', $etag);
+
+        $vehicle = Vehicle::where('name', 'ETag Test Sedan')->firstOrFail();
+        $vehicle->update(['price' => 2100]);
+        $this->assertSame(2100.0, (float) $vehicle->fresh()->price);
+        $updatedResponse = $this->withHeaders(['If-None-Match' => $etag])
+            ->getJson(route('vehicles.availability'));
+        $updatedResponse->assertOk()
+            ->assertJsonPath('vehicles.0.price', 2100);
+        $this->assertNotSame($etag, $updatedResponse->headers->get('ETag'));
+    }
+
     public function test_vehicle_booking_window_reopens_after_return_and_locks_during_an_active_reservation(): void
     {
         $this->travelTo(now()->startOfDay());

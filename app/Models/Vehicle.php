@@ -33,20 +33,27 @@ class Vehicle extends Model
         return $this->hasMany(Reservation::class, 'vehicle_id');
     }
 
-    public function bookingWindow(): array
+    public function bookingWindow(?bool $locked = null, Carbon|string|null $lastReturnedAt = null): array
     {
-        $locked = $this->reservations()
-            ->whereNotIn('status', ['cancelled', 'void', 'completed'])
-            ->exists();
-        $completedReservations = $this->reservations()
-            ->where('status', 'completed')
-            ->get(['return_condition_checked_at', 'return_date']);
-        $lastReturnedAt = $completedReservations
-            ->map(fn (Reservation $reservation) => $reservation->return_condition_checked_at
-                ?? $reservation->return_date)
-            ->filter()
-            ->sortByDesc(fn ($returnedAt) => $returnedAt->timestamp)
-            ->first();
+        if ($locked === null) {
+            $reservations = $this->reservations()->get([
+                'id',
+                'vehicle_id',
+                'status',
+                'return_condition_checked_at',
+                'return_date',
+            ]);
+            $locked = $reservations->contains(
+                fn (Reservation $reservation): bool => ! in_array($reservation->status, ['cancelled', 'void', 'completed'], true)
+            );
+            $lastReturnedAt = $reservations
+                ->where('status', 'completed')
+                ->map(fn (Reservation $reservation) => $reservation->return_condition_checked_at
+                    ?? $reservation->return_date)
+                ->filter()
+                ->sortByDesc(fn ($returnedAt) => $returnedAt->timestamp)
+                ->first();
+        }
 
         $start = today();
         if ($lastReturnedAt) {

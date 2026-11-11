@@ -910,15 +910,20 @@
     }, new Map()).values());
 
     let liveAvailabilitySignature = '';
+    let liveAvailabilityEtag = '';
     async function syncUserVehicleAvailability() {
         if (document.hidden || document.querySelector('.modal.show')) return;
 
         try {
+            const headers = {'Accept': 'application/json'};
+            if (liveAvailabilityEtag) headers['If-None-Match'] = liveAvailabilityEtag;
             const response = await fetch('{{ route('vehicles.availability') }}', {
-                headers: {'Accept': 'application/json'},
+                headers: headers,
                 cache: 'no-store'
             });
+            if (response.status === 304) return;
             if (!response.ok) throw new Error('Vehicle availability refresh failed: ' + response.status);
+            liveAvailabilityEtag = response.headers.get('ETag') || '';
             const data = await response.json();
             const signature = JSON.stringify(data);
             if (signature === liveAvailabilitySignature) return;
@@ -931,6 +936,21 @@
                 const live = liveVehicles.get(Number(vehicle.id));
                 if (!live) return;
                 vehicle.status = normalizeStatus(live.status);
+                vehicle.name = live.name;
+                vehicle.brand_name = live.brand_name;
+                vehicle.plate = live.plate;
+                vehicle.price = live.price;
+                vehicle.category = live.category;
+                vehicle.transmission = live.transmission;
+                vehicle.fuel = live.fuel;
+                vehicle.capacity = live.capacity;
+                vehicle.capacity_type = live.capacity_type;
+                vehicle.photo = live.photo;
+                vehicle.image_path = live.image_path;
+                vehicle.rating = live.rating;
+                vehicle.timesRented = live.timesRented;
+                vehicle.feedbacks = live.feedbacks || [];
+                vehicle.damageLog = live.damageLog || [];
                 vehicle.currentReservation = live.currentReservation;
                 vehicle.bookingWindow = live.bookingWindow || vehicle.bookingWindow;
                 vehicle.schedule = (live.schedule || []).map(function (entry) {
@@ -1089,7 +1109,7 @@
 
     function vehiclePhoto(v, index) {
         if (v.photo && String(v.photo).trim() !== '') return v.photo;
-        return '{{ asset('image') }}/car' + ((index % 4) + 1) + '.png';
+        return '{{ asset('image') }}/car' + ((index % 4) + 1) + '.jpg';
     }
 
     function displayReservationCategory(category) {
@@ -1232,7 +1252,7 @@
             '<div class="col-md-6">' +
                 '<div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative">' +
                     '<span class="status-badge ' + statusBadgeClass(label) + '">' + label + '</span>' +
-                    '<div class="p-4 text-center bg-white"><img src="' + vehiclePhoto(v, index) + '" class="img-fluid" style="max-height: 140px;' + (dimmed ? ' opacity: 0.5;' : '') + '"></div>' +
+                    '<div class="p-4 text-center bg-white"><img src="' + vehiclePhoto(v, index) + '" alt="' + escapeHtml(v.name) + '" class="img-fluid" width="240" height="140" loading="' + (index < 2 ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (index === 0 ? 'high' : 'auto') + '" style="max-height: 140px;' + (dimmed ? ' opacity: 0.5;' : '') + '"></div>' +
                     '<div class="p-4 pt-0 bg-white catalog-card-body">' +
                         '<div class="d-flex justify-content-between align-items-start mb-1">' +
                             '<div>' +
@@ -2086,6 +2106,9 @@
         renderCalendar();
         syncUserVehicleAvailability();
         setInterval(syncUserVehicleAvailability, 5000);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) syncUserVehicleAvailability();
+        });
     });
 </script>
 </body>

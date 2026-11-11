@@ -38,8 +38,10 @@ Route::get('/vehicles/availability', VehicleAvailabilityController::class)
 Route::get('/reservations', function (Request $request) {
     $reservationController = app(ReservationController::class);
     $reservationController->expireUnpaidWalkInReservations();
-    $reservationController->synchronizeVehicleStatuses();
-    $allUnits = Vehicle::withCount('reservations')->orderBy('name')->orderBy('id')->get();
+    $allUnits = Vehicle::withCount('reservations')
+        ->orderBy('name')
+        ->orderBy('id')
+        ->get();
     $search = strtolower(trim((string) $request->query('search')));
     $capacity = (string) $request->query('capacity');
     $matchingModels = $allUnits
@@ -67,6 +69,14 @@ Route::get('/reservations', function (Request $request) {
         ->filter()
         ->map(fn ($id) => (int) $id)
         ->all();
+    $lastReturnedAtByVehicle = Reservation::query()
+        ->where('status', 'completed')
+        ->whereNotNull('vehicle_id')
+        ->select('vehicle_id')
+        ->selectRaw('MAX(COALESCE(return_condition_checked_at, return_date)) as last_returned_at')
+        ->groupBy('vehicle_id')
+        ->get()
+        ->pluck('last_returned_at', 'vehicle_id');
     $today = now()->toDateString();
     $units->each(function ($vehicle) use ($activeReservationIds, $activeVehicleIds, $today): void {
         $cleanSchedule = collect($vehicle->schedule ?? [])
@@ -107,15 +117,22 @@ Route::get('/reservations', function (Request $request) {
         ->map(fn ($modelUnits): array => $modelUnits
             ->map(fn ($unit): array => [
                 'id' => $unit->id,
+                'name' => $unit->name,
+                'brand_name' => $unit->brand_name ?? '',
                 'plate' => $unit->plate,
+                'price' => (float) $unit->price,
                 'category' => $unit->category,
                 'transmission' => $unit->transmission,
                 'fuel' => $unit->fuel,
+                'capacity' => (string) ($unit->capacity ?? ''),
                 'capacity_type' => $unit->capacity_type ?: (($unit->capacity ?? null) ? $unit->capacity.' Seater' : ''),
                 'status' => $unit->status,
+                'photo' => $unit->image_path ? asset('storage/'.$unit->image_path) : asset('image/car'.(($unit->id - 1) % 4 + 1).'.jpg'),
                 'schedule' => $unit->schedule ?? [],
-                'bookingWindow' => $unit->bookingWindow(),
-                'bookingWindow' => $unit->bookingWindow(),
+                'bookingWindow' => $unit->bookingWindow(
+                    in_array((int) $unit->id, $activeVehicleIds, true),
+                    $lastReturnedAtByVehicle->get($unit->id)
+                ),
             ])
             ->values()
             ->all());
@@ -225,6 +242,7 @@ Route::get('/user/dashboard', function () {
     $reservationController->synchronizeVehicleStatuses();
     $user = request()->user();
     $reservations = $user->reservations()
+        ->with('vehicleUnit:id,plate,image_path')
         ->latest()
         ->get();
 
@@ -241,19 +259,21 @@ Route::get('/user/dashboard/live', function () {
     $reservationController->expireUnpaidWalkInReservations();
     $reservationController->synchronizeVehicleStatuses();
     $carImages = [
-        'Toyota Vios' => 'car1.png',
-        'Mitsubishi Mirage' => 'car2.png',
-        'Honda Civic' => 'car3.png',
-        'Toyota Fortuner' => 'car4.png',
+        'Toyota Vios' => 'car1.jpg',
+        'Mitsubishi Mirage' => 'car2.jpg',
+        'Honda Civic' => 'car3.jpg',
+        'Toyota Fortuner' => 'car4.jpg',
     ];
     $reservations = request()->user()->reservations()
-        ->with('vehicleUnit:id,plate')
+        ->with('vehicleUnit:id,plate,image_path')
         ->latest()
         ->get()
         ->map(fn (Reservation $reservation): array => [
             'id' => $reservation->id,
             'vehicle' => $reservation->vehicle,
-            'image' => asset('image/'.($carImages[$reservation->vehicle] ?? 'car1.png')),
+            'image' => $reservation->vehicleUnit?->image_path
+                ? asset('storage/'.$reservation->vehicleUnit->image_path)
+                : asset('image/'.($carImages[$reservation->vehicle] ?? 'car1.jpg')),
             'plate' => $reservation->vehicleUnit?->plate ?: 'Not assigned',
             'control_number' => $reservation->control_number,
             'status' => strtoupper($reservation->status),
