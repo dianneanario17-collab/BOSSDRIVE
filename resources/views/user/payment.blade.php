@@ -9,39 +9,37 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --boss-red:#b71c1c; --boss-dark:#121212; --boss-grey:#e0e0e0; }
-        body { background:var(--boss-grey); font-family:'Segoe UI',sans-serif; }
-        .sidebar { width:250px; height:100vh; background:var(--boss-dark); position:fixed; padding:20px; border-right:4px solid var(--boss-red); z-index:1000; display:flex; flex-direction:column; overflow-y:auto; }
-        .nav-link { color:#fff; margin-bottom:10px; border-radius:10px; padding:12px 15px; font-weight:600; text-decoration:none; display:block; }
-        .nav-link:hover,.nav-link.active { background:var(--boss-red); color:#fff!important; }
-        .sidebar-footer { margin-top:auto; width:100%; border-top:1px solid #333; padding-top:15px; }
-        .sidebar-footer a { color:#888; text-decoration:none; font-size:.85rem; }
-        .main-content { margin-left:250px; min-height:100vh; }
-        .top-nav { background:#fff; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ccc; position:sticky; top:0; z-index:999; }
-        .text-black-bold { color:#000; font-weight:800; } .text-boss-red { color:var(--boss-red); font-weight:800; }
+        body { background:var(--boss-grey); color:#212529; font-family:'Segoe UI',sans-serif; }
         .content-container { padding:30px; }
-        .payment-card { background:#fff; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,.05); overflow:hidden; }
-        .gcash-header-badge { background:#007dfe; color:#fff; padding:12px 20px; border-radius:15px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:20px; }
-        .qr-code-img { width:200px; height:200px; border:5px solid #007dfe; border-radius:10px; margin-bottom:15px; object-fit:cover; }
+        .payment-card { background:#fff; border:1px solid #e9ecef; border-radius:18px; box-shadow:0 8px 24px rgba(18,18,18,.06); overflow:hidden; }
+        .payment-panel { border:1px solid #e9ecef!important; border-radius:18px!important; background:#fff; box-shadow:0 8px 24px rgba(18,18,18,.06)!important; }
+        .payment-section-heading { display:flex; align-items:center; gap:12px; }
+        .payment-heading-icon { display:grid; width:42px; height:42px; flex:0 0 42px; place-items:center; border-radius:13px; background:#fff1f2; color:var(--boss-red); }
+        .payment-section-heading h5,.payment-section-heading h6 { margin:0; font-weight:800; }
+        .payment-section-description { margin:.2rem 0 0; color:#6c757d; font-size:.82rem; }
+        .gcash-header-badge { background:linear-gradient(135deg,#0788ff,#0069d9); color:#fff; padding:12px 20px; border-radius:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px; margin:20px 0; }
+        .payment-qr-frame { min-height:170px; padding:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border:1px solid #e9ecef; border-radius:14px; background:#f8f9fa; }
+        .qr-code-img { display:block; width:min(220px,70vw); height:auto; aspect-ratio:1; border:4px solid #fff; border-radius:10px; box-shadow:0 2px 10px rgba(18,18,18,.08); object-fit:contain; }
         .status-badge { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; max-width:125px; padding:7px 10px; border-radius:16px; font-weight:700; font-size:.7rem; line-height:1.25; text-align:center; white-space:normal; }
         .status-pending { background:#f5c451; color:#3f2d00; } .status-paid { background:#d1e7dd; color:#0f5132; }
         .status-approved,.status-payment_pending { background:#fff3cd; color:#856404; }
         .status-unpaid { background:#f8d7da; color:#842029; }
+        .payment-history-entry { border:1px solid #e9ecef!important; border-radius:12px!important; background:#fff; transition:border-color .15s ease, box-shadow .15s ease; }
+        .payment-history-entry:hover { border-color:#d6a0a4!important; box-shadow:0 4px 14px rgba(18,18,18,.05); }
         .payment-proof-preview { display:inline-flex; flex-direction:column; align-items:flex-start; gap:5px; border:0; padding:0; background:none; color:#0d6efd; text-align:left; }
         .payment-proof-thumbnail { display:block; width:auto; max-width:100%; height:90px; object-fit:cover; border:1px solid #dee2e6; border-radius:8px; }
         .payment-completed-dialog { max-width:760px; }
         .payment-completed-dialog .modal-content { max-height:75vh; }
         .payment-completed-dialog .modal-body { overflow-y:auto; }
-        .payment-layout-row { align-items:stretch; }
-        .card.payment-panel { height:760px; min-height:760px; max-height:760px; display:flex; flex-direction:column; overflow:hidden; }
-        .payment-card.payment-panel { height:auto; min-height:0; max-height:760px; align-self:flex-start; overflow-y:auto; }
-        .payment-history-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; padding-right:4px; }
+        .payment-layout-row { align-items:flex-start; }
+        .payment-history-scroll { max-height:min(60vh, 560px); overflow-y:auto; padding-right:4px; scrollbar-color:#ced4da transparent; scrollbar-width:thin; }
         .payment-step[hidden] { display:none!important; }
         .payment-history-tabs { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); }
         .payment-history-tabs .nav-item { min-width:0; }
-        .payment-history-tabs .nav-link { width:100%; min-height:48px; margin:0; padding:10px 8px; color:#212529; background:#f1f3f5; white-space:normal; line-height:1.25; }
-        .payment-history-tabs .nav-link.active { color:#fff; background:#0d6efd; }
-        @media(max-width:768px){ .sidebar{width:210px}.main-content{margin-left:0}.content-container{padding:15px} .sidebar-footer{position:static;width:100%;} }
-        @media(max-width:575.98px){.payment-card{border-radius:15px}.payment-card.p-4{padding:1rem!important}.card.payment-panel{height:auto;min-height:0;max-height:none;overflow:visible}.payment-card.payment-panel{max-height:none;overflow:visible}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.qr-code-img{width:min(180px,65vw);height:auto;aspect-ratio:1}.payment-completed-dialog .modal-content{max-height:85vh}.payment-completed-dialog .modal-body{overflow-y:auto}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
+        .payment-history-tabs .nav-link { width:100%; min-height:46px; margin:0; padding:10px 8px; border-radius:10px; color:#495057; background:#f1f3f5; font-weight:700; white-space:normal; line-height:1.25; }
+        .payment-history-tabs .nav-link.active { color:#fff; background:var(--boss-red); }
+        @media(max-width:991.98px){ .payment-history-scroll { max-height:50vh; } }
+        @media(max-width:575.98px){.payment-card,.payment-panel{border-radius:15px!important}.payment-card.p-4,.payment-panel.p-4{padding:1rem!important}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.payment-qr-frame{min-height:150px;padding:12px}.qr-code-img{width:min(190px,65vw)}.payment-completed-dialog .modal-content{max-height:85vh}.payment-completed-dialog .modal-body{overflow-y:auto}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
     </style>
 </head>
 <body>
@@ -58,10 +56,16 @@
                         + ($item->driver_option === 'with_driver' ? 1500 * $item->rentalDays() : 0);
             @endphp
             <div class="row g-4 payment-layout-row">
-                <div class="col-lg-6">
+                <div class="col-lg-5">
                     <div class="payment-card payment-panel p-4">
-                        <h5 class="fw-bold mb-3">Payment Method</h5>
-                        <div class="gcash-header-badge"><strong>GCash</strong> PAY VIA GCASH</div>
+                        <div class="payment-section-heading">
+                            <span class="payment-heading-icon"><i class="fas fa-wallet" aria-hidden="true"></i></span>
+                            <div>
+                                <h5>Payment Method</h5>
+                                <p class="payment-section-description">Pay for your booking or rental extension.</p>
+                            </div>
+                        </div>
+                        <div class="gcash-header-badge"><i class="fas fa-mobile-alt" aria-hidden="true"></i><strong>GCash</strong> PAY VIA GCASH</div>
 
                         @if($reservation)
                             <form id="paymentSubmissionForm" action="{{ route('user.payments.store') }}" method="POST" enctype="multipart/form-data">
@@ -78,12 +82,13 @@
                                     </div>
                                     <div class="text-center">
                                         <h6 class="fw-bold mb-3 text-primary">Scan QR Code to Pay</h6>
-                                        <div class="border rounded-3 p-4 text-muted small mb-3">
+                                        <div class="payment-qr-frame mb-3">
                                             @if($paymentSettings->gcash_qr_path)
-                                                <img src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code" class="img-fluid" style="max-width: 220px;">
+                                                <img id="gcashQrCode" src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code" class="img-fluid qr-code-img">
+                                                <p id="gcashQrError" class="small text-danger text-center mb-0" hidden>GCash QR code is unavailable. Please contact us for payment assistance.</p>
                                             @else
                                                 <i class="fas fa-qrcode fa-3x text-primary mb-2 d-block"></i>
-                                                GCash QR code will appear here after staff uploads it.
+                                                <p class="small text-muted text-center mb-0">GCash QR code will appear here after staff uploads it.</p>
                                             @endif
                                         </div>
                                         <p class="small text-muted mb-4">Account Name: <span class="fw-bold text-dark">{{ $paymentSettings->account_name ?: 'BIG BOSS RENTAL' }}</span><br>Account No: <span class="fw-bold text-dark">{{ $paymentSettings->account_number ?: '0912 345 6789' }}</span></p>
@@ -112,10 +117,16 @@
                     </div>
                 </div>
 
-                <div class="col-lg-6">
+                <div class="col-lg-7">
                     <div class="card payment-panel border-0 rounded-4 shadow-sm p-4">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                            <h6 class="fw-bold mb-0"><i class="fas fa-history text-danger me-2"></i>Payment History</h6>
+                            <div class="payment-section-heading">
+                                <span class="payment-heading-icon"><i class="fas fa-history" aria-hidden="true"></i></span>
+                                <div>
+                                    <h6>Payment History</h6>
+                                    <p class="payment-section-description">Track pending payments and extensions.</p>
+                                </div>
+                            </div>
                             <button type="button" class="btn btn-sm btn-outline-success rounded-pill text-nowrap" data-bs-toggle="modal" data-bs-target="#completedPaymentsModal">View Completed</button>
                         </div>
                         <ul class="nav nav-pills payment-history-tabs gap-2 mb-3" role="tablist">
@@ -138,7 +149,7 @@
                                         $bookingProofPending = $item->payment_status === 'pending'
                                             && ($item->payment_submitted_amount > 0 || $item->payment_proof_path || $item->payment_reference_id);
                                     @endphp
-                                    <div class="border rounded-3 p-3 mb-2">
+                                    <div class="payment-history-entry p-3 mb-2">
                                         <div class="d-flex justify-content-between gap-2">
                                             <div>
                                                 <strong>{{ $item->vehicle }}</strong>
@@ -189,7 +200,7 @@
                                                     ? 'PENDING PAYMENT'
                                                     : strtoupper(str_replace('_', ' ', $extension->status))));
                                     @endphp
-                                    <div class="border rounded-3 p-3 mb-2">
+                                    <div class="payment-history-entry p-3 mb-2">
                                         <div class="d-flex justify-content-between gap-2">
                                             <div>
                                                 <strong>{{ $extension->reservation->vehicle }} · Extension</strong>
@@ -255,7 +266,7 @@
                             $extensionsForBooking = $completedExtensionsByReservation->get($reservationId, collect());
                             $paymentReservation = $booking ?? $extensionsForBooking->first()->reservation;
                         @endphp
-                        <div class="border rounded-3 p-3 mb-3" data-completed-control="{{ $paymentReservation->control_number }}">
+                        <div class="payment-history-entry p-3 mb-3" data-completed-control="{{ $paymentReservation->control_number }}">
                             <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
                                 <strong>{{ $paymentReservation->vehicle }}</strong>
                                 <span class="status-badge status-paid">COMPLETED</span>
@@ -327,6 +338,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const paymentTargets = @json($paymentTargets);
+        const gcashQrCode = document.getElementById('gcashQrCode');
+        if (gcashQrCode) {
+            const showGcashQrError = function () {
+                gcashQrCode.hidden = true;
+                document.getElementById('gcashQrError')?.removeAttribute('hidden');
+            };
+            gcashQrCode.addEventListener('error', showGcashQrError);
+            if (gcashQrCode.complete && gcashQrCode.naturalWidth === 0) showGcashQrError();
+        }
 
         function showPaymentToast(message) {
             const toastElement = document.getElementById('paymentToast');
