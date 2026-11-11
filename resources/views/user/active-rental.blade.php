@@ -32,7 +32,7 @@
                 <div class="car-preview mb-3">
                     <img src="{{ asset('image/'.$image) }}" class="img-fluid" style="max-height:180px">
                     <h5 class="fw-bold mt-2">{{ $reservation->vehicle }}</h5>
-                    <small class="text-muted">Plate: {{ $activeVehicle?->plate ?? 'Not assigned' }}</small>
+                    <small class="text-muted">Car No: {{ $activeVehicle?->plate ?? 'Not assigned' }}</small>
                     <small class="text-muted fw-bold">{{ $reservation->control_number }}</small>
                 </div>
                 <div class="alert alert-{{ $released ? 'success' : 'warning' }} small" id="awaitingReleasePanel">

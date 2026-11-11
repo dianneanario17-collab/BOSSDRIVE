@@ -179,7 +179,7 @@
                             <thead>
                                 <tr class="small text-muted text-uppercase">
                                     <th>Vehicle</th>
-                                    <th>Plate</th>
+                                    <th>Car No.</th>
                                     <th class="text-center">Times Rented</th>
                                 </tr>
                             </thead>

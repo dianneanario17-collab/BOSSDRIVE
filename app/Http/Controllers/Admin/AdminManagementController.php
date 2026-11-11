@@ -1263,7 +1263,10 @@ class AdminManagementController extends Controller
             'schedule' => ['nullable', 'array'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
-        $data['price'] = $this->cityDrivingPrice($data['category'] ?? null);
+        $guidePrice = $this->cityDrivingPrice($data['category'] ?? null);
+        if ($guidePrice !== null) {
+            $data['price'] = $guidePrice;
+        }
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('vehicles', 'public');
         }
@@ -1309,7 +1312,10 @@ class AdminManagementController extends Controller
             'schedule' => ['nullable', 'array'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
-        $data['price'] = $this->cityDrivingPrice($data['category'] ?? null);
+        $guidePrice = $this->cityDrivingPrice($data['category'] ?? null);
+        if ($guidePrice !== null) {
+            $data['price'] = $guidePrice;
+        }
         if (in_array($data['status'], ['available', 'maintenance'], true) && isset($data['schedule'])) {
             $data['schedule'] = collect($data['schedule'])
                 ->reject(fn ($entry) => in_array($entry['type'] ?? null, ['Reserved', 'Rented'], true))
@@ -1594,7 +1600,7 @@ class AdminManagementController extends Controller
         return $number;
     }
 
-    private function cityDrivingPrice(?string $category): int
+    private function cityDrivingPrice(?string $category): ?int
     {
         $normalized = mb_strtolower(trim((string) $category));
         $guide = PriceGuide::current()->first(function (PriceGuide $priceGuide) use ($normalized): bool {
@@ -1604,16 +1610,21 @@ class AdminManagementController extends Controller
             return (int) $guide->city_driving;
         }
 
-        if (str_contains($normalized, 'diesel')) {
+        if (in_array($normalized, ['expanded — diesel', 'expanded diesel'], true)) {
             return self::CITY_DRIVING_PRICES['expanded — diesel'];
         }
 
-        if (str_contains($normalized, 'pick-up')
-            || str_contains($normalized, 'pickup')
-            || str_contains($normalized, 'gas')) {
+        if (in_array($normalized, [
+            'pick-up / expanded (7-seater) (2 days) — gas',
+            'pick-up / expanded',
+        ], true)) {
             return self::CITY_DRIVING_PRICES['pick-up / expanded (7-seater) (2 days) — gas'];
         }
 
-        return self::CITY_DRIVING_PRICES['sedan'];
+        if ($normalized === '' || $normalized === 'sedan') {
+            return self::CITY_DRIVING_PRICES['sedan'];
+        }
+
+        return null;
     }
 }

@@ -538,7 +538,7 @@
                             '<small class="text-muted d-block">' + inv.phone + '</small>' +
                             '<span class="badge billing-source-badge ' + (inv.source === 'walkin' ? 'bg-warning text-dark' : 'bg-primary') + ' rounded-pill">' + (inv.source === 'walkin' ? 'Walk-in' : 'Online') + '</span>' +
                         '</td>' +
-                        '<td><span class="badge bg-dark rounded-pill px-3">' + inv.vehicle + '</span><small class="d-block text-muted mt-1">Plate: ' + (inv.vehiclePlate || 'Not assigned') + '</small></td>' +
+                        '<td><span class="badge bg-dark rounded-pill px-3">' + inv.vehicle + '</span><small class="d-block text-muted mt-1">Car No: ' + (inv.vehiclePlate || 'Not assigned') + '</small></td>' +
                         '<td class="fw-bold ' + totalClass + '">' + peso(totals.total) + '</td>' +
                         '<td class="fw-bold text-success">' + peso(paidAmount) + '</td>' +
                         '<td class="fw-bold ' + balanceClass + '">' + peso(balance) + '</td>' +

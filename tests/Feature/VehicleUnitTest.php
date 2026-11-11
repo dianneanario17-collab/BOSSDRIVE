@@ -434,6 +434,11 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('car-loader-icon', $adminPage->getContent());
         $this->assertSame(2, substr_count($adminPage->getContent(), '>Pick-up / Expanded</option>'));
         $this->assertSame(2, substr_count($adminPage->getContent(), '>Expanded</option>'));
+        $this->assertSame(2, substr_count($adminPage->getContent(), '<option value="SUV">SUV</option>'));
+        $this->assertStringContainsString('Enter custom category', $adminPage->getContent());
+        $this->assertStringContainsString('Enter custom capacity', $adminPage->getContent());
+        $this->assertStringNotContainsString('(matches the Price Guide)', $adminPage->getContent());
+        $this->assertStringContainsString('Car No.', $adminPage->getContent());
         $this->assertStringContainsString('function displayVehicleCategory(category)', $adminPage->getContent());
         $this->assertStringContainsString("return 'Expanded';", $adminPage->getContent());
         $this->assertSame(1, substr_count($adminPage->getContent(), 'id="vehicleSpecificationsModal"'));
@@ -472,6 +477,59 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('car-loader-icon', $staffPage->getContent());
         $this->assertSame(1, substr_count($staffPage->getContent(), 'id="vehicleSpecificationsModal"'));
         $this->assertStringContainsString('View Specifications', $staffPage->getContent());
+    }
+
+    public function test_custom_vehicle_categories_and_capacities_keep_their_manual_values(): void
+    {
+        $this->withSession(['is_admin' => true])
+            ->postJson(route('admin.vehicles.store'), [
+                'name' => 'SUV Unit',
+                'plate' => 'SUV 1001',
+                'price' => 4200,
+                'category' => 'SUV',
+                'capacity' => 8,
+                'capacity_type' => '8 Seater',
+                'status' => 'available',
+            ])
+            ->assertCreated();
+
+        $suv = Vehicle::where('plate', 'SUV 1001')->firstOrFail();
+        $this->assertSame(4200, (int) $suv->price);
+        $this->assertSame('SUV', $suv->category);
+
+        $this->postJson(route('admin.vehicles.store'), [
+            'name' => 'Custom Category Unit',
+            'plate' => 'CUSTOM 1001',
+            'price' => 5100,
+            'category' => 'Executive Van',
+            'capacity' => '',
+            'capacity_type' => 'Flexible seating',
+            'status' => 'available',
+        ])->assertCreated();
+
+        $custom = Vehicle::where('plate', 'CUSTOM 1001')->firstOrFail();
+        $this->assertSame(5100, (int) $custom->price);
+        $this->assertSame('Executive Van', $custom->category);
+        $this->assertNull($custom->capacity);
+        $this->assertSame('Flexible seating', $custom->capacity_type);
+
+        $this->patchJson(route('admin.vehicles.update', $suv), [
+            'name' => 'SUV Unit',
+            'plate' => 'SUV 1001',
+            'price' => 4300,
+            'category' => 'SUV',
+            'capacity' => 9,
+            'capacity_type' => '9 Seater',
+            'status' => 'available',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('vehicles', [
+            'id' => $suv->id,
+            'price' => 4300,
+            'category' => 'SUV',
+            'capacity' => 9,
+            'capacity_type' => '9 Seater',
+        ]);
     }
 
     public function test_admin_and_staff_calendars_mark_upcoming_deliveries_as_special_until_rental_starts(): void
@@ -586,7 +644,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('class="specifications-button"', $guestContent);
         $this->assertStringContainsString('function showGuestSpecifications(button)', $guestContent);
         $this->assertStringContainsString('function displayGuestCategory(category)', $guestContent);
-        $this->assertStringContainsString("if (normalized.includes('diesel')) return 'Diesel';", $guestContent);
+        $this->assertStringContainsString("if (normalized === 'expanded — diesel') return 'Diesel';", $guestContent);
+        $this->assertStringContainsString("if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas') return 'Pick-up / Expanded';", $guestContent);
         $this->assertStringContainsString("return 'Pick-up / Expanded';", $guestContent);
         $this->assertStringContainsString('id="guest-category-', $guestContent);
         $this->assertStringNotContainsString("['Category', unit.category]", $guestContent);
@@ -604,7 +663,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString("['Fuel Type', vehicle.fuel]", $userPage->getContent());
         $this->assertStringContainsString("['Capacity', vehicle.capacity_type", $userPage->getContent());
         $this->assertStringContainsString('function displayReservationCategory(category)', $userPage->getContent());
-        $this->assertStringContainsString("if (normalized.includes('diesel')) return 'Diesel';", $userPage->getContent());
+        $this->assertStringContainsString("if (normalized === 'expanded — diesel') return 'Diesel';", $userPage->getContent());
+        $this->assertStringContainsString("if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas') return 'Pick-up / Expanded';", $userPage->getContent());
         $this->assertStringContainsString("return 'Pick-up / Expanded';", $userPage->getContent());
         $this->assertStringContainsString('escapeHtml(displayReservationCategory(v.category))', $userPage->getContent());
         $this->assertStringNotContainsString("['Category', vehicle.category]", $userPage->getContent());

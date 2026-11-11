@@ -172,7 +172,7 @@
                                     <button type="button" class="specifications-button" id="guest-specs-button-{{ $vehicle->id }}" data-card-id="{{ $vehicle->id }}" data-unit-id="{{ $vehicle->id }}" onclick="showGuestSpecifications(this)"><i class="fas fa-list-ul" aria-hidden="true"></i>View Specifications</button>
                                     <span class="car-info-tag">{{ count($damageLogs) }} Condition Log{{ count($damageLogs) === 1 ? '' : 's' }}</span>
                                 </div>
-                                <div class="small text-muted mb-1" id="guest-unit-{{ $vehicle->id }}"><strong>Plate:</strong> {{ $vehicle->plate }}</div>
+                                <div class="small text-muted mb-1" id="guest-unit-{{ $vehicle->id }}"><strong>Car No:</strong> {{ $vehicle->plate }}</div>
                                 <div class="small fw-bold mb-3" id="guest-schedule-{{ $vehicle->id }}"></div>
                                 <div class="catalog-card-footer">
                                 @if ($activeReservation)
@@ -404,8 +404,8 @@
         let calendarMaintenance = @json($calendarMaintenance ?? []);
         function displayGuestCategory(category) {
             const normalized = String(category || '').toLowerCase();
-            if (normalized.includes('diesel')) return 'Diesel';
-            if (normalized.includes('pick-up') || normalized.includes('pickup')) return 'Pick-up / Expanded';
+            if (normalized === 'expanded — diesel') return 'Diesel';
+            if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas') return 'Pick-up / Expanded';
             return category || '';
         }
 
@@ -461,7 +461,7 @@
                 title.textContent = button.dataset.model + ' #' + (index + 1);
                 const plate = document.createElement('small');
                 plate.className = 'd-block';
-                plate.textContent = 'Plate: ' + (unit.plate || 'Not assigned');
+                plate.textContent = 'Car No: ' + (unit.plate || 'Not assigned');
                 const specifications = document.createElement('small');
                 specifications.className = 'd-block text-muted';
                 specifications.textContent = [displayGuestCategory(unit.category), unit.transmission, unit.fuel, unit.capacity_type]
@@ -482,7 +482,7 @@
 
         function selectGuestUnit(unit, index, cardId, modelName, status) {
             document.getElementById('guest-title-' + cardId).textContent = modelName + ' Unit #' + (index + 1);
-            document.getElementById('guest-unit-' + cardId).innerHTML = '<strong>Plate:</strong> ' + escapeGuestHtml(unit.plate || 'Not assigned');
+            document.getElementById('guest-unit-' + cardId).innerHTML = '<strong>Car No:</strong> ' + escapeGuestHtml(unit.plate || 'Not assigned');
             document.getElementById('guest-category-' + cardId).textContent = displayGuestCategory(unit.category);
             document.getElementById('guest-specs-button-' + cardId).dataset.unitId = String(unit.id);
             const badge = document.getElementById('guest-status-' + cardId);

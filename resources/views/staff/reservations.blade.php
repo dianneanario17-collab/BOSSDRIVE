@@ -659,7 +659,7 @@
             document.getElementById('mDeliveryNotes').innerText = reservation.deliveryNotes || 'None';
             document.getElementById('mPickupSchedule').innerText = [reservation.pickupDate, reservation.pickupTime].filter(Boolean).join(' at ') || 'Not provided';
             document.getElementById('mReturnSchedule').innerText = [reservation.returnDate, reservation.returnTime].filter(Boolean).join(' at ') || 'Not provided';
-            document.getElementById('mVehicleUnit').innerText = [reservation.vehicle, reservation.vehiclePlate ? 'Plate: ' + reservation.vehiclePlate : null].filter(Boolean).join(' — ') || 'Not provided';
+            document.getElementById('mVehicleUnit').innerText = [reservation.vehicle, reservation.vehiclePlate ? 'Car No: ' + reservation.vehiclePlate : null].filter(Boolean).join(' — ') || 'Not provided';
             document.getElementById('mVehicleSpecs').innerText = [reservation.vehicleCategory, reservation.vehicleTransmission, reservation.vehicleFuel, reservation.vehicleCapacity].filter(Boolean).join(' · ') || 'Not provided';
             setStaffPaymentProofPreview(reservation.paymentProof);
         }

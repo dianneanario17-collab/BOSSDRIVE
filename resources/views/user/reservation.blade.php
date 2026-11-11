@@ -1091,8 +1091,8 @@
 
     function displayReservationCategory(category) {
         const normalized = String(category || '').toLowerCase();
-        if (normalized.includes('diesel')) return 'Diesel';
-        if (normalized.includes('pick-up') || normalized.includes('pickup')) return 'Pick-up / Expanded';
+        if (normalized === 'expanded — diesel') return 'Diesel';
+        if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas') return 'Pick-up / Expanded';
         return category || '';
     }
 
@@ -1121,7 +1121,7 @@
                 ? '<small class="d-block text-muted">Reserved: ' + escapeHtml(formatDateRange(unit.currentReservation.pickup_date, unit.currentReservation.return_date)) + '</small>'
                 : '';
             return '<button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ' + (active ? 'active' : '') + '" data-model-name="' + escapeHtml(modelName) + '" data-unit-id="' + unit.id + '" onclick="selectVehicleUnitFromButton(this)">' +
-                '<span class="text-start"><strong>' + escapeHtml(modelName) + ' #' + (index + 1) + '</strong><small class="d-block">Plate: ' + escapeHtml(unit.plate || 'Not assigned') + '</small><small class="d-block text-muted">' + escapeHtml([displayReservationCategory(unit.category), unit.transmission, unit.fuel, unit.capacity_type || (unit.capacity ? unit.capacity + ' Seater' : '')].filter(Boolean).join(' · ') || 'Vehicle details not provided') + '</small>' + dates + '</span>' +
+                '<span class="text-start"><strong>' + escapeHtml(modelName) + ' #' + (index + 1) + '</strong><small class="d-block">Car No: ' + escapeHtml(unit.plate || 'Not assigned') + '</small><small class="d-block text-muted">' + escapeHtml([displayReservationCategory(unit.category), unit.transmission, unit.fuel, unit.capacity_type || (unit.capacity ? unit.capacity + ' Seater' : '')].filter(Boolean).join(' · ') || 'Vehicle details not provided') + '</small>' + dates + '</span>' +
                 '<span class="badge ' + (status === 'Available' ? 'text-bg-success' : (status === 'Maintenance' ? 'text-bg-warning' : 'text-bg-primary')) + '">' + escapeHtml(status) + '</span>' +
                 '</button>';
         }).join('');
@@ -1235,7 +1235,7 @@
                             '<div>' +
                                 '<h5 class="fw-bold mb-0' + (dimmed ? ' text-muted' : '') + '">' + escapeHtml(v.name) + ' Unit #' + unitNumber + '</h5>' +
                                 (v.brand_name ? '<small class="text-muted d-block">' + escapeHtml(v.brand_name) + '</small>' : '') +
-                                '<small class="text-muted d-block">Plate: ' + escapeHtml(v.plate || 'Not assigned') + '</small>' +
+                                '<small class="text-muted d-block">Car No: ' + escapeHtml(v.plate || 'Not assigned') + '</small>' +
                                 '<small class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-history me-1"></i>' + v.timesRented + ' Times Rented</small>' +
                             '</div>' +
                             '<div class="text-end">' +

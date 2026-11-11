@@ -148,7 +148,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
                     <h6 class="fw-bold mb-0 text-uppercase small text-muted"><i class="fas fa-satellite-dish text-danger me-2"></i>Live Monitoring Logs</h6>
                     <div class="d-flex gap-2" style="max-width: 320px; width: 100%;">
-                        <input type="text" id="activeSearchInput" class="form-control form-control-sm" placeholder="Search vehicle, plate, or control no..." onkeyup="filterActiveRentals()">
+                        <input type="text" id="activeSearchInput" class="form-control form-control-sm" placeholder="Search vehicle, car no., or control no..." onkeyup="filterActiveRentals()">
                     </div>
                 </div>
                 <div class="rental-source-tabs mb-3" role="tablist" aria-label="Rental source filter">
@@ -170,7 +170,7 @@
                     <table class="table align-middle table-hover border-top" id="activeRentalsTable">
                         <thead class="bg-light">
                             <tr class="small text-muted text-uppercase">
-                                <th class="py-3">Vehicle & Plate</th>
+                                <th class="py-3">Vehicle & Car No.</th>
                                 <th>Control Number</th>
                                 <th>Client Name</th>
                                 <th>Rental Period</th>
@@ -190,7 +190,7 @@
                             <tr class="rental-row {{ $isOverdue ? 'bg-danger bg-opacity-10' : '' }}" data-source="{{ $reservation->booking_source === 'admin_staff' ? 'walkin' : 'online' }}" data-status="{{ $isOverdue ? 'overdue' : ($isDue ? 'due' : 'all') }}" data-search="{{ strtolower($reservation->vehicle.' '.$reservation->control_number.' '.($reservation->customer_name ?: ($user?->name ?? ''))) }}">
                                 <td>
                                     <div class="fw-bold rental-vehicle-name" title="{{ $reservation->vehicle }}">{{ $reservation->vehicle }}</div>
-                                    <span class="plate-number small">{{ $vehiclePlates[$reservation->vehicle_id] ?? 'Plate pending' }}</span>
+                                    <span class="plate-number small">{{ $vehiclePlates[$reservation->vehicle_id] ?? 'Car No. pending' }}</span>
                                     <span class="badge rental-source-badge {{ $reservation->booking_source === 'admin_staff' ? 'bg-warning text-dark' : 'bg-primary' }} rounded-pill">{{ $reservation->booking_source === 'admin_staff' ? 'Walk-in' : 'Online' }}</span>
                                 </td>
                                 <td><span class="control-tag">{{ $reservation->control_number }}</span></td>

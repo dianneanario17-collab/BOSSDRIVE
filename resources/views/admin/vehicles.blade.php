@@ -258,7 +258,7 @@
                     <div class="row g-3">
                         <div class="col-12"><label class="form-label small fw-bold">Vehicle Model</label><input type="text" id="addName" class="form-control rounded-3" placeholder="e.g. Vios 2023"></div>
                         <div class="col-12"><label class="form-label small fw-bold">Brand Name</label><input type="text" id="addBrandName" class="form-control rounded-3" placeholder="e.g. Toyota"></div>
-                        <div class="col-md-6"><label class="form-label small fw-bold">Plate No.</label><input type="text" id="addPlate" class="form-control rounded-3" placeholder="e.g. GAS-123"></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Car No.</label><input type="text" id="addPlate" class="form-control rounded-3" placeholder="e.g. GAS-123"></div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Initial Unit Status</label>
                             <select id="addStatus" class="form-select rounded-3">
@@ -271,16 +271,19 @@
                                 <label class="form-label small fw-bold mb-0">Price/Day <span class="text-muted fw-normal">(City Driving)</span></label>
                                 <a class="small text-danger fw-bold text-decoration-none" style="cursor:pointer; font-size:0.7rem;" data-bs-toggle="modal" data-bs-target="#priceGuideModal"><i class="fas fa-tags me-1"></i>Price Guide</a>
                             </div>
-                            <input type="number" id="addPrice" class="form-control rounded-3 mt-1 bg-light" placeholder="Select a category" readonly>
+                            <input type="number" id="addPrice" class="form-control rounded-3 mt-1 bg-light" placeholder="Select a category" readonly min="0" step="0.01">
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label small fw-bold">Category <span class="text-muted fw-normal">(matches the Price Guide)</span></label>
+                            <label class="form-label small fw-bold">Category</label>
                             <select id="addCategory" class="form-select rounded-3" onchange="syncVehicleCategoryPrice('add')">
                                 <option value="Sedan">Sedan</option>
                                 <option value="Pick-up / Expanded (7-Seater) (2 Days) — Gas">Pick-up / Expanded</option>
                                 <option value="Expanded — Diesel">Expanded</option>
+                                <option value="SUV">SUV</option>
+                                <option value="__custom__">Custom</option>
                             </select>
+                            <input type="text" id="addCustomCategory" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom category" maxlength="255" oninput="syncVehicleCategoryPrice('add')">
                         </div>
 
                         <div class="col-md-6">
@@ -299,12 +302,14 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold">Capacity</label>
-                            <select id="addCapacityType" class="form-select rounded-3">
+                            <select id="addCapacityType" class="form-select rounded-3" onchange="syncVehicleCapacity('add')">
                                 <option value="4 Seater">4 Seater</option>
                                 <option value="5 Seater" selected>5 Seater</option>
                                 <option value="6 Seater">6 Seater</option>
                                 <option value="7 Seater">7 Seater</option>
+                                <option value="__custom__">Custom</option>
                             </select>
+                            <input type="text" id="addCustomCapacity" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom capacity" maxlength="50">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold">Vehicle Photo <span class="text-muted fw-normal">(optional)</span></label>
@@ -365,22 +370,25 @@
                     <div class="row g-3">
                         <div class="col-12"><label class="form-label small fw-bold">Vehicle Model</label><input type="text" id="editName" class="form-control rounded-3"></div>
                         <div class="col-12"><label class="form-label small fw-bold">Brand Name</label><input type="text" id="editBrandName" class="form-control rounded-3"></div>
-                        <div class="col-md-6"><label class="form-label small fw-bold">Plate No.</label><input type="text" id="editPlate" class="form-control rounded-3"></div>
+                        <div class="col-md-6"><label class="form-label small fw-bold">Car No.</label><input type="text" id="editPlate" class="form-control rounded-3"></div>
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between align-items-center">
                                 <label class="form-label small fw-bold mb-0">Price/Day <span class="text-muted fw-normal">(City Driving)</span></label>
                                 <a class="small text-danger fw-bold text-decoration-none" style="cursor:pointer; font-size:0.7rem;" data-bs-toggle="modal" data-bs-target="#priceGuideModal"><i class="fas fa-tags me-1"></i>Price Guide</a>
                             </div>
-                            <input type="number" id="editPrice" class="form-control rounded-3 mt-1 bg-light" readonly>
+                            <input type="number" id="editPrice" class="form-control rounded-3 mt-1 bg-light" readonly min="0" step="0.01">
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label small fw-bold">Category <span class="text-muted fw-normal">(matches the Price Guide)</span></label>
+                            <label class="form-label small fw-bold">Category</label>
                             <select id="editCategory" class="form-select rounded-3" onchange="syncVehicleCategoryPrice('edit')">
                                 <option value="Sedan">Sedan</option>
                                 <option value="Pick-up / Expanded (7-Seater) (2 Days) — Gas">Pick-up / Expanded</option>
                                 <option value="Expanded — Diesel">Expanded</option>
+                                <option value="SUV">SUV</option>
+                                <option value="__custom__">Custom</option>
                             </select>
+                            <input type="text" id="editCustomCategory" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom category" maxlength="255" oninput="syncVehicleCategoryPrice('edit')">
                         </div>
 
                         <div class="col-md-6">
@@ -399,12 +407,14 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Capacity</label>
-                            <select id="editCapacityType" class="form-select rounded-3">
+                            <select id="editCapacityType" class="form-select rounded-3" onchange="syncVehicleCapacity('edit')">
                                 <option value="4 Seater">4 Seater</option>
                                 <option value="5 Seater">5 Seater</option>
                                 <option value="6 Seater">6 Seater</option>
                                 <option value="7 Seater">7 Seater</option>
+                                <option value="__custom__">Custom</option>
                             </select>
+                            <input type="text" id="editCustomCapacity" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom capacity" maxlength="50">
                         </div>
 
                         <div class="col-md-6">
@@ -1273,7 +1283,7 @@
                                 '<div>' +
                                     '<h5 class="fw-bold mb-0">' + escapeHtml(modelName) + ' Unit #' + unitNumber + '</h5>' +
                                     (v.brand_name ? '<small class="text-muted d-block">' + escapeHtml(v.brand_name) + '</small>' : '') +
-                                    '<span class="plate-number">' + escapeHtml(v.plate) + '</span>' +
+                                    '<span class="plate-number">Car No: ' + escapeHtml(v.plate) + '</span>' +
                                     '<small class="text-muted d-block mt-1" style="font-size:0.72rem;"><i class="fas fa-history me-1"></i>' + v.timesRented + ' Times Rented</small>' +
                                 '</div>' +
                                 '<div class="text-end">' +
@@ -1367,7 +1377,7 @@
                 title.textContent = modelName + ' Unit #' + (index + 1);
                 const plate = document.createElement('small');
                 plate.className = 'd-block';
-                plate.textContent = 'Plate: ' + (unit.plate || 'Not assigned');
+                plate.textContent = 'Car No: ' + (unit.plate || 'Not assigned');
                 details.append(title, plate);
                 const status = document.createElement('span');
                 status.className = 'badge ' + (unit.status === 'Available'
@@ -1393,15 +1403,14 @@
             document.getElementById('addName').disabled = true;
             document.getElementById('addVehicleModalTitle').textContent = 'ADD UNIT — ' + vehicle.name;
             document.getElementById('addBrandName').value = vehicle.brand_name || '';
-            document.getElementById('addCategory').value = normalizeVehicleCategory(vehicle.category);
+            setVehicleCategory('add', vehicle.category, vehicle.price);
             document.getElementById('addTransmission').value = vehicle.transmission || 'Manual';
             document.getElementById('addFuel').value = vehicle.fuel || 'Gasoline';
-            document.getElementById('addCapacityType').value = vehicle.capacity_type || (vehicle.capacity + ' Seater');
+            setVehicleCapacity('add', vehicle.capacity_type || (vehicle.capacity ? vehicle.capacity + ' Seater' : ''));
             document.getElementById('addStatus').value = 'available';
             document.getElementById('addPhoto').value = vehicle.imagePath || '';
             document.getElementById('addPhotoFile').value = '';
             setPhotoPreview('add', vehicle.photo || '');
-            syncVehicleCategoryPrice('add');
             bootstrap.Modal.getOrCreateInstance(document.getElementById('addVehicleModal')).show();
         }
 
@@ -1475,34 +1484,124 @@
         const cityDrivingPrices = @json($priceGuides->mapWithKeys(fn ($guide) => [$guide->category => (float) $guide->city_driving]));
 
         function cityDrivingPrice(category) {
-            const normalized = String(category || '').toLowerCase();
-            if (normalized.includes('diesel')) return cityDrivingPrices['Expanded — Diesel'];
-            if (normalized.includes('pick-up') || normalized.includes('pickup') || normalized.includes('gas')) {
+            const normalized = String(category || '').trim().toLowerCase();
+            if (normalized === 'expanded — diesel' || normalized === 'expanded diesel') return cityDrivingPrices['Expanded — Diesel'];
+            if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas' || normalized === 'pick-up / expanded') {
                 return cityDrivingPrices['Pick-up / Expanded (7-Seater) (2 Days) — Gas'];
             }
-            return cityDrivingPrices.Sedan;
+            if (normalized === 'sedan') return cityDrivingPrices.Sedan;
+            return null;
+        }
+
+        function getVehicleCategory(prefix) {
+            const select = document.getElementById(prefix + 'Category');
+            return select.value === '__custom__'
+                ? document.getElementById(prefix + 'CustomCategory').value.trim()
+                : select.value;
+        }
+
+        function isCustomVehicleCategory(prefix) {
+            return document.getElementById(prefix + 'Category').value === '__custom__';
+        }
+
+        function isDuplicateCustomCategory(prefix, category) {
+            if (!isCustomVehicleCategory(prefix)) return false;
+            const normalized = String(category || '').trim().toLowerCase();
+            return [
+                'sedan',
+                'suv',
+                'expanded',
+                'expanded — diesel',
+                'expanded diesel',
+                'pick-up / expanded',
+                'pick-up / expanded (7-seater) (2 days) — gas',
+            ].includes(normalized);
+        }
+
+        function getVehiclePrice(prefix, category) {
+            if (!isCustomVehicleCategory(prefix) && document.getElementById(prefix + 'Category').value !== 'SUV') {
+                return cityDrivingPrice(category);
+            }
+            const value = document.getElementById(prefix + 'Price').value;
+            return value === '' ? null : Number(value);
         }
 
         function syncVehicleCategoryPrice(prefix) {
-            const category = document.getElementById(prefix + 'Category').value;
-            document.getElementById(prefix + 'Price').value = cityDrivingPrice(category);
+            const select = document.getElementById(prefix + 'Category');
+            const customCategory = document.getElementById(prefix + 'CustomCategory');
+            const price = document.getElementById(prefix + 'Price');
+            const manualPrice = select.value === 'SUV' || select.value === '__custom__';
+            customCategory.classList.toggle('d-none', select.value !== '__custom__');
+            if (manualPrice) {
+                if (price.readOnly) price.value = '';
+                price.readOnly = false;
+                price.classList.remove('bg-light');
+                if (select.value === 'SUV') price.placeholder = 'Enter price per day';
+            } else {
+                price.readOnly = true;
+                price.classList.add('bg-light');
+                price.value = cityDrivingPrice(select.value) ?? '';
+                price.placeholder = 'Select a category';
+            }
         }
 
         function normalizeVehicleCategory(category) {
             const normalized = String(category || '').toLowerCase();
-            if (normalized.includes('diesel')) return 'Expanded — Diesel';
-            if (normalized.includes('pick-up') || normalized.includes('pickup') || normalized.includes('gas')) {
+            if (normalized === 'expanded — diesel' || normalized === 'expanded diesel') return 'Expanded — Diesel';
+            if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas' || normalized === 'pick-up / expanded') {
                 return 'Pick-up / Expanded (7-Seater) (2 Days) — Gas';
             }
-            return 'Sedan';
+            if (normalized === 'sedan') return 'Sedan';
+            if (normalized === 'suv') return 'SUV';
+            return '__custom__';
+        }
+
+        function setVehicleCategory(prefix, category, priceValue) {
+            const select = document.getElementById(prefix + 'Category');
+            const customCategory = document.getElementById(prefix + 'CustomCategory');
+            select.value = normalizeVehicleCategory(category);
+            customCategory.value = select.value === '__custom__' ? (category || '') : '';
+            syncVehicleCategoryPrice(prefix);
+            if (select.value === 'SUV' || select.value === '__custom__') {
+                document.getElementById(prefix + 'Price').value = priceValue ?? '';
+            }
+        }
+
+        function syncVehicleCapacity(prefix) {
+            const select = document.getElementById(prefix + 'CapacityType');
+            const customCapacity = document.getElementById(prefix + 'CustomCapacity');
+            customCapacity.classList.toggle('d-none', select.value !== '__custom__');
+        }
+
+        function setVehicleCapacity(prefix, capacityType) {
+            const select = document.getElementById(prefix + 'CapacityType');
+            const customCapacity = document.getElementById(prefix + 'CustomCapacity');
+            const knownCapacity = Array.from(select.options).some(function (option) {
+                return option.value === capacityType;
+            });
+            select.value = knownCapacity ? capacityType : '__custom__';
+            customCapacity.value = knownCapacity ? '' : (capacityType || '');
+            syncVehicleCapacity(prefix);
+        }
+
+        function getVehicleCapacityType(prefix) {
+            const select = document.getElementById(prefix + 'CapacityType');
+            return select.value === '__custom__'
+                ? document.getElementById(prefix + 'CustomCapacity').value.trim()
+                : select.value;
+        }
+
+        function vehicleCapacityNumber(capacityType) {
+            const match = String(capacityType || '').match(/^\s*(\d+)/);
+            return match ? match[1] : '';
         }
 
         function displayVehicleCategory(category) {
             const normalized = String(category || '').toLowerCase();
-            if (normalized.includes('diesel')) {
+            if (normalized === 'expanded — diesel') {
                 return 'Expanded';
             }
-            if (normalized.includes('pick-up') || normalized.includes('pickup')) {
+            if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas') {
                 return 'Pick-up / Expanded';
             }
             return category;
@@ -1514,9 +1613,12 @@
             document.getElementById('addBrandName').value = '';
             document.getElementById('addPlate').value = '';
             document.getElementById('addCategory').value = 'Sedan';
+            document.getElementById('addCustomCategory').value = '';
             document.getElementById('addTransmission').value = 'Manual';
             document.getElementById('addFuel').value = 'Gasoline';
             document.getElementById('addCapacityType').value = '5 Seater';
+            document.getElementById('addCustomCapacity').value = '';
+            syncVehicleCapacity('add');
             document.getElementById('addStatus').value = 'available';
             document.getElementById('addPhoto').value = '';
             document.getElementById('addPhotoFile').value = '';
@@ -1533,12 +1635,12 @@
 
             const name = document.getElementById('addName').value.trim();
             const plate = document.getElementById('addPlate').value.trim();
-            const category = document.getElementById('addCategory').value;
-            const price = cityDrivingPrice(category);
-            document.getElementById('addPrice').value = price;
+            const category = getVehicleCategory('add');
+            const capacityType = getVehicleCapacityType('add');
+            const price = getVehiclePrice('add', category);
 
-            if (!name || !plate || !price) {
-                errorArea.innerHTML = '<div class="alert alert-danger py-2 px-3 mt-3 mb-0 small fw-bold">Please fill out Vehicle Name, Plate No., and Price/Day.</div>';
+            if (!name || !plate || !category || isDuplicateCustomCategory('add', category) || !capacityType || price === null || !Number.isFinite(price) || price < 0) {
+                errorArea.innerHTML = '<div class="alert alert-danger py-2 px-3 mt-3 mb-0 small fw-bold">Please fill out Vehicle Name, Car No., Category, Capacity, and a valid Price/Day.</div>';
                 showToast('Please complete the required fields.', 'error');
                 return;
             }
@@ -1556,9 +1658,8 @@
             formData.append('category', category);
             formData.append('transmission', document.getElementById('addTransmission').value);
             formData.append('fuel', document.getElementById('addFuel').value);
-            const addCapacityType = document.getElementById('addCapacityType').value;
-            formData.append('capacity_type', addCapacityType);
-            formData.append('capacity', addCapacityType.split(' ')[0]);
+            formData.append('capacity_type', capacityType);
+            formData.append('capacity', vehicleCapacityNumber(capacityType));
             const addStatus = document.getElementById('addStatus').value;
             formData.append('status', addStatus);
             const imageFile = document.getElementById('addPhotoFile').files[0];
@@ -1590,10 +1691,10 @@
             fleet.push({
                 id: savedVehicle.vehicle.id,
                 name: name, brand_name: document.getElementById('addBrandName').value.trim(), plate: plate, price: price,
-                category: document.getElementById('addCategory').value,
+                category: category,
                 transmission: document.getElementById('addTransmission').value,
                 fuel: document.getElementById('addFuel').value,
-                capacity: addCapacityType.split(' ')[0], capacity_type: addCapacityType,
+                capacity: vehicleCapacityNumber(capacityType), capacity_type: capacityType,
                 status: addStatus === 'maintenance' ? 'Maintenance' : 'Available',
                 photo: savedVehicle.vehicle.image_path
                     ? '{{ url('/storage') }}/' + savedVehicle.vehicle.image_path
@@ -1628,12 +1729,11 @@
             document.getElementById('editBrandName').value = v.brand_name || '';
             document.getElementById('editPlate').value = v.plate;
             document.getElementById('editPrice').value = v.price;
-            document.getElementById('editCategory').value = normalizeVehicleCategory(v.category);
-            syncVehicleCategoryPrice('edit');
+            setVehicleCategory('edit', v.category, v.price);
             document.getElementById('editStatus').value = v.status;
             document.getElementById('editTransmission').value = v.transmission;
             document.getElementById('editFuel').value = v.fuel;
-            document.getElementById('editCapacityType').value = v.capacity_type || (v.capacity ? v.capacity + ' Seater' : '5 Seater');
+            setVehicleCapacity('edit', v.capacity_type || (v.capacity ? v.capacity + ' Seater' : '5 Seater'));
             document.getElementById('editPhoto').value = v.photo;
             const currentSchedule = (v.schedule || []).find(function (entry) {
                 return entry.type === v.status || (v.status === 'Rented' && entry.type === 'Rented');
@@ -1655,6 +1755,13 @@
             const editedStatus = document.getElementById('editStatus').value;
             const scheduleStart = document.getElementById('editScheduleStart').value;
             const scheduleEnd = document.getElementById('editScheduleEnd').value;
+            const editedCategory = getVehicleCategory('edit');
+            const editedCapacityType = getVehicleCapacityType('edit');
+            const editedPrice = getVehiclePrice('edit', editedCategory);
+            if (!editedCategory || isDuplicateCustomCategory('edit', editedCategory) || !editedCapacityType || editedPrice === null || !Number.isFinite(editedPrice) || editedPrice < 0) {
+                showToast('Please enter a category, capacity, and valid Price/Day.', 'error');
+                return;
+            }
             if (['Rented', 'Maintenance'].includes(editedStatus) && (!scheduleStart || !scheduleEnd)) {
                 showToast('Please enter the start and end dates for this status.', 'error');
                 return;
@@ -1678,13 +1785,13 @@
                 name: document.getElementById('editName').value.trim(),
                 brand_name: document.getElementById('editBrandName').value.trim(),
                 plate: document.getElementById('editPlate').value.trim(),
-                price: cityDrivingPrice(document.getElementById('editCategory').value),
-                category: document.getElementById('editCategory').value,
+                price: editedPrice,
+                category: editedCategory,
                 status: editedStatus,
                 transmission: document.getElementById('editTransmission').value,
                 fuel: document.getElementById('editFuel').value,
-                capacity: document.getElementById('editCapacityType').value.split(' ')[0],
-                capacity_type: document.getElementById('editCapacityType').value,
+                capacity: vehicleCapacityNumber(editedCapacityType),
+                capacity_type: editedCapacityType,
                 photo: document.getElementById('editPhoto').value.trim()
             });
             fleet[idx].schedule = (fleet[idx].schedule || []).filter(function (entry) {
