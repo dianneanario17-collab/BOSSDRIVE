@@ -1531,8 +1531,8 @@
             return;
         }
         const maximumRentalDays = getMaximumRentalDays();
-        if (rentDays() > maximumRentalDays) {
-            showStepError('step2-error-area', getRateTypeLabel() + ' bookings can only be rented for up to ' + maximumRentalDays + ' days.');
+        if (maximumRentalDays !== null && rentDays() > maximumRentalDays) {
+            showStepError('step2-error-area', getRateTypeLabel() + ' bookings are limited to 1 rental day.');
             return;
         }
 
@@ -1569,15 +1569,16 @@
         currentPrice = rateForType(type);
         const labels = {city: 'City Driving', province: 'Province', long_distance: 'Long Distance (2 Days minimum)'};
         document.getElementById('ratePreview').innerText = labels[type] + ': ₱' + currentPrice.toLocaleString() + ' / day';
-        document.querySelector('#dateLimitHint .fw-bold').textContent = labels[type] + ' allows up to ' + getMaximumRentalDays() + ' rental days.' +
-            (type === 'long_distance' ? ' Minimum rental period: 2 full days.' : '');
+        document.querySelector('#dateLimitHint .fw-bold').textContent = type === 'long_distance'
+            ? labels[type] + ': Minimum rental period: 2 full days.'
+            : labels[type] + ': 1 day.';
         updateDateLimits();
         updateCompute();
     }
 
     function getMaximumRentalDays() {
         const type = document.getElementById('rate_type').value;
-        return type === 'province' ? 14 : (type === 'long_distance' ? 30 : 7);
+        return type === 'long_distance' ? null : 1;
     }
 
     function getRateTypeLabel() {
@@ -1598,8 +1599,11 @@
             ? currentBookingWindow.end
             : '';
         if (startInput.value) {
-            const rateMaximum = getDateAfter(startInput.value, getMaximumRentalDays());
-            if (!endInput.max || rateMaximum < endInput.max) endInput.max = rateMaximum;
+            const maximumRentalDays = getMaximumRentalDays();
+            if (maximumRentalDays !== null) {
+                const rateMaximum = getDateAfter(startInput.value, maximumRentalDays);
+                if (!endInput.max || rateMaximum < endInput.max) endInput.max = rateMaximum;
+            }
         }
         const endTime = document.getElementById('endTime');
         if (endTime) {
@@ -1610,8 +1614,10 @@
             }
         }
         if (hint) {
-            hint.querySelector('.fw-bold').textContent = getRateTypeLabel() + ' allows up to ' + getMaximumRentalDays() + ' rental days.' +
-                (document.getElementById('rate_type').value === 'long_distance' ? ' Minimum rental period: 2 full days.' : '');
+            const rateType = document.getElementById('rate_type').value;
+            hint.querySelector('.fw-bold').textContent = rateType === 'long_distance'
+                ? getRateTypeLabel() + ': Minimum rental period: 2 full days.'
+                : getRateTypeLabel() + ': 1 day.';
             hint.classList.remove('d-none');
         }
     }
@@ -1871,7 +1877,9 @@
         const paymentLabel = paymentMode === 'walkin' ? 'Walk-in / Cash' : (paymentMode === 'deposit' ? 'Deposit' : 'Full Payment');
 
         const durationSeconds = rentalDurationSeconds();
-        if (!start || !end || durationSeconds <= 0 || rentDays() > getMaximumRentalDays()
+        const maximumRentalDays = getMaximumRentalDays();
+        if (!start || !end || durationSeconds <= 0
+            || (maximumRentalDays !== null && rentDays() > maximumRentalDays)
             || (document.getElementById('rate_type').value === 'long_distance' && durationSeconds < 2 * 86400)) {
             errorArea.innerHTML = '<div class="alert alert-danger py-2 px-3 small fw-bold">Please review the pickup and return dates first.</div>';
             return;

@@ -1125,4 +1125,43 @@ class VehicleUnitTest extends TestCase
         $this->assertSame('12:00', substr($reservation->return_time, 0, 5));
         $this->assertEquals(2800, (float) $reservation->total_amount);
     }
+
+    public function test_user_city_and_province_bookings_are_limited_to_one_rental_day(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        foreach (['city', 'province'] as $rateType) {
+            $vehicle = Vehicle::create([
+                'name' => ucfirst($rateType).' Duration Sedan',
+                'plate' => strtoupper(substr($rateType, 0, 3)).' 1999',
+                'price' => 1800,
+                'status' => 'available',
+            ]);
+
+            $this->actingAs($user)
+                ->from(route('user.reservations'))
+                ->post(route('user.reservations.store'), [
+                    'vehicle' => $vehicle->name,
+                    'vehicle_id' => $vehicle->id,
+                    'rate_type' => $rateType,
+                    'service_option' => 'pickup',
+                    'driver_option' => 'self_drive',
+                    'pickup_date' => now()->addDays(3)->toDateString(),
+                    'return_date' => now()->addDays(5)->toDateString(),
+                    'pickup_time' => '12:00',
+                    'return_time' => '12:00',
+                    'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
+                    'driver_license' => UploadedFile::fake()->create('license.png', 10, 'image/png'),
+                    'proof_of_billing' => UploadedFile::fake()->create('billing.png', 10, 'image/png'),
+                    'privacy_consent' => '1',
+                    'final_agreement' => '1',
+                    'payment_mode' => 'walkin',
+                ])
+                ->assertRedirect(route('user.reservations'))
+                ->assertSessionHasErrors('return_date');
+        }
+
+        $this->assertDatabaseCount('reservations', 0);
+    }
 }

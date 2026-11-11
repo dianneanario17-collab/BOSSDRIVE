@@ -414,6 +414,17 @@ class WalkInDriverAssignmentTest extends TestCase
         $this->assertEquals(1800, (float) $cityReservation->total_amount);
         $this->assertSame(1, $cityReservation->rentalDays());
 
+        $twoDayCityVehicle = $this->createVehicle('CITY 1005');
+        $this->withSession(['is_admin' => true])
+            ->postJson(route('admin.reservations.store'), $this->bookingData($twoDayCityVehicle, [
+                'start_date' => now()->addDays(3)->toDateString(),
+                'end_date' => now()->addDays(5)->toDateString(),
+                'pickup_time' => '12:00',
+                'return_time' => '12:00',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'City Driving bookings are limited to 1 rental day.');
+
         $provinceVehicle = $this->createVehicle('TEST 1004');
         $provinceResponse = $this->withSession(['is_admin' => true])
             ->postJson(route('admin.reservations.store'), $this->bookingData($provinceVehicle, [
@@ -427,6 +438,18 @@ class WalkInDriverAssignmentTest extends TestCase
         $provinceReservation = Reservation::findOrFail($provinceResponse->json('reservation_id'));
         $this->assertEquals(2800, (float) $provinceReservation->total_amount);
         $this->assertSame(1, $provinceReservation->rentalDays());
+
+        $twoDayProvinceVehicle = $this->createVehicle('PROV 1005');
+        $this->withSession(['is_admin' => true])
+            ->postJson(route('admin.reservations.store'), $this->bookingData($twoDayProvinceVehicle, [
+                'rate_type' => 'province',
+                'start_date' => now()->addDays(3)->toDateString(),
+                'end_date' => now()->addDays(5)->toDateString(),
+                'pickup_time' => '12:00',
+                'return_time' => '12:00',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Province bookings are limited to 1 rental day.');
 
         $longDistanceVehicle = $this->createVehicle('TEST 1003');
         $oneDayLongDistance = $this->bookingData($longDistanceVehicle, [
@@ -603,7 +626,7 @@ class WalkInDriverAssignmentTest extends TestCase
     private function bookingData(Vehicle $vehicle, array $overrides = []): array
     {
         $start = now()->addDays(3)->toDateString();
-        $end = now()->addDays(5)->toDateString();
+        $end = now()->addDays(4)->toDateString();
 
         return array_replace([
             'vehicle_id' => $vehicle->id,

@@ -241,26 +241,17 @@ class ReservationController extends Controller
 
         $rentalDurationSeconds = $returnDateTime->getTimestamp() - $pickupDateTime->getTimestamp();
         $rentalDays = max(1, (int) ceil($rentalDurationSeconds / 86400));
-        $maximumRentalDays = match ($data['rate_type']) {
-            'province' => 14,
-            'long_distance' => 30,
-            default => 7,
-        };
+        $maximumRentalDays = $data['rate_type'] === 'long_distance' ? null : 1;
         if ($data['rate_type'] === 'long_distance' && $rentalDurationSeconds < 2 * 86400) {
             return back()->withErrors(['return_date' => 'Long Distance bookings require a minimum rental period of 2 full days.'])->withInput();
         }
-        if ($rentalDays > $maximumRentalDays) {
-            return back()
-                ->withErrors(['return_date' => sprintf(
-                    '%s bookings can only be rented for up to %d days.',
-                    match ($data['rate_type']) {
-                        'province' => 'Province',
-                        'long_distance' => 'Long Distance',
-                        default => 'City Driving',
-                    },
-                    $maximumRentalDays
-                )])
-                ->withInput();
+        if ($maximumRentalDays !== null && $rentalDays > $maximumRentalDays) {
+            return back()->withErrors([
+                'return_date' => match ($data['rate_type']) {
+                    'province' => 'Province bookings are limited to 1 rental day.',
+                    default => 'City Driving bookings are limited to 1 rental day.',
+                },
+            ])->withInput();
         }
 
         if ($data['payment_mode'] !== 'walkin'
