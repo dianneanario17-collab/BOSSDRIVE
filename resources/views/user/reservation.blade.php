@@ -94,15 +94,18 @@
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
         .vehicle-photo-frame { margin:14px 16px 0; padding:10px; border:1px solid #e9ecef; border-radius:12px; background:#f8f9fa; }
-        .vehicle-photo-button { display:flex; width:100%; height:clamp(140px, 22vw, 190px); align-items:center; justify-content:center; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
+        .vehicle-photo-button { display:flex; width:100%; height:180px; align-items:center; justify-content:center; overflow:hidden; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
         .vehicle-photo-button:focus-visible { outline:3px solid rgba(183,28,28,.25); outline-offset:3px; }
-        .vehicle-card-image { display:block; width:100%; height:100%; object-fit:contain; }
+        .vehicle-photo-button .vehicle-card-image { display:block; flex:0 0 100%; width:100% !important; max-width:100%; height:100% !important; object-fit:contain; }
         .vehicle-photo-modal-image { display:block; max-width:100%; max-height:78vh; margin:auto; object-fit:contain; }
+        .user-vehicle-card { width:100%; max-width:480px; min-height:100%; margin-inline:auto; border-radius:18px !important; box-shadow:0 4px 16px rgba(0,0,0,.08) !important; transition:transform .25s, box-shadow .25s; }
+        .user-vehicle-card:hover { transform:translateY(-4px); box-shadow:0 10px 24px rgba(0,0,0,.12) !important; }
         .catalog-vehicle-identity { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; }
         .catalog-vehicle-identity h5 { font-size:1.05rem; }
         .catalog-vehicle-model { font-size:.76rem; }
         .catalog-times-rented { font-size:.72rem; }
         .catalog-plate { font-family:'Courier New',Courier,monospace; background:#eee; padding:2px 8px; border:1px solid #ccc; border-radius:4px; font-size:.8rem; font-weight:700; }
+        @media (max-width:575.98px) { .vehicle-photo-button { height:150px; } }
 
         .step-indicator { font-size: 0.85rem; font-weight: 800; color: var(--boss-red); letter-spacing: 1px; }
         .btn-next-step { border-radius: 50px; font-weight: bold; padding: 12px; margin-top: 20px; }
@@ -1287,10 +1290,10 @@
 
             return '' +
             '<div class="col-md-6">' +
-                '<div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative">' +
+                '<div class="card user-vehicle-card border-0 rounded-4 overflow-hidden h-100 position-relative">' +
                     '<span class="status-badge ' + statusBadgeClass(label) + '">' + label + '</span>' +
                     '<div class="vehicle-photo-frame"><button type="button" class="vehicle-photo-button" onclick="openUserVehiclePhoto(' + v.id + ')" aria-label="Enlarge photo of ' + escapeHtml(v.name) + '"><img src="' + vehiclePhoto(v, index) + '" alt="' + escapeHtml(v.name) + '" class="vehicle-card-image" width="240" height="140" loading="' + (index < 2 ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (index === 0 ? 'high' : 'auto') + '"' + (dimmed ? ' style="opacity: 0.5;"' : '') + '></button></div>' +
-                    '<div class="p-4 pt-0 bg-white catalog-card-body">' +
+                    '<div class="p-4 pt-2 bg-white catalog-card-body">' +
                         '<div class="d-flex justify-content-between align-items-start mb-1">' +
                             '<div>' +
                                 '<small class="catalog-times-rented text-muted d-block mb-1"><i class="fas fa-history me-1"></i>' + v.timesRented + ' Times Rented</small>' +

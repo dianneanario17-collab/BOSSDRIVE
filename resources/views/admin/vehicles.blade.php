@@ -46,12 +46,12 @@
         }
 
         /* ===== Vehicle Cards - styled after the User Reservation catalogue ===== */
-        .vehicle-card { border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: white; position: relative; height: 100%; transition: 0.25s; }
+        .vehicle-card { width: 100%; max-width: 480px; margin-inline: auto; border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: white; position: relative; height: 100%; transition: 0.25s; }
         .vehicle-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
         .vehicle-photo-wrap { margin: 14px 16px 0; padding: 10px; text-align: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; }
-        .vehicle-photo-button { display: flex; width: 100%; height: clamp(140px, 22vw, 190px); align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 8px; background: #fff; cursor: zoom-in; }
+        .vehicle-photo-button { display: flex; width: 100%; height: 180px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 8px; background: #fff; cursor: zoom-in; }
         .vehicle-photo-button:focus-visible { outline: 3px solid rgba(220,53,69,.35); outline-offset: 3px; }
-        .vehicle-photo-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .vehicle-photo-wrap img { display: block; flex: 0 0 100%; width: 100% !important; max-width: 100%; height: 100% !important; object-fit: contain; }
         .vehicle-card-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
         .vehicle-card-heading h5 { font-size: 1.05rem; }
         .vehicle-card-model { font-size: .76rem; }
@@ -60,6 +60,7 @@
         .vehicle-card { display: flex; flex-direction: column; }
         .vehicle-card > .p-4 { display: flex; flex: 1 1 auto; flex-direction: column; }
         .vehicle-card-footer { margin-top: auto; }
+        @media (max-width: 575.98px) { .vehicle-photo-button { height: 150px; } }
 
         .status-badge {
             font-size: 0.75rem; padding: 5px 12px; border-radius: 50px; font-weight: bold;

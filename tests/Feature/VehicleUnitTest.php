@@ -507,7 +507,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('id="vehicleSearchInput"', $adminPage->getContent());
         $this->assertStringContainsString('aria-label="Search vehicles"', $adminPage->getContent());
         $this->assertStringContainsString('vehicle.brand_name', $adminPage->getContent());
-        $this->assertStringContainsString('height: clamp(140px, 22vw, 190px)', $adminPage->getContent());
+        $this->assertStringContainsString('height: 180px', $adminPage->getContent());
+        $this->assertStringContainsString('max-width: 480px', $adminPage->getContent());
         $this->assertStringContainsString('id="vehiclePhotoModal"', $adminPage->getContent());
         $this->assertStringContainsString('function openVehiclePhoto(vehicleId)', $adminPage->getContent());
         $this->assertStringContainsString('v.timesRented + \' Times Rented</small>\'', $adminPage->getContent());
@@ -733,6 +734,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('max-width:480px', $guestContent);
         $this->assertStringContainsString('width:100% !important; max-width:100%; height:100% !important; object-fit:contain;', $guestContent);
         $this->assertStringContainsString('class="guest-vehicle-grid-item"', $guestContent);
+        $this->assertStringContainsString('height:180px', $guestContent);
+        $this->assertStringContainsString('class="card guest-vehicle-card', $guestContent);
         $this->assertStringContainsString('id="guestVehiclePhotoModal"', $guestContent);
         $this->assertStringContainsString('function openGuestVehiclePhoto(cardId)', $guestContent);
         $this->assertStringContainsString('class="vehicle-photo-frame"', $guestContent);
@@ -760,7 +763,9 @@ class VehicleUnitTest extends TestCase
         $this->assertStringNotContainsString('rentVehicleSpecs', $userPage->getContent());
         $this->assertStringContainsString('id="userVehiclePhotoModal"', $userPage->getContent());
         $this->assertStringContainsString('function openUserVehiclePhoto(vehicleId)', $userPage->getContent());
-        $this->assertStringContainsString('height:clamp(140px, 22vw, 190px)', $userPage->getContent());
+        $this->assertStringContainsString('height:180px', $userPage->getContent());
+        $this->assertStringContainsString('max-width:480px', $userPage->getContent());
+        $this->assertStringContainsString('class="card user-vehicle-card', $userPage->getContent());
         $this->assertStringContainsString('class="catalog-vehicle-identity"', $userPage->getContent());
         $this->assertSame(1, substr_count($userPage->getContent(), 'id="vehicleSpecificationsModal"'));
         $this->assertStringContainsString('View Specifications', $userPage->getContent());

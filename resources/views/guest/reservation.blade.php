@@ -39,7 +39,7 @@
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
         .vehicle-photo-frame { margin:14px 16px 0; padding:10px; border:1px solid #e9ecef; border-radius:12px; background:#f8f9fa; }
-        .vehicle-photo-button { display:flex; width:100%; height:160px; align-items:center; justify-content:center; overflow:hidden; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
+        .vehicle-photo-button { display:flex; width:100%; height:180px; align-items:center; justify-content:center; overflow:hidden; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
         .vehicle-photo-button:focus-visible { outline:3px solid rgba(183,28,28,.25); outline-offset:3px; }
         .vehicle-photo-button .vehicle-card-image { display:block; flex:0 0 100%; width:100% !important; max-width:100%; height:100% !important; object-fit:contain; }
         .vehicle-photo-modal-image { display:block; max-width:100%; max-height:78vh; margin:auto; object-fit:contain; }
@@ -50,6 +50,8 @@
         .catalog-plate { font-family:'Courier New',Courier,monospace; background:#eee; padding:2px 8px; border:1px solid #ccc; border-radius:4px; font-size:.8rem; font-weight:700; }
         .guest-vehicle-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 480px), 480px)); gap:1.5rem; }
         .guest-vehicle-grid-item { width:100%; max-width:480px; min-width:0; }
+        .guest-vehicle-card { width:100%; min-height:100%; border-radius:18px !important; box-shadow:0 4px 16px rgba(0,0,0,.08) !important; transition:transform .25s, box-shadow .25s; }
+        .guest-vehicle-card:hover { transform:translateY(-4px); box-shadow:0 10px 24px rgba(0,0,0,.12) !important; }
         @media (max-width: 991.98px) {
             .main-content { margin-left: 0; }
             .content-container { padding:20px 16px; }
@@ -73,7 +75,7 @@
             .car-info-tag { font-size:.68rem; padding:4px 8px; }
             .specifications-button { font-size:.68rem; }
             .status-badge { top:10px; right:10px; font-size:.65rem; padding:4px 8px; }
-            .vehicle-photo-button { height:140px; }
+            .vehicle-photo-button { height:150px; }
             .btn-float { bottom:16px; right:16px; width:48px; height:48px; }
             .btn-float[style*="right: 105px"] { right:74px !important; }
             .calendar-table { min-width:620px; }
@@ -167,10 +169,10 @@
                         }
                     @endphp
                     <div class="guest-vehicle-grid-item">
-                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative">
+                        <div class="card guest-vehicle-card border-0 rounded-4 overflow-hidden h-100 position-relative">
                             <span id="guest-status-{{ $vehicle->id }}" class="status-badge bg-{{ $statusColor }} {{ $statusColor === 'warning' ? 'text-dark' : 'text-white' }}">{{ $status }}</span>
                             <div class="vehicle-photo-frame"><button type="button" class="vehicle-photo-button" id="guest-photo-button-{{ $vehicle->id }}" onclick="openGuestVehiclePhoto({{ $vehicle->id }})" aria-label="Enlarge photo of {{ $vehicle->name }}"><img src="{{ $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg') }}" alt="{{ $vehicle->name }}" class="vehicle-card-image" width="240" height="140" loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async" fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"></button></div>
-                            <div class="p-4 pt-0 bg-white catalog-card-body">
+                            <div class="p-4 pt-2 bg-white catalog-card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div><small id="guest-times-{{ $vehicle->id }}" class="catalog-times-rented text-muted d-block mb-1"><i class="fas fa-history me-1"></i>{{ $vehicle->reservations_count }} Times Rented</small><div class="catalog-vehicle-identity"><h5 id="guest-brand-{{ $vehicle->id }}" class="fw-bold mb-0">{{ $vehicle->brand_name ?: $vehicle->name }}</h5><span class="text-muted fw-bold">|</span><span class="catalog-plate" id="guest-unit-{{ $vehicle->id }}">Car No: {{ $vehicle->plate ?: 'Not assigned' }}</span></div><small id="guest-title-{{ $vehicle->id }}" class="catalog-vehicle-model text-muted d-block">{{ $vehicle->name }} Unit #{{ $modelUnits->search(fn ($unit) => $unit['id'] === $vehicle->id) + 1 }}</small></div>
                                     <div class="text-end"><div id="guest-rating-{{ $vehicle->id }}" class="rating-stars">{!! str_repeat('<i class="fas fa-star"></i>', (int) round($vehicle->rating)) !!}</div><a id="guest-feedback-{{ $vehicle->id }}" class="view-feedback" href="#feedback-{{ $vehicle->id }}" data-bs-toggle="modal">{{ count($feedbacks) }} Feedback{{ count($feedbacks) === 1 ? '' : 's' }}</a></div>
