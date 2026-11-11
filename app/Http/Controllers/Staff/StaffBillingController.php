@@ -38,7 +38,7 @@ class StaffBillingController extends Controller
             $total = (float) $reservation->total_amount;
             if ($total <= 0) {
                 $total = ($vehicle?->price ?? 0) * $days
-                    + ($reservation->driver_option === 'with_driver' ? 1500 * $days : 0);
+                    + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
             }
 
             return [

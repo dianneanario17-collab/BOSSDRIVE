@@ -256,6 +256,7 @@ class WalkInDriverAssignmentTest extends TestCase
         $reservation = Reservation::findOrFail($response->json('reservation_id'));
         $this->assertSame($driver->name, $reservation->assigned_driver_name);
         $this->assertSame($driver->contact, $reservation->assigned_driver_contact);
+        $this->assertEquals(2800, (float) $reservation->total_amount);
 
         $this->withSession(['is_admin' => true])
             ->postJson(route('admin.reservations.store'), $this->bookingData($vehicle))

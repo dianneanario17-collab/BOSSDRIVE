@@ -216,7 +216,7 @@ class PaymentController extends Controller
         $days = $reservation->rentalDays();
 
         return (float) ($reservation->vehicleUnit?->price ?? 0) * $days
-            + ($reservation->driver_option === 'with_driver' ? 1500 * $days : 0);
+            + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
     }
 
     private function actorRole(?string $role): string

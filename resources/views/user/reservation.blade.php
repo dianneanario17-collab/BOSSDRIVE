@@ -487,7 +487,7 @@
                     <h6 class="fw-bold mt-3 mb-3">Drive Option</h6>
                     <div class="row g-2 mb-4">
                         <div class="col-6"><div class="option-card active" id="d-self" onclick="setDriver(0)">Self Drive</div></div>
-                        <div class="col-6"><div class="option-card" id="d-with" onclick="setDriver(1500)">With Driver (+₱1,500)</div></div>
+                        <div class="col-6"><div class="option-card" id="d-with" onclick="setDriver(1000)">With Driver (+₱1,000)</div></div>
                     </div>
 
                     <label class="small fw-bold mb-2" for="rateType">Rental Location / Rate</label>

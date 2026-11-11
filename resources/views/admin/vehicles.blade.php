@@ -561,7 +561,7 @@
 
                         <div class="row g-2 mb-3">
                             <div class="col-6"><div class="option-card active" id="b-drv-self" onclick="setBookDriver(0)">Self Drive</div></div>
-                            <div class="col-6"><div class="option-card" id="b-drv-with" onclick="setBookDriver(1500)">With Driver (+₱1,500)</div></div>
+                            <div class="col-6"><div class="option-card" id="b-drv-with" onclick="setBookDriver(1000)">With Driver (+₱1,000)</div></div>
                         </div>
                         <div id="b-driver-select-wrap" class="mb-3 d-none">
                             <label for="b-driver-id" class="small fw-bold">Select Driver</label>

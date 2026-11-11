@@ -81,7 +81,7 @@
                 $bookingTotalFor = fn ($item) => (float) $item->total_amount > 0
                     ? (float) $item->total_amount
                     : (float) ($item->vehicleUnit?->price ?? 0) * $item->rentalDays()
-                        + ($item->driver_option === 'with_driver' ? 1500 * $item->rentalDays() : 0);
+                        + ($item->driver_option === 'with_driver' ? 1000 * $item->rentalDays() : 0);
             @endphp
             <div class="row g-4 payment-layout-row">
                 <div class="col-lg-5">

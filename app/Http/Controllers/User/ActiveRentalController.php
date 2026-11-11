@@ -126,7 +126,7 @@ class ActiveRentalController extends Controller
             'The requested extension conflicts with another reservation or maintenance schedule for this unit.'
         );
         $extensionAmount = ($vehicle?->price ?? 0) * $extensionDays
-            + ($reservation->driver_option === 'with_driver' ? 1500 * $extensionDays : 0);
+            + ($reservation->driver_option === 'with_driver' ? 1000 * $extensionDays : 0);
 
         RentalExtension::create([
             'reservation_id' => $reservation->id,

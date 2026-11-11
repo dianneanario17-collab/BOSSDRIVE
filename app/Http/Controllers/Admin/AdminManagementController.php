@@ -64,7 +64,7 @@ class AdminManagementController extends Controller
                 $totalAmount = (float) $reservation->total_amount;
                 if ($totalAmount <= 0) {
                     $totalAmount = ($vehicle?->price ?? 0) * $days
-                        + ($reservation->driver_option === 'with_driver' ? 1500 * $days : 0);
+                        + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
                 }
                 $paidAmount = (float) $reservation->paid_amount;
                 $customerName = $reservation->customer_name ?: ($user?->name ?? 'Walk-in Customer');
@@ -165,7 +165,7 @@ class AdminManagementController extends Controller
             $totalAmount = (float) $reservation->total_amount;
             if ($totalAmount <= 0) {
                 $totalAmount = ($vehicle?->price ?? 0) * $days
-                    + ($reservation->driver_option === 'with_driver' ? 1500 * $days : 0);
+                    + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
             }
             $paidAmount = (float) $reservation->paid_amount;
             $customerName = $reservation->customer_name ?: ($user?->name ?? 'Walk-in Customer');
@@ -339,7 +339,7 @@ class AdminManagementController extends Controller
                 'long_distance' => (float) $vehicle->price + 1500,
                 default => (float) $vehicle->price,
             };
-            $driverFee = $data['driver_option'] === 'with_driver' ? 1500 * $days : 0;
+            $driverFee = $data['driver_option'] === 'with_driver' ? 1000 * $days : 0;
             $totalAmount = ($rate * $days) + $driverFee;
             $paymentMode = $data['payment_mode'];
             $paidAmount = $paymentMode === 'full' ? $totalAmount : ($paymentMode === 'deposit' ? 1000 : 0);
@@ -683,7 +683,7 @@ class AdminManagementController extends Controller
                 $total = (float) $reservation->total_amount;
                 if ($total <= 0) {
                     $total = ($vehicle?->price ?? 0) * $days
-                        + ($reservation->driver_option === 'with_driver' ? 1500 * $days : 0);
+                        + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
                 }
 
                 return [
@@ -782,7 +782,7 @@ class AdminManagementController extends Controller
             if ($totalAmount <= 0) {
                 $days = $booking->rentalDays();
                 $totalAmount = (float) ($booking->vehicleUnit?->price ?? 0) * $days
-                    + ($booking->driver_option === 'with_driver' ? 1500 * $days : 0);
+                    + ($booking->driver_option === 'with_driver' ? 1000 * $days : 0);
             }
             $paidAmount = (float) $booking->paid_amount;
             if ($submittedAmount > 0) {
@@ -828,7 +828,7 @@ class AdminManagementController extends Controller
             $vehicle = $reservation->vehicleUnit;
             $days = $reservation->rentalDays();
             $totalAmount = ($vehicle?->price ?? 0) * $days
-                + ($reservation->driver_option === 'with_driver' ? 1500 * $days : 0);
+                + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
         }
         $paid = min($totalAmount, (float) $reservation->paid_amount + (float) $data['amount']);
         $reservation->update([
@@ -963,7 +963,7 @@ class AdminManagementController extends Controller
         );
         $extensionDays = max(1, $reservation->return_date->diffInDays($newDate));
         $dailyAmount = (float) ($vehicle?->price ?? 0)
-            + ($reservation->driver_option === 'with_driver' ? 1500 : 0);
+            + ($reservation->driver_option === 'with_driver' ? 1000 : 0);
         $extensionAmount = $dailyAmount * $extensionDays;
 
         RentalExtension::create([

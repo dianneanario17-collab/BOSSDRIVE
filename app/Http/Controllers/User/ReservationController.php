@@ -302,7 +302,7 @@ class ReservationController extends Controller
             $days = max(2, $days);
         }
         $totalAmount = ($rate * $days)
-            + ($data['driver_option'] === 'with_driver' ? 1500 * $days : 0);
+            + ($data['driver_option'] === 'with_driver' ? 1000 * $days : 0);
         $paidAmount = $data['payment_mode'] === 'full'
             ? $totalAmount
             : ($data['payment_mode'] === 'deposit' ? 1000 : 0);
