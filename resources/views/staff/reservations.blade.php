@@ -429,7 +429,7 @@
                 return [
                     'id' => $reservation->id,
                     'status' => strtolower((string) $reservation->status),
-                    'control_number' => $reservation->control_number,
+                    'control' => $reservation->control_number,
                     'vehicle' => $reservation->vehicle,
                     'vehiclePlate' => $reservation->vehicleUnit?->plate,
                     'vehicleCategory' => $reservation->vehicleUnit?->category,
@@ -563,6 +563,7 @@
                 id: reservation.id,
                 status: reservation.status,
                 control_number: reservation.control,
+                control: reservation.control,
                 vehicle: reservation.vehicle,
                 vehiclePlate: reservation.vehiclePlate,
                 vehicleCategory: reservation.vehicleCategory,
