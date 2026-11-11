@@ -87,21 +87,23 @@
         #reservationTable td:nth-child(5) { width: 125px; }
         #reservationTable .pay-tag { max-width: 118px; overflow: hidden; text-overflow: ellipsis; }
 
-        #verifyModal .modal-dialog { width: calc(100vw - 3rem); max-width: 1320px; margin: 1rem auto; }
+        #verifyModal .modal-dialog { width: calc(100vw - 4rem); max-width: 1100px; margin: 1rem auto; }
         #verifyModal .modal-content { max-width: 100%; overflow: hidden; }
         #verifyModal .modal-body { overflow-x: hidden; }
-        #verifyModal .modal-header { padding: 1rem 1.25rem !important; }
-        #verifyModal .modal-body { padding: 1.25rem !important; }
+        #verifyModal .modal-header { padding: .85rem 1.1rem !important; }
+        #verifyModal .modal-body { padding: 1rem !important; }
         #verifyModal #reviewProfilePanel { display: block; width: 100%; }
-        #verifyModal .review-info-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem 1.25rem; }
+        #verifyModal #reviewProfilePanel.pb-3 { padding-bottom: .75rem !important; }
+        #verifyModal #reviewProfilePanel.mb-4 { margin-bottom: 1.25rem !important; }
+        #verifyModal .review-info-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem 1rem; }
         #verifyModal .review-info-item { min-width: 0; }
-        #verifyModal .review-info-item .info-value { font-size: .92rem; line-height: 1.4; margin: .2rem 0 0; overflow-wrap: anywhere; }
+        #verifyModal .review-info-item .info-value { font-size: .88rem; line-height: 1.3; margin: .1rem 0 0; overflow-wrap: anywhere; }
         #verifyModal .review-info-item .info-label { font-size: .65rem; }
-        #verifyModal #verificationDocumentsPanel .row { row-gap: 1rem !important; }
+        #verifyModal #verificationDocumentsPanel .row { row-gap: .55rem !important; }
         #verifyModal .driver-assign-box { margin-top: 1rem; padding-top: 1rem; }
         #verifyModal .row > [class*="col-"] { min-width: 0; }
-        .doc-preview { display: block; width: 100% !important; max-width: 100%; height: 110px !important; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; cursor: zoom-in; }
-        #mPaymentProof { height: 120px !important; max-width: 100%; object-fit: contain; }
+        .doc-preview { display: block; width: 100% !important; max-width: 100%; height: 92px !important; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; cursor: zoom-in; }
+        #mPaymentProof { height: 100px !important; max-width: 100%; object-fit: contain; }
         .doc-preview:hover { transform: scale(1.02); }
         .info-label { font-size: 0.7rem; color: #aaa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .info-value { font-weight: 700; color: #333; display: block; margin-bottom: 10px; }
