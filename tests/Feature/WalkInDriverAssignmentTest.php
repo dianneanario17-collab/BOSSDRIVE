@@ -254,6 +254,11 @@ class WalkInDriverAssignmentTest extends TestCase
         $reservation = Reservation::findOrFail($response->json('reservation_id'));
         $this->assertSame($driver->name, $reservation->assigned_driver_name);
         $this->assertSame($driver->contact, $reservation->assigned_driver_contact);
+
+        $this->withSession(['is_admin' => true])
+            ->postJson(route('admin.reservations.store'), $this->bookingData($vehicle))
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'This vehicle can only be booked within its currently open 7-day window.');
     }
 
     public function test_walk_in_with_driver_rejects_missing_unavailable_or_date_conflicted_driver(): void
@@ -393,8 +398,8 @@ class WalkInDriverAssignmentTest extends TestCase
     {
         $cityVehicle = $this->createVehicle();
         $cityBooking = $this->bookingData($cityVehicle, [
-            'start_date' => now()->addDays(10)->toDateString(),
-            'end_date' => now()->addDays(11)->toDateString(),
+            'start_date' => now()->addDays(3)->toDateString(),
+            'end_date' => now()->addDays(4)->toDateString(),
             'pickup_time' => '12:00',
             'return_time' => '12:00',
         ]);
@@ -413,8 +418,8 @@ class WalkInDriverAssignmentTest extends TestCase
         $provinceResponse = $this->withSession(['is_admin' => true])
             ->postJson(route('admin.reservations.store'), $this->bookingData($provinceVehicle, [
                 'rate_type' => 'province',
-                'start_date' => now()->addDays(15)->toDateString(),
-                'end_date' => now()->addDays(16)->toDateString(),
+                'start_date' => now()->addDays(3)->toDateString(),
+                'end_date' => now()->addDays(4)->toDateString(),
                 'pickup_time' => '12:00',
                 'return_time' => '12:00',
             ]));
@@ -426,8 +431,8 @@ class WalkInDriverAssignmentTest extends TestCase
         $longDistanceVehicle = $this->createVehicle('TEST 1003');
         $oneDayLongDistance = $this->bookingData($longDistanceVehicle, [
             'rate_type' => 'long_distance',
-            'start_date' => now()->addDays(20)->toDateString(),
-            'end_date' => now()->addDays(21)->toDateString(),
+            'start_date' => now()->addDays(3)->toDateString(),
+            'end_date' => now()->addDays(4)->toDateString(),
             'pickup_time' => '12:00',
             'return_time' => '12:00',
         ]);
@@ -437,7 +442,7 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertJsonPath('message', 'Long Distance bookings require a minimum rental period of 2 full days.');
 
         $twoDayLongDistance = array_replace($oneDayLongDistance, [
-            'end_date' => now()->addDays(22)->toDateString(),
+            'end_date' => now()->addDays(5)->toDateString(),
         ]);
         $longDistanceResponse = $this->withSession(['is_admin' => true])
             ->postJson(route('admin.reservations.store'), $twoDayLongDistance);
@@ -597,8 +602,8 @@ class WalkInDriverAssignmentTest extends TestCase
 
     private function bookingData(Vehicle $vehicle, array $overrides = []): array
     {
-        $start = now()->addDays(10)->toDateString();
-        $end = now()->addDays(12)->toDateString();
+        $start = now()->addDays(3)->toDateString();
+        $end = now()->addDays(5)->toDateString();
 
         return array_replace([
             'vehicle_id' => $vehicle->id,

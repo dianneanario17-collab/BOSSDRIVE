@@ -277,6 +277,9 @@ class AdminManagementController extends Controller
             if (in_array(strtolower((string) $vehicle->status), ['maintenance', 'unavailable'], true)) {
                 return response()->json(['message' => 'This vehicle is currently unavailable.'], 422);
             }
+            if (! $vehicle->canBookDates($data['start_date'], $data['end_date'])) {
+                return response()->json(['message' => 'This vehicle can only be booked within its currently open 7-day window.'], 422);
+            }
             if ($vehicle->hasAvailabilityConflict($data['start_date'], $data['end_date'])) {
                 return response()->json(['message' => 'This vehicle unit is already reserved for the selected dates.'], 422);
             }

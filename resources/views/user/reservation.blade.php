@@ -865,7 +865,8 @@
                 feedbacks: v.feedbacks || [],
                 damageLog: v.damage_log || v.damageLog || [],
                 schedule: v.schedule || [],
-                currentReservation: v.currentReservation || null
+                currentReservation: v.currentReservation || null,
+                bookingWindow: v.bookingWindow || null
             };
         });
     }
@@ -931,6 +932,7 @@
                 if (!live) return;
                 vehicle.status = normalizeStatus(live.status);
                 vehicle.currentReservation = live.currentReservation;
+                vehicle.bookingWindow = live.bookingWindow || vehicle.bookingWindow;
                 vehicle.schedule = (live.schedule || []).map(function (entry) {
                     return Object.assign({}, entry, {
                         type: entry.type === 'Special' ? 'Reserved' : entry.type,
@@ -958,6 +960,7 @@
     let currentPrice = 0;
     let baseVehiclePrice = 0;
     let currentVehicleId = null;
+    let currentBookingWindow = null;
     const currentMonth = new Date();
     let currentViewDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     let isReturningRenter = false;
@@ -1352,10 +1355,17 @@
             currentVehicleId = v.id;
             baseVehiclePrice = v.price;
             currentPrice = baseVehiclePrice;
+            currentBookingWindow = v.bookingWindow || null;
 
             document.getElementById('modalCarName').innerText = v.name + ' (' + v.plate + ')';
             document.getElementById('vehicle').value = v.name;
             document.getElementById('vehicle_id').value = v.id;
+            const dateInputsLocked = !currentBookingWindow || currentBookingWindow.locked
+                || ['Maintenance', 'Unavailable'].includes(v.status);
+            document.getElementById('startDate').disabled = dateInputsLocked;
+            document.getElementById('endDate').disabled = dateInputsLocked;
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
             document.getElementById('rateType').value = 'city';
             setRateType('city');
             updateDateLimits();
@@ -1581,13 +1591,15 @@
         const hint = document.getElementById('dateLimitHint');
         if (!startInput || !endInput) return;
 
-        endInput.min = startInput.value ? getDateAfter(startInput.value, 1) : '{{ now()->toDateString() }}';
+        startInput.min = currentBookingWindow ? currentBookingWindow.start : '{{ now()->toDateString() }}';
+        startInput.max = currentBookingWindow ? getDateAfter(currentBookingWindow.end, -1) : '';
+        endInput.min = startInput.value ? getDateAfter(startInput.value, 1) : startInput.min;
+        endInput.max = currentBookingWindow
+            ? currentBookingWindow.end
+            : '';
         if (startInput.value) {
-            const maximumReturnDate = new Date(startInput.value + 'T00:00:00');
-            maximumReturnDate.setDate(maximumReturnDate.getDate() + getMaximumRentalDays());
-            endInput.max = maximumReturnDate.toISOString().slice(0, 10);
-        } else {
-            endInput.removeAttribute('max');
+            const rateMaximum = getDateAfter(startInput.value, getMaximumRentalDays());
+            if (!endInput.max || rateMaximum < endInput.max) endInput.max = rateMaximum;
         }
         const endTime = document.getElementById('endTime');
         if (endTime) {
@@ -1631,9 +1643,11 @@
         if (!pickupDate) return;
         const returnDate = document.getElementById('endDate');
         const minimumReturnDate = getDateAfter(pickupDate, 1);
+        updateDateLimits();
         if (!returnDate.value || returnDate.value < minimumReturnDate) {
             returnDate.value = minimumReturnDate;
         }
+        if (returnDate.max && returnDate.value > returnDate.max) returnDate.value = returnDate.max;
     }
 
     function rentDays() {

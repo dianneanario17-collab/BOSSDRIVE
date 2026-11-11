@@ -114,6 +114,8 @@ Route::get('/reservations', function (Request $request) {
                 'capacity_type' => $unit->capacity_type ?: (($unit->capacity ?? null) ? $unit->capacity.' Seater' : ''),
                 'status' => $unit->status,
                 'schedule' => $unit->schedule ?? [],
+                'bookingWindow' => $unit->bookingWindow(),
+                'bookingWindow' => $unit->bookingWindow(),
             ])
             ->values()
             ->all());

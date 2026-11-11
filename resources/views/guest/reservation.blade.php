@@ -390,6 +390,7 @@
                     <p class="small text-muted">Guests must log in before completing a reservation.</p>
                     <label class="small fw-bold" for="pickup_date">Pickup Date</label><input id="pickup_date" name="pickup_date" type="date" class="form-control mb-3" required>
                     <label class="small fw-bold" for="return_date">Return Date</label><input id="return_date" name="return_date" type="date" class="form-control" required>
+                    <input type="hidden" id="guest_booking_vehicle_id" name="vehicle_id">
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger">Continue</button></div>
             </form>
@@ -493,6 +494,7 @@
                 alert.classList.add('d-none');
             });
             const schedule = unit.schedule || [];
+            setGuestBookingWindow(unit, status);
             const relevantSchedule = schedule.find(function (entry) {
                 return ['Reserved', 'Rented', 'Special', 'Maintenance'].includes(entry.type) && entry.start && entry.end;
             });
@@ -616,6 +618,42 @@
         }
 
         let guestAvailabilitySignature = '';
+        let selectedGuestBookingUnit = null;
+        function guestDateAfter(value, days) {
+            const date = new Date(value + 'T00:00:00');
+            date.setDate(date.getDate() + days);
+            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                String(date.getDate()).padStart(2, '0');
+        }
+
+        function setGuestBookingWindow(unit, status) {
+            selectedGuestBookingUnit = unit;
+            const pickup = document.getElementById('pickup_date');
+            const returned = document.getElementById('return_date');
+            const window = unit.bookingWindow;
+            const locked = !window || window.locked || status !== 'Available';
+            document.getElementById('guest_booking_vehicle_id').value = unit.id;
+            pickup.disabled = locked;
+            returned.disabled = locked;
+            pickup.value = '';
+            returned.value = '';
+            if (window) {
+                pickup.min = window.start;
+                pickup.max = guestDateAfter(window.end, -1);
+                returned.min = window.start;
+                returned.max = window.end;
+            } else {
+                pickup.removeAttribute('min');
+                pickup.removeAttribute('max');
+                returned.removeAttribute('min');
+                returned.removeAttribute('max');
+            }
+            pickup.onchange = function () {
+                returned.min = pickup.value ? guestDateAfter(pickup.value, 1) : (window ? window.start : '');
+                if (returned.value && returned.value < returned.min) returned.value = returned.min;
+            };
+        }
+
         async function syncGuestAvailability() {
             if (document.hidden || document.querySelector('.modal.show')) return;
 
@@ -639,6 +677,7 @@
                         if (!live) return unit;
                         return Object.assign({}, unit, {
                             status: live.status.toLowerCase(),
+                            bookingWindow: live.bookingWindow || unit.bookingWindow,
                             schedule: live.schedule || []
                         });
                     });
@@ -672,7 +711,20 @@
         syncGuestAvailability();
         setInterval(syncGuestAvailability, 5000);
         document.getElementById('bookingModal').addEventListener('show.bs.modal', event => {
-            document.getElementById('modalCarName').textContent = event.relatedTarget.dataset.car;
+            const trigger = event.relatedTarget;
+            if (trigger) {
+                document.getElementById('modalCarName').textContent = trigger.dataset.car || '';
+                const unitId = Number(trigger.dataset.unitId || 0);
+                const unit = Array.from(document.querySelectorAll('[data-units]'))
+                    .flatMap(button => JSON.parse(button.dataset.units || '[]'))
+                    .find(item => Number(item.id) === unitId);
+                if (unit) setGuestBookingWindow(unit, unit.status === 'available' ? 'Available' : 'Reserved');
+            } else if (selectedGuestBookingUnit) {
+                setGuestBookingWindow(
+                    selectedGuestBookingUnit,
+                    selectedGuestBookingUnit.status === 'available' ? 'Available' : 'Reserved'
+                );
+            }
         });
     </script>
 </body>

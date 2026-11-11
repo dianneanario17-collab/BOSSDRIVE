@@ -151,6 +151,7 @@ class ReservationController extends Controller
                     'return_date' => $activeReservations[$vehicle->id]->return_date->toDateString(),
                     'status' => $activeReservations[$vehicle->id]->status,
                 ] : null,
+                'bookingWindow' => $vehicle->bookingWindow(),
             ])->values()->all(),
             'paymentSettings' => PaymentSetting::current(),
             'hasExistingDocuments' => $hasExistingDocuments,
@@ -220,10 +221,13 @@ class ReservationController extends Controller
             'gcash_reference' => ['nullable', 'string', 'digits_between:13,17'],
         ]);
 
-        $vehicle = Vehicle::lockForUpdate()->findOrFail($data['vehicle_id']);
+        $vehicle = Vehicle::findOrFail($data['vehicle_id']);
         if ($vehicle->name !== $data['vehicle']
             || in_array(strtolower((string) $vehicle->status), ['maintenance', 'unavailable'], true)) {
             return back()->withErrors(['vehicle' => 'This vehicle unit is no longer available.'])->withInput();
+        }
+        if (! $vehicle->canBookDates($data['pickup_date'], $data['return_date'])) {
+            return back()->withErrors(['vehicle' => 'This vehicle can only be booked within its currently open 7-day window.'])->withInput();
         }
         if ($vehicle->hasAvailabilityConflict($data['pickup_date'], $data['return_date'])) {
             return back()->withErrors(['vehicle' => 'This vehicle unit is already reserved for the selected dates.'])->withInput();
@@ -325,9 +329,10 @@ class ReservationController extends Controller
         ): Reservation {
             $lockedVehicle = Vehicle::lockForUpdate()->findOrFail($vehicle->id);
             if (in_array(strtolower((string) $lockedVehicle->status), ['maintenance', 'unavailable'], true)
+                || ! $lockedVehicle->canBookDates($data['pickup_date'], $data['return_date'])
                 || $lockedVehicle->hasAvailabilityConflict($data['pickup_date'], $data['return_date'])) {
                 throw ValidationException::withMessages([
-                    'vehicle' => 'This vehicle unit is no longer available for the selected dates.',
+                    'vehicle' => 'This vehicle unit is no longer available for the selected dates or 7-day booking window.',
                 ]);
             }
 

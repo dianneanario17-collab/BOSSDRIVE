@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Vehicle extends Model
 {
@@ -30,6 +31,47 @@ class Vehicle extends Model
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class, 'vehicle_id');
+    }
+
+    public function bookingWindow(): array
+    {
+        $locked = $this->reservations()
+            ->whereNotIn('status', ['cancelled', 'void', 'completed'])
+            ->exists();
+        $completedReservations = $this->reservations()
+            ->where('status', 'completed')
+            ->get(['return_condition_checked_at', 'return_date']);
+        $lastReturnedAt = $completedReservations
+            ->map(fn (Reservation $reservation) => $reservation->return_condition_checked_at
+                ?? $reservation->return_date)
+            ->filter()
+            ->sortByDesc(fn ($returnedAt) => $returnedAt->timestamp)
+            ->first();
+
+        $start = today();
+        if ($lastReturnedAt) {
+            $nextWindowStart = Carbon::parse($lastReturnedAt)->startOfDay()->addDay();
+            if ($nextWindowStart->greaterThan($start)) {
+                $start = $nextWindowStart;
+            }
+        }
+
+        return [
+            'start' => $start->toDateString(),
+            'end' => $start->copy()->addDays(7)->toDateString(),
+            'locked' => $locked,
+        ];
+    }
+
+    public function canBookDates(string $pickupDate, string $returnDate): bool
+    {
+        $window = $this->bookingWindow();
+
+        return ! $window['locked']
+            && $pickupDate >= $window['start']
+            && $pickupDate < $window['end']
+            && $returnDate >= $pickupDate
+            && $returnDate <= $window['end'];
     }
 
     public function hasAvailabilityConflict(string $start, string $end, ?int $exceptReservationId = null): bool

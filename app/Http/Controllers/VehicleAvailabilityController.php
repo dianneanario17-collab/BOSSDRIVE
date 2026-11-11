@@ -82,6 +82,7 @@ class VehicleAvailabilityController extends Controller
                     'id' => $vehicle->id,
                     'name' => $vehicle->name,
                     'status' => $status,
+                    'bookingWindow' => $vehicle->bookingWindow(),
                     'currentReservation' => $activeReservation ? [
                         'pickup_date' => $activeReservation['start'],
                         'return_date' => $activeReservation['end'],

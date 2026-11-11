@@ -72,6 +72,50 @@ class VehicleUnitTest extends TestCase
             ->assertJsonPath('reservations.0.controlNumber', 'LIVE-AVAILABILITY-0001');
     }
 
+    public function test_vehicle_booking_window_reopens_after_return_and_locks_during_an_active_reservation(): void
+    {
+        $this->travelTo(now()->startOfDay());
+        $user = User::factory()->create();
+        $vehicle = Vehicle::create([
+            'name' => 'Window Test Sedan',
+            'plate' => 'WIN 1001',
+            'price' => 1800,
+            'status' => 'available',
+        ]);
+
+        $window = $this->getJson(route('vehicles.availability'))
+            ->assertOk()
+            ->json('vehicles.0.bookingWindow');
+        $this->assertSame(now()->toDateString(), $window['start']);
+        $this->assertSame(now()->addDays(7)->toDateString(), $window['end']);
+        $this->assertFalse($window['locked']);
+
+        $reservation = Reservation::create([
+            'user_id' => $user->id,
+            'vehicle_id' => $vehicle->id,
+            'vehicle' => $vehicle->name,
+            'service_option' => 'pickup',
+            'driver_option' => 'self_drive',
+            'pickup_date' => now()->addDays(1)->toDateString(),
+            'return_date' => now()->addDays(2)->toDateString(),
+            'document_paths' => [],
+            'privacy_consent' => true,
+            'payment_mode' => 'deposit',
+            'control_number' => 'WIN-LOCK-0001',
+            'status' => 'pending',
+        ]);
+        $this->assertTrue($vehicle->fresh()->bookingWindow()['locked']);
+
+        $reservation->update([
+            'status' => 'completed',
+            'return_condition_checked_at' => now(),
+        ]);
+        $windowAfterReturn = $vehicle->fresh()->bookingWindow();
+        $this->assertSame(now()->addDay()->toDateString(), $windowAfterReturn['start']);
+        $this->assertSame(now()->addDays(8)->toDateString(), $windowAfterReturn['end']);
+        $this->assertFalse($windowAfterReturn['locked']);
+    }
+
     public function test_dashboard_live_endpoint_returns_all_own_bookings_for_tracker_updates(): void
     {
         $user = User::factory()->create();
@@ -644,6 +688,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('class="specifications-button"', $guestContent);
         $this->assertStringContainsString('function showGuestSpecifications(button)', $guestContent);
         $this->assertStringContainsString('function displayGuestCategory(category)', $guestContent);
+        $this->assertStringContainsString('function setGuestBookingWindow(unit, status)', $guestContent);
         $this->assertStringContainsString("if (normalized === 'expanded — diesel') return 'Diesel';", $guestContent);
         $this->assertStringContainsString("if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas') return 'Pick-up / Expanded';", $guestContent);
         $this->assertStringContainsString("return 'Pick-up / Expanded';", $guestContent);
@@ -663,6 +708,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString("['Fuel Type', vehicle.fuel]", $userPage->getContent());
         $this->assertStringContainsString("['Capacity', vehicle.capacity_type", $userPage->getContent());
         $this->assertStringContainsString('function displayReservationCategory(category)', $userPage->getContent());
+        $this->assertStringContainsString('startInput.max = currentBookingWindow ? getDateAfter(currentBookingWindow.end, -1) :', $userPage->getContent());
         $this->assertStringContainsString("if (normalized === 'expanded — diesel') return 'Diesel';", $userPage->getContent());
         $this->assertStringContainsString("if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas') return 'Pick-up / Expanded';", $userPage->getContent());
         $this->assertStringContainsString("return 'Pick-up / Expanded';", $userPage->getContent());
@@ -850,6 +896,50 @@ class VehicleUnitTest extends TestCase
         $this->assertSame('12:00', substr($reservation->return_time, 0, 5));
         $this->assertSame('rented', $firstUnit->fresh()->status);
         $this->assertSame('available', $secondUnit->fresh()->status);
+
+        $this->actingAs($user)
+            ->from(route('user.reservations'))
+            ->post(route('user.reservations.store'), [
+                'vehicle' => $secondUnit->name,
+                'vehicle_id' => $secondUnit->id,
+                'rate_type' => 'city',
+                'service_option' => 'pickup',
+                'driver_option' => 'self_drive',
+                'pickup_date' => now()->addDays(8)->toDateString(),
+                'return_date' => now()->addDays(9)->toDateString(),
+                'pickup_time' => '12:00',
+                'return_time' => '12:00',
+                'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
+                'driver_license' => UploadedFile::fake()->create('license.png', 10, 'image/png'),
+                'proof_of_billing' => UploadedFile::fake()->create('billing.png', 10, 'image/png'),
+                'privacy_consent' => '1',
+                'final_agreement' => '1',
+                'payment_mode' => 'walkin',
+            ])
+            ->assertRedirect(route('user.reservations'))
+            ->assertSessionHasErrors('vehicle');
+
+        $this->actingAs($user)
+            ->from(route('user.reservations'))
+            ->post(route('user.reservations.store'), [
+                'vehicle' => $firstUnit->name,
+                'vehicle_id' => $firstUnit->id,
+                'rate_type' => 'city',
+                'service_option' => 'pickup',
+                'driver_option' => 'self_drive',
+                'pickup_date' => $pickupDate,
+                'return_date' => $returnDate,
+                'pickup_time' => '12:00',
+                'return_time' => '12:00',
+                'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
+                'driver_license' => UploadedFile::fake()->create('license.png', 10, 'image/png'),
+                'proof_of_billing' => UploadedFile::fake()->create('billing.png', 10, 'image/png'),
+                'privacy_consent' => '1',
+                'final_agreement' => '1',
+                'payment_mode' => 'walkin',
+            ])
+            ->assertRedirect(route('user.reservations'))
+            ->assertSessionHasErrors('vehicle');
     }
 
     public function test_user_delivery_booking_uses_text_drop_off_and_optional_notes_without_a_map(): void
@@ -888,8 +978,8 @@ class VehicleUnitTest extends TestCase
             'delivery_barangay' => 'San Gabriel',
             'delivery_street' => 'SM Dasma main entrance',
             'delivery_notes' => 'Wait beside the north gate.',
-            'pickup_date' => now()->addDays(10)->toDateString(),
-            'return_date' => now()->addDays(11)->toDateString(),
+            'pickup_date' => now()->addDays(5)->toDateString(),
+            'return_date' => now()->addDays(6)->toDateString(),
             'pickup_time' => '12:00',
             'return_time' => '12:00',
             'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
@@ -949,7 +1039,7 @@ class VehicleUnitTest extends TestCase
             'price' => 1800,
             'status' => 'available',
         ]);
-        $pickupDate = now()->addDays(10)->toDateString();
+        $pickupDate = now()->addDays(5)->toDateString();
 
         $oneDayResponse = $this->actingAs($user)
             ->from(route('user.reservations'))
@@ -960,7 +1050,7 @@ class VehicleUnitTest extends TestCase
                 'service_option' => 'pickup',
                 'driver_option' => 'self_drive',
                 'pickup_date' => $pickupDate,
-                'return_date' => now()->addDays(11)->toDateString(),
+                'return_date' => now()->addDays(6)->toDateString(),
                 'pickup_time' => '12:00',
                 'return_time' => '12:00',
                 'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
@@ -982,7 +1072,7 @@ class VehicleUnitTest extends TestCase
                 'service_option' => 'pickup',
                 'driver_option' => 'self_drive',
                 'pickup_date' => $pickupDate,
-                'return_date' => now()->addDays(12)->toDateString(),
+                'return_date' => now()->addDays(7)->toDateString(),
                 'pickup_time' => '12:00',
                 'return_time' => '12:00',
                 'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
@@ -1009,7 +1099,7 @@ class VehicleUnitTest extends TestCase
             'price' => 1800,
             'status' => 'available',
         ]);
-        $pickupDate = now()->addDays(10)->toDateString();
+        $pickupDate = now()->addDays(5)->toDateString();
 
         $this->actingAs($user)->post(route('user.reservations.store'), [
             'vehicle' => $vehicle->name,
@@ -1018,7 +1108,7 @@ class VehicleUnitTest extends TestCase
             'service_option' => 'pickup',
             'driver_option' => 'self_drive',
             'pickup_date' => $pickupDate,
-            'return_date' => now()->addDays(11)->toDateString(),
+            'return_date' => now()->addDays(6)->toDateString(),
             'pickup_time' => '12:00',
             'return_time' => '12:00',
             'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
