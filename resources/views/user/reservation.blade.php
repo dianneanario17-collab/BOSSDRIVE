@@ -84,10 +84,11 @@
         .calendar-details-modal .modal-dialog { width: min(500px, calc(100vw - 1rem)); max-width: none; }
         .calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto; overscroll-behavior: contain; }
         .reservation-gcash-panel { height:100%; min-width:0; overflow:hidden; padding:12px; border:1px solid #dee2e6; border-radius:12px; background:#f8f9fa; }
-        .reservation-gcash-qr-thumbnail { display:inline-flex; width:82px; height:82px; max-width:100%; align-items:center; justify-content:center; overflow:hidden; padding:3px; border:0; border-radius:8px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.12); cursor:zoom-in; }
-        .reservation-gcash-qr-thumbnail img { display:block; width:100%; height:100%; border-radius:6px; object-fit:contain; transition:transform .15s ease; }
+        .reservation-gcash-qr-frame { min-height:215px; padding:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; border:1px solid #e9ecef; border-radius:12px; background:#fff; }
+        .reservation-gcash-qr-thumbnail { display:inline-flex; max-width:100%; max-height:190px; align-items:center; justify-content:center; overflow:hidden; padding:3px; border:0; border-radius:8px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.12); cursor:zoom-in; }
+        .reservation-gcash-qr-thumbnail img { display:block; width:auto; max-width:min(132px,100%); height:auto; max-height:184px; border-radius:6px; object-fit:contain; transition:transform .15s ease; }
         .reservation-gcash-qr-thumbnail:hover img { transform:scale(1.04); }
-        .reservation-gcash-account { font-size:.76rem; line-height:1.35; overflow-wrap:anywhere; }
+        .reservation-gcash-account { font-size:.82rem; line-height:1.4; overflow-wrap:anywhere; }
         .reservation-gcash-instructions { font-size:.76rem; line-height:1.4; }
         .gcash-qr-preview-image { display:block; max-width:min(90vw,760px); max-height:min(78vh,760px); margin:auto; object-fit:contain; }
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
@@ -582,22 +583,24 @@
                         <div id="gcash-fields">
                             <div class="row g-3 align-items-stretch">
                                 <div class="col-md-5">
-                                    <div class="reservation-gcash-panel h-100 text-center">
+                                    <div class="h-100 text-center">
                                         <p class="small fw-bold mb-2"><i class="fas fa-qrcode text-primary me-1"></i>GCash QR</p>
-                                        @if($paymentSettings->gcash_qr_path)
-                                            <button type="button" class="reservation-gcash-qr-thumbnail" aria-label="View full-size GCash QR code" data-qr-src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" onclick="openReservationGcashQr(this)">
-                                                <img class="reservation-gcash-qr-image" src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code">
-                                            </button>
-                                            <span class="d-block text-muted mt-1 reservation-gcash-instructions">Tap QR to enlarge</span>
-                                            <span id="reservationGcashQrError" class="d-block text-danger mt-1 reservation-gcash-instructions" hidden>QR code could not be loaded.</span>
-                                        @else
-                                            <div class="bg-primary mx-auto text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 5px;">QR</div>
-                                            <span class="d-block text-muted mt-1 reservation-gcash-instructions">QR code unavailable</span>
-                                        @endif
+                                        <div class="reservation-gcash-qr-frame">
+                                            @if($paymentSettings->gcash_qr_path)
+                                                <button type="button" class="reservation-gcash-qr-thumbnail" aria-label="View full-size GCash QR code" data-qr-src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" onclick="openReservationGcashQr(this)">
+                                                    <img class="reservation-gcash-qr-image" src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code">
+                                                </button>
+                                                <span class="reservation-gcash-instructions text-muted">Tap QR to enlarge</span>
+                                                <span id="reservationGcashQrError" class="reservation-gcash-instructions text-danger" hidden>QR code could not be loaded.</span>
+                                            @else
+                                                <div class="bg-primary mx-auto text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 5px;">QR</div>
+                                                <span class="reservation-gcash-instructions text-muted">QR code unavailable</span>
+                                            @endif
+                                        </div>
                                         <div class="reservation-gcash-account mt-2">
-                                            <span class="d-block text-muted">Account Name</span>
-                                            <strong>{{ $paymentSettings->account_name ?: 'BIG BOSS RENTAL' }}</strong>
-                                            <span class="d-block text-muted mt-1">GCash Number</span>
+                                            <span class="text-muted">Account Name:</span>
+                                            <strong>{{ $paymentSettings->account_name ?: 'BIG BOSS RENTAL' }}</strong><br>
+                                            <span class="text-muted">GCash Number:</span>
                                             <strong>{{ $paymentSettings->account_number ?: '0912 345 6789' }}</strong>
                                         </div>
                                     </div>
@@ -707,9 +710,6 @@
               document.getElementById('reservationGcashQrError')?.removeAttribute('hidden');
           };
           reservationGcashQrImage.addEventListener('error', showReservationGcashQrError);
-          if (reservationGcashQrImage.complete && reservationGcashQrImage.naturalWidth === 0) {
-              showReservationGcashQrError();
-          }
       }
 
       function openReservationGcashQr(button) {
