@@ -27,30 +27,40 @@ class PaymentController extends Controller
             ->whereIn('entity_id', $reservations->pluck('id'))
             ->whereIn('action', ['reservation.payment_added', 'reservation.payment_status_updated'])
             ->latest()
+            ->orderByDesc('id')
             ->get()
             ->filter(fn ($log) => $log->action === 'reservation.payment_added'
                 || ($log->metadata['payment_status'] ?? null) === 'approved')
             ->groupBy('entity_id')
-            ->map(fn ($logs) => $logs->map(fn ($log) => [
-                'name' => $log->actor?->name ?: 'Unknown',
-                'role' => $this->actorRole($log->actor?->role),
-                'amount' => $log->metadata['amount'] ?? null,
-                'date' => $log->created_at?->format('M d, Y g:i A'),
-            ])->values());
+            ->map(function ($logs): array {
+                $log = $logs->first();
+
+                return [
+                    'name' => $log->actor?->name ?: 'Unknown',
+                    'role' => $this->actorRole($log->actor?->role),
+                    'amount' => $log->metadata['amount'] ?? null,
+                    'date' => $log->created_at?->format('M d, Y g:i A'),
+                ];
+            });
         $extensions = $reservations->flatMap->extensions;
         $extensionApprovals = AuditLog::with('actor')
             ->where('entity_type', RentalExtension::class)
             ->whereIn('entity_id', $extensions->pluck('id'))
             ->where('action', 'rental_extension.payment_confirmed')
             ->latest()
+            ->orderByDesc('id')
             ->get()
             ->groupBy('entity_id')
-            ->map(fn ($logs) => $logs->map(fn ($log) => [
-                'name' => $log->actor?->name ?: 'Unknown',
-                'role' => $this->actorRole($log->actor?->role),
-                'amount' => $log->metadata['amount'] ?? null,
-                'date' => $log->created_at?->format('M d, Y g:i A'),
-            ])->values());
+            ->map(function ($logs): array {
+                $log = $logs->first();
+
+                return [
+                    'name' => $log->actor?->name ?: 'Unknown',
+                    'role' => $this->actorRole($log->actor?->role),
+                    'amount' => $log->metadata['amount'] ?? null,
+                    'date' => $log->created_at?->format('M d, Y g:i A'),
+                ];
+            });
         $paymentTargets = $reservations->map(function ($reservation): array {
             $bookingBalance = max($this->bookingTotal($reservation) - (float) $reservation->paid_amount, 0);
             $bookingWaiting = $reservation->payment_status === 'pending'

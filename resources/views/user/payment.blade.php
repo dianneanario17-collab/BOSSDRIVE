@@ -321,11 +321,11 @@
                                                 </div>
                                             </div>
                                             <div class="completed-payment-approvals">
-                                                @forelse($reservationApprovals->get($booking->id, collect()) as $approval)
+                                                @if($approval = $reservationApprovals->get($booking->id))
                                                     <div class="completed-payment-approval"><i class="fas fa-circle-check" aria-hidden="true"></i><span>Approved/recorded by {{ $approval['role'] }}: {{ $approval['name'] }}@if($approval['amount'] !== null) · ₱{{ number_format((float) $approval['amount'], 2) }}@endif · {{ $approval['date'] }}</span></div>
-                                                @empty
+                                                @else
                                                     <div class="small text-muted">Approval staff details are unavailable for this payment.</div>
-                                                @endforelse
+                                                @endif
                                             </div>
                                         @if($booking->payment_proof_path)
                                             <button type="button" class="btn btn-link btn-sm p-0 mt-2" data-screenshot-url="{{ asset('storage/'.$booking->payment_proof_path) }}" onclick="openPaymentScreenshot(this)">
@@ -350,11 +350,11 @@
                                                 </div>
                                             </div>
                                             <div class="completed-payment-approvals">
-                                                @forelse($extensionApprovals->get($extension->id, collect()) as $approval)
+                                                @if($approval = $extensionApprovals->get($extension->id))
                                                     <div class="completed-payment-approval"><i class="fas fa-circle-check" aria-hidden="true"></i><span>Approved by {{ $approval['role'] }}: {{ $approval['name'] }}@if($approval['amount'] !== null) · ₱{{ number_format((float) $approval['amount'], 2) }}@endif · {{ $approval['date'] }}</span></div>
-                                                @empty
+                                                @else
                                                     <div class="small text-muted">Approval staff details are unavailable for this payment.</div>
-                                                @endforelse
+                                                @endif
                                             </div>
                                         @if($extension->payment_proof_path)
                                             <button type="button" class="btn btn-link btn-sm p-0 mt-2" data-screenshot-url="{{ asset('storage/'.$extension->payment_proof_path) }}" onclick="openPaymentScreenshot(this)">
