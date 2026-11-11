@@ -29,31 +29,31 @@
         .payment-proof-preview { display:inline-flex; flex-direction:column; align-items:flex-start; gap:5px; border:0; padding:0; background:none; color:#0d6efd; text-align:left; }
         .payment-proof-thumbnail { display:block; width:auto; max-width:100%; height:90px; object-fit:cover; border:1px solid #dee2e6; border-radius:8px; }
         .payment-completed-dialog { max-width:760px; }
-        .payment-completed-dialog .modal-content { max-height:80vh; border:0; border-radius:20px; overflow:hidden; box-shadow:0 24px 70px rgba(18,18,18,.2); }
-        .payment-completed-dialog .modal-header { padding:18px 22px; border-bottom:1px solid #edf0f2; }
-        .payment-completed-dialog .modal-body { overflow-y:auto; padding:20px 22px; background:#f7f8fa; }
+        .payment-completed-dialog .modal-content { max-height:75vh; border:0; border-radius:20px; overflow:hidden; box-shadow:0 24px 70px rgba(18,18,18,.2); }
+        .payment-completed-dialog .modal-header { flex:0 0 auto; padding:14px 18px; border-bottom:1px solid #edf0f2; }
+        .payment-completed-dialog .modal-body { flex:1 1 auto; min-height:0; max-height:calc(75vh - 68px); overflow-y:auto; padding:14px 16px; background:#f7f8fa; scrollbar-color:#ced4da transparent; scrollbar-width:thin; }
         .completed-payments-title { display:flex; align-items:center; gap:11px; }
         .completed-payments-title-icon { display:grid; width:38px; height:38px; flex:0 0 38px; place-items:center; border-radius:12px; background:#e9f7ef; color:#198754; font-size:1rem; }
         .completed-payments-title small { display:block; margin-top:2px; color:#6c757d; font-size:.76rem; font-weight:500; }
-        .completed-payment-card { padding:18px; border:1px solid #e6e9ed; border-radius:15px; background:#fff; box-shadow:0 3px 12px rgba(18,18,18,.035); }
+        .completed-payment-card { padding:12px; border:1px solid #e6e9ed; border-radius:13px; background:#fff; box-shadow:0 3px 12px rgba(18,18,18,.035); }
         .completed-payment-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
         .completed-payment-vehicle { display:flex; align-items:center; gap:11px; min-width:0; }
         .completed-payment-vehicle > div { min-width:0; }
-        .completed-payment-vehicle-icon { display:grid; width:40px; height:40px; flex:0 0 40px; place-items:center; border-radius:12px; background:#fff1f2; color:var(--boss-red); }
-        .completed-payment-vehicle-name { display:block; font-size:1rem; font-weight:800; line-height:1.3; overflow-wrap:anywhere; }
-        .completed-payment-control { display:inline-flex; align-items:center; gap:6px; margin-top:4px; color:#6c757d; font-size:.78rem; overflow-wrap:anywhere; }
-        .completed-payment-card .status-badge { max-width:none; padding:6px 10px; background:#e9f7ef; color:#167347; letter-spacing:.03em; }
-        .completed-payment-detail { height:100%; padding:14px; border:1px solid #edf0f2; border-radius:12px; background:#fff; }
-        .completed-payment-detail-title { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:.9rem; font-weight:800; }
+        .completed-payment-vehicle-icon { display:grid; width:34px; height:34px; flex:0 0 34px; place-items:center; border-radius:10px; background:#fff1f2; color:var(--boss-red); }
+        .completed-payment-vehicle-name { display:block; font-size:.9rem; font-weight:800; line-height:1.25; overflow-wrap:anywhere; }
+        .completed-payment-control { display:inline-flex; align-items:center; gap:5px; margin-top:2px; color:#6c757d; font-size:.7rem; overflow-wrap:anywhere; }
+        .completed-payment-card .status-badge { max-width:none; padding:5px 8px; background:#e9f7ef; color:#167347; letter-spacing:.03em; font-size:.62rem; }
+        .completed-payment-detail { height:100%; padding:10px; border:1px solid #edf0f2; border-radius:10px; background:#fff; }
+        .completed-payment-detail-title { display:flex; align-items:center; gap:7px; margin-bottom:8px; font-size:.8rem; font-weight:800; }
         .completed-payment-detail-title i { color:var(--boss-red); }
-        .completed-payment-amounts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-        .completed-payment-amount { min-width:0; padding:10px 11px; border-radius:10px; background:#f7f8fa; }
+        .completed-payment-amounts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+        .completed-payment-amount { min-width:0; padding:7px 9px; border-radius:8px; background:#f7f8fa; }
         .completed-payment-amount.paid { background:#e9f7ef; }
-        .completed-payment-amount-label { display:block; color:#6c757d; font-size:.72rem; font-weight:600; }
-        .completed-payment-amount-value { display:block; margin-top:3px; font-size:.95rem; font-weight:800; overflow-wrap:anywhere; }
+        .completed-payment-amount-label { display:block; color:#6c757d; font-size:.66rem; font-weight:600; }
+        .completed-payment-amount-value { display:block; margin-top:2px; font-size:.84rem; font-weight:800; overflow-wrap:anywhere; }
         .completed-payment-amount.paid .completed-payment-amount-value { color:#167347; }
-        .completed-payment-approvals { display:grid; gap:7px; margin-top:12px; }
-        .completed-payment-approval { display:flex; align-items:flex-start; gap:8px; padding:9px 10px; border-radius:9px; background:#f0f8f3; color:#26734d; font-size:.76rem; line-height:1.45; overflow-wrap:anywhere; }
+        .completed-payment-approvals { display:grid; gap:4px; margin-top:8px; }
+        .completed-payment-approval { display:flex; align-items:flex-start; gap:7px; padding:6px 8px; border-radius:8px; background:#f0f8f3; color:#26734d; font-size:.69rem; line-height:1.35; overflow-wrap:anywhere; }
         .completed-payment-approval i { margin-top:2px; color:#198754; }
         .completed-payment-empty { padding:24px 16px; border:1px dashed #ced4da; border-radius:13px; background:#fff; }
         .payment-layout-row { align-items:flex-start; }
@@ -64,7 +64,7 @@
         .payment-history-tabs .nav-link { width:100%; min-height:46px; margin:0; padding:10px 8px; border-radius:10px; color:#495057; background:#f1f3f5; font-weight:700; white-space:normal; line-height:1.25; }
         .payment-history-tabs .nav-link.active { color:#fff; background:var(--boss-red); }
         @media(max-width:991.98px){ .payment-history-scroll { max-height:50vh; } }
-        @media(max-width:575.98px){.payment-card,.payment-panel{border-radius:15px!important}.payment-card.p-4,.payment-panel.p-4{padding:1rem!important}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.payment-qr-frame{min-height:150px;padding:12px}.qr-code-img{width:min(190px,65vw)}.payment-completed-dialog .modal-content{max-height:85vh;border-radius:16px}.payment-completed-dialog .modal-header{padding:14px 16px}.payment-completed-dialog .modal-body{padding:14px 12px}.completed-payment-card{padding:13px}.completed-payment-vehicle-icon{width:36px;height:36px;flex-basis:36px}.completed-payment-vehicle-name{font-size:.9rem}.completed-payment-card .status-badge{font-size:.63rem;padding:5px 7px}.completed-payment-detail{padding:11px}.completed-payment-amount-value{font-size:.87rem}.completed-payment-approval{font-size:.72rem}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
+        @media(max-width:575.98px){.payment-card,.payment-panel{border-radius:15px!important}.payment-card.p-4,.payment-panel.p-4{padding:1rem!important}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.payment-qr-frame{min-height:150px;padding:12px}.qr-code-img{width:min(190px,65vw)}.payment-completed-dialog .modal-content{max-height:80vh;border-radius:16px}.payment-completed-dialog .modal-header{padding:12px 14px}.payment-completed-dialog .modal-body{max-height:calc(80vh - 60px);padding:10px!important}.completed-payment-card{padding:10px}.completed-payment-vehicle-icon{width:30px;height:30px;flex-basis:30px}.completed-payment-vehicle-name{font-size:.84rem}.completed-payment-control{font-size:.66rem}.completed-payment-detail{padding:8px}.completed-payment-detail-title{font-size:.74rem}.completed-payment-amount-value{font-size:.78rem}.completed-payment-approval{font-size:.65rem;padding:5px 7px}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
     </style>
 </head>
 <body>
@@ -294,8 +294,8 @@
                             $extensionsForBooking = $completedExtensionsByReservation->get($reservationId, collect());
                             $paymentReservation = $booking ?? $extensionsForBooking->first()->reservation;
                         @endphp
-                        <div class="completed-payment-card mb-3" data-completed-control="{{ $paymentReservation->control_number }}">
-                            <div class="completed-payment-heading mb-3">
+                        <div class="completed-payment-card mb-2" data-completed-control="{{ $paymentReservation->control_number }}">
+                            <div class="completed-payment-heading mb-2">
                                 <div class="completed-payment-vehicle">
                                     <span class="completed-payment-vehicle-icon"><i class="fas fa-car-side" aria-hidden="true"></i></span>
                                     <div class="min-w-0">
@@ -305,7 +305,7 @@
                                 </div>
                                 <span class="status-badge status-paid">COMPLETED</span>
                             </div>
-                            <div class="row g-3 completed-payment-details">
+                            <div class="row g-2 completed-payment-details">
                                 @if($booking)
                                     <div class="{{ $extensionsForBooking->isNotEmpty() ? 'col-md-6' : 'col-12' }}">
                                         <div class="completed-payment-detail">
