@@ -729,7 +729,9 @@ class VehicleUnitTest extends TestCase
         $guestPage = $this->get(route('reservations'))->assertOk();
         $guestContent = $guestPage->getContent();
         $this->assertStringContainsString('class="guest-vehicle-grid"', $guestContent);
-        $this->assertStringContainsString('repeat(auto-fit, minmax(min(100%, 340px), 1fr))', $guestContent);
+        $this->assertStringContainsString('repeat(auto-fill, minmax(min(100%, 480px), 480px))', $guestContent);
+        $this->assertStringContainsString('max-width:480px', $guestContent);
+        $this->assertStringContainsString('width:100% !important; max-width:100%; height:100% !important; object-fit:contain;', $guestContent);
         $this->assertStringContainsString('class="guest-vehicle-grid-item"', $guestContent);
         $this->assertStringContainsString('id="guestVehiclePhotoModal"', $guestContent);
         $this->assertStringContainsString('function openGuestVehiclePhoto(cardId)', $guestContent);
