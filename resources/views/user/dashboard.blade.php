@@ -34,7 +34,7 @@
         .req-item { padding:12px; background:#f8f9fa; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
         .req-item.verified { border-left:4px solid #198754; }
         .step-tooltip { display:none; position:absolute; bottom:calc(100% + 12px); left:50%; transform:translateX(-50%); width:220px; background:#fff; border-radius:14px; box-shadow:0 10px 25px rgba(0,0,0,.15); padding:14px; text-align:left; z-index:20; }
-        .step:hover .step-tooltip { display:block; }
+        .step:hover .step-tooltip,.step:focus .step-tooltip,.step:focus-within .step-tooltip { display:block; }
         .step-tooltip-title { font-size:.75rem; font-weight:800; color:var(--boss-red); text-transform:uppercase; display:block; margin-bottom:8px; }
         .step-tooltip-row { display:flex; justify-content:space-between; gap:8px; font-size:.72rem; padding:3px 0; }
         .history-card { border:0; transition:.2s; }
@@ -140,6 +140,14 @@
         'completed' => 5,
         default => 1,
     };
+    $trackerStepStatuses = array_map(
+        fn (int $index): string => in_array($status, ['cancelled', 'void'], true)
+            ? 'Not continued'
+            : ($index < $activeStep - 1
+                ? 'Confirmed'
+                : ($index === $activeStep - 1 ? 'In progress' : 'Not yet reached')),
+        array_keys($steps)
+    );
     $statusBadgeClass = in_array($status, ['cancelled', 'void'], true) ? 'rejected' : '';
 @endphp
 @include('user.partials.navigation', ['title' => 'DASHBOARD'])
@@ -160,7 +168,7 @@
                 <hr class="my-4"><h6 class="fw-bold mb-1"><i class="fas fa-tasks text-danger me-2"></i>Rental Process Tracker</h6><small class="text-muted d-block mb-2" style="font-size:.7rem;">Hover on a step to see the details.</small>
                 <div id="dashReservationAlert" class="alert alert-danger py-2 mb-3" style="{{ in_array($status, ['cancelled', 'void'], true) ? '' : 'display:none;' }}"><i class="fas fa-times-circle me-2"></i><strong id="dashReservationAlertTitle">Booking {{ $status === 'void' ? 'voided' : 'cancelled' }}.</strong> This reservation is no longer active.<div id="dashRejectionReason" class="mt-2" style="{{ $reservation?->rejection_comment ? '' : 'display:none;' }}"><strong>Reason from admin:</strong> <span>{{ $reservation?->rejection_comment }}</span></div></div>
                 <div class="small text-muted mb-3"><i class="fas fa-clock me-1 text-danger"></i>Pickup: <strong id="dashPickupTime">{{ $reservation->pickup_date->format('M d, Y') }} at {{ \Illuminate\Support\Carbon::parse($reservation->pickup_time)->format('g:i A') }}</strong><span class="ms-3" id="dashDriverInfo" style="{{ $reservation->driver_option === 'with_driver' ? '' : 'display:none;' }}"><i class="fas fa-user-tie me-1 text-danger"></i>Driver: <strong id="dashDriverName">{{ $reservation->assigned_driver_name ?: 'Not yet assigned' }}</strong> (<span id="dashDriverContact">{{ $reservation->assigned_driver_contact ?: 'Contact to be confirmed' }}</span>)</span></div>
-                <div class="tracker-wrapper" id="rentalProcessTracker" data-status="{{ $status }}" data-control-number="{{ $reservation->control_number }}">@foreach($steps as $index => $step)<div class="step {{ $index < $activeStep ? 'active' : '' }}" data-step-index="{{ $index }}"><div class="step-icon"><i class="fas {{ ['fa-file-invoice','fa-id-card','fa-car-side','fa-key','fa-undo-alt'][$index] }}"></i></div><div class="step-text">{{ $step }}</div><span class="process-desc">{{ in_array($status, ['cancelled', 'void'], true) ? 'Not continued' : ($index < $activeStep ? 'Confirmed' : 'Not yet reached') }}</span><div class="step-tooltip"><span class="step-tooltip-title">{{ $step }}</span><div class="step-tooltip-row"><span>Control No.</span><span class="tracker-control-number">{{ $reservation->control_number }}</span></div><div class="step-tooltip-row"><span>Status</span><span class="tracker-status">{{ $statusLabel }}</span></div></div></div>@endforeach</div>
+                <div class="tracker-wrapper" id="rentalProcessTracker" data-status="{{ $status }}" data-control-number="{{ $reservation->control_number }}">@foreach($steps as $index => $step)<div class="step {{ $index < $activeStep ? 'active' : '' }}" data-step-index="{{ $index }}" tabindex="0"><div class="step-icon"><i class="fas {{ ['fa-file-invoice','fa-id-card','fa-car-side','fa-key','fa-undo-alt'][$index] }}"></i></div><div class="step-text">{{ $step }}</div><span class="process-desc">{{ $trackerStepStatuses[$index] }}</span><div class="step-tooltip"><span class="step-tooltip-title">{{ $step }}</span><div class="step-tooltip-row"><span>Control No.</span><span class="tracker-control-number">{{ $reservation->control_number }}</span></div><div class="step-tooltip-row"><span>Status</span><span class="tracker-status">{{ $trackerStepStatuses[$index] }}</span></div></div></div>@endforeach</div>
                 @else
                     <div id="dashboardEmptyState" class="text-center py-5"><i class="fas fa-calendar-plus text-danger fs-1 mb-3"></i><h6 class="fw-bold">No reservation yet</h6><a href="{{ route('user.reservations') }}" class="btn btn-danger rounded-pill">MAKE A RESERVATION</a></div>
                 @endif
@@ -242,6 +250,7 @@ function mountDashboardReservation(data) {
         const step = document.createElement('div');
         step.className = 'step';
         step.dataset.stepIndex = String(index);
+        step.tabIndex = 0;
         step.innerHTML = '<div class="step-icon"><i class="fas ' + dashboardStepIcons[index] + '"></i></div><div class="step-text"></div><span class="process-desc"></span><div class="step-tooltip"><span class="step-tooltip-title"></span><div class="step-tooltip-row"><span>Control No.</span><span class="tracker-control-number"></span></div><div class="step-tooltip-row"><span>Status</span><span class="tracker-status"></span></div></div>';
         step.querySelector('.step-text').textContent = label;
         step.querySelector('.step-tooltip-title').textContent = label;
@@ -388,15 +397,18 @@ function updateRentalTracker(rawStatus, controlNumber) {
         const index = Number(step.dataset.stepIndex);
         step.classList.toggle('active', !['cancelled', 'void'].includes(status) && index < activeStep);
         const description = step.querySelector('.process-desc');
+        const stepStatus = ['cancelled', 'void'].includes(status)
+            ? 'Not continued'
+            : (index < activeStep - 1
+                ? 'Confirmed'
+                : (index === activeStep - 1 ? 'In progress' : 'Not yet reached'));
         if (description) {
-            description.innerText = ['cancelled', 'void'].includes(status)
-                ? 'Not continued'
-                : (index < activeStep ? 'Confirmed' : 'Not yet reached');
+            description.innerText = stepStatus;
         }
         const number = step.querySelector('.tracker-control-number');
         const currentStatus = step.querySelector('.tracker-status');
         if (number) number.innerText = controlNumber || '';
-        if (currentStatus) currentStatus.innerText = status.toUpperCase();
+        if (currentStatus) currentStatus.innerText = stepStatus;
     });
 }
 document.getElementById('bookingHistoryList')?.addEventListener('click', event => {

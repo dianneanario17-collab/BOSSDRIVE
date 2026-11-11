@@ -213,6 +213,10 @@ class VehicleUnitTest extends TestCase
         $this->get(route('user.dashboard'))
             ->assertOk()
             ->assertSee('rentalProcessTracker')
+            ->assertSee('tracker-status">Confirmed', false)
+            ->assertSee('tracker-status">In progress', false)
+            ->assertDontSee('tracker-status">PROCESSING', false)
+            ->assertSee('step-tooltip"', false)
             ->assertSee('syncDashboard')
             ->assertSee('car-loader-icon')
             ->assertSee('dashboardTripContent');
