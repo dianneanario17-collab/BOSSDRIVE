@@ -29,8 +29,33 @@
         .payment-proof-preview { display:inline-flex; flex-direction:column; align-items:flex-start; gap:5px; border:0; padding:0; background:none; color:#0d6efd; text-align:left; }
         .payment-proof-thumbnail { display:block; width:auto; max-width:100%; height:90px; object-fit:cover; border:1px solid #dee2e6; border-radius:8px; }
         .payment-completed-dialog { max-width:760px; }
-        .payment-completed-dialog .modal-content { max-height:75vh; }
-        .payment-completed-dialog .modal-body { overflow-y:auto; }
+        .payment-completed-dialog .modal-content { max-height:80vh; border:0; border-radius:20px; overflow:hidden; box-shadow:0 24px 70px rgba(18,18,18,.2); }
+        .payment-completed-dialog .modal-header { padding:18px 22px; border-bottom:1px solid #edf0f2; }
+        .payment-completed-dialog .modal-body { overflow-y:auto; padding:20px 22px; background:#f7f8fa; }
+        .completed-payments-title { display:flex; align-items:center; gap:11px; }
+        .completed-payments-title-icon { display:grid; width:38px; height:38px; flex:0 0 38px; place-items:center; border-radius:12px; background:#e9f7ef; color:#198754; font-size:1rem; }
+        .completed-payments-title small { display:block; margin-top:2px; color:#6c757d; font-size:.76rem; font-weight:500; }
+        .completed-payment-card { padding:18px; border:1px solid #e6e9ed; border-radius:15px; background:#fff; box-shadow:0 3px 12px rgba(18,18,18,.035); }
+        .completed-payment-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+        .completed-payment-vehicle { display:flex; align-items:center; gap:11px; min-width:0; }
+        .completed-payment-vehicle > div { min-width:0; }
+        .completed-payment-vehicle-icon { display:grid; width:40px; height:40px; flex:0 0 40px; place-items:center; border-radius:12px; background:#fff1f2; color:var(--boss-red); }
+        .completed-payment-vehicle-name { display:block; font-size:1rem; font-weight:800; line-height:1.3; overflow-wrap:anywhere; }
+        .completed-payment-control { display:inline-flex; align-items:center; gap:6px; margin-top:4px; color:#6c757d; font-size:.78rem; overflow-wrap:anywhere; }
+        .completed-payment-card .status-badge { max-width:none; padding:6px 10px; background:#e9f7ef; color:#167347; letter-spacing:.03em; }
+        .completed-payment-detail { height:100%; padding:14px; border:1px solid #edf0f2; border-radius:12px; background:#fff; }
+        .completed-payment-detail-title { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:.9rem; font-weight:800; }
+        .completed-payment-detail-title i { color:var(--boss-red); }
+        .completed-payment-amounts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .completed-payment-amount { min-width:0; padding:10px 11px; border-radius:10px; background:#f7f8fa; }
+        .completed-payment-amount.paid { background:#e9f7ef; }
+        .completed-payment-amount-label { display:block; color:#6c757d; font-size:.72rem; font-weight:600; }
+        .completed-payment-amount-value { display:block; margin-top:3px; font-size:.95rem; font-weight:800; overflow-wrap:anywhere; }
+        .completed-payment-amount.paid .completed-payment-amount-value { color:#167347; }
+        .completed-payment-approvals { display:grid; gap:7px; margin-top:12px; }
+        .completed-payment-approval { display:flex; align-items:flex-start; gap:8px; padding:9px 10px; border-radius:9px; background:#f0f8f3; color:#26734d; font-size:.76rem; line-height:1.45; overflow-wrap:anywhere; }
+        .completed-payment-approval i { margin-top:2px; color:#198754; }
+        .completed-payment-empty { padding:24px 16px; border:1px dashed #ced4da; border-radius:13px; background:#fff; }
         .payment-layout-row { align-items:flex-start; }
         .payment-history-scroll { max-height:min(60vh, 560px); overflow-y:auto; padding-right:4px; scrollbar-color:#ced4da transparent; scrollbar-width:thin; }
         .payment-step[hidden] { display:none!important; }
@@ -39,7 +64,7 @@
         .payment-history-tabs .nav-link { width:100%; min-height:46px; margin:0; padding:10px 8px; border-radius:10px; color:#495057; background:#f1f3f5; font-weight:700; white-space:normal; line-height:1.25; }
         .payment-history-tabs .nav-link.active { color:#fff; background:var(--boss-red); }
         @media(max-width:991.98px){ .payment-history-scroll { max-height:50vh; } }
-        @media(max-width:575.98px){.payment-card,.payment-panel{border-radius:15px!important}.payment-card.p-4,.payment-panel.p-4{padding:1rem!important}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.payment-qr-frame{min-height:150px;padding:12px}.qr-code-img{width:min(190px,65vw)}.payment-completed-dialog .modal-content{max-height:85vh}.payment-completed-dialog .modal-body{overflow-y:auto}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
+        @media(max-width:575.98px){.payment-card,.payment-panel{border-radius:15px!important}.payment-card.p-4,.payment-panel.p-4{padding:1rem!important}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.payment-qr-frame{min-height:150px;padding:12px}.qr-code-img{width:min(190px,65vw)}.payment-completed-dialog .modal-content{max-height:85vh;border-radius:16px}.payment-completed-dialog .modal-header{padding:14px 16px}.payment-completed-dialog .modal-body{padding:14px 12px}.completed-payment-card{padding:13px}.completed-payment-vehicle-icon{width:36px;height:36px;flex-basis:36px}.completed-payment-vehicle-name{font-size:.9rem}.completed-payment-card .status-badge{font-size:.63rem;padding:5px 7px}.completed-payment-detail{padding:11px}.completed-payment-amount-value{font-size:.87rem}.completed-payment-approval{font-size:.72rem}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
     </style>
 </head>
 <body>
@@ -241,10 +266,13 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable payment-completed-dialog">
             <div class="modal-content border-0 rounded-4">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="completedPaymentsModalLabel"><i class="fas fa-circle-check text-success me-2"></i>Completed Payments</h5>
+                    <div class="completed-payments-title">
+                        <span class="completed-payments-title-icon"><i class="fas fa-circle-check" aria-hidden="true"></i></span>
+                        <h5 class="modal-title fw-bold mb-0" id="completedPaymentsModalLabel">Completed Payments<small>Your paid bookings and extensions</small></h5>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body completed-payments-body">
                     @php
                         $completedBookings = $reservations->filter(fn ($item) => !in_array($item->status, ['cancelled', 'void'], true)
                             && $item->payment_status === 'approved'
@@ -266,49 +294,84 @@
                             $extensionsForBooking = $completedExtensionsByReservation->get($reservationId, collect());
                             $paymentReservation = $booking ?? $extensionsForBooking->first()->reservation;
                         @endphp
-                        <div class="payment-history-entry p-3 mb-3" data-completed-control="{{ $paymentReservation->control_number }}">
-                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-                                <strong>{{ $paymentReservation->vehicle }}</strong>
+                        <div class="completed-payment-card mb-3" data-completed-control="{{ $paymentReservation->control_number }}">
+                            <div class="completed-payment-heading mb-3">
+                                <div class="completed-payment-vehicle">
+                                    <span class="completed-payment-vehicle-icon"><i class="fas fa-car-side" aria-hidden="true"></i></span>
+                                    <div class="min-w-0">
+                                        <strong class="completed-payment-vehicle-name">{{ $paymentReservation->vehicle }}</strong>
+                                        <span class="completed-payment-control"><i class="fas fa-hashtag" aria-hidden="true"></i>Control Number: {{ $paymentReservation->control_number }}</span>
+                                    </div>
+                                </div>
                                 <span class="status-badge status-paid">COMPLETED</span>
                             </div>
-                            <small class="d-block text-muted mb-3">Control Number: {{ $paymentReservation->control_number }}</small>
-                            <div class="row g-3">
+                            <div class="row g-3 completed-payment-details">
                                 @if($booking)
                                     <div class="{{ $extensionsForBooking->isNotEmpty() ? 'col-md-6' : 'col-12' }}">
-                                        <strong>{{ $booking->vehicle }} · Original Booking</strong>
-                                        <div class="small mt-2">Total: ₱{{ number_format($bookingTotalFor($booking), 2) }} · Paid: ₱{{ number_format($booking->paid_amount, 2) }}</div>
-                                        @forelse($reservationApprovals->get($booking->id, collect()) as $approval)
-                                            <small class="d-block text-success mt-1">Approved/recorded by {{ $approval['role'] }}: {{ $approval['name'] }}@if($approval['amount'] !== null) · ₱{{ number_format((float) $approval['amount'], 2) }}@endif · {{ $approval['date'] }}</small>
-                                        @empty
-                                            <small class="d-block text-muted mt-1">Approval staff details are unavailable for this payment.</small>
-                                        @endforelse
+                                        <div class="completed-payment-detail">
+                                            <strong class="completed-payment-detail-title"><i class="fas fa-receipt" aria-hidden="true"></i>{{ $booking->vehicle }} · Original Booking</strong>
+                                            <div class="completed-payment-amounts">
+                                                <div class="completed-payment-amount">
+                                                    <span class="completed-payment-amount-label">Booking total</span>
+                                                    <strong class="completed-payment-amount-value">₱{{ number_format($bookingTotalFor($booking), 2) }}</strong>
+                                                </div>
+                                                <div class="completed-payment-amount paid">
+                                                    <span class="completed-payment-amount-label">Amount paid</span>
+                                                    <strong class="completed-payment-amount-value">₱{{ number_format($booking->paid_amount, 2) }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="completed-payment-approvals">
+                                                @forelse($reservationApprovals->get($booking->id, collect()) as $approval)
+                                                    <div class="completed-payment-approval"><i class="fas fa-circle-check" aria-hidden="true"></i><span>Approved/recorded by {{ $approval['role'] }}: {{ $approval['name'] }}@if($approval['amount'] !== null) · ₱{{ number_format((float) $approval['amount'], 2) }}@endif · {{ $approval['date'] }}</span></div>
+                                                @empty
+                                                    <div class="small text-muted">Approval staff details are unavailable for this payment.</div>
+                                                @endforelse
+                                            </div>
                                         @if($booking->payment_proof_path)
                                             <button type="button" class="btn btn-link btn-sm p-0 mt-2" data-screenshot-url="{{ asset('storage/'.$booking->payment_proof_path) }}" onclick="openPaymentScreenshot(this)">
                                                 <i class="fas fa-image me-1"></i>View payment screenshot
                                             </button>
                                         @endif
+                                        </div>
                                     </div>
                                 @endif
                                 @foreach($extensionsForBooking as $extension)
                                     <div class="{{ $booking ? 'col-md-6' : 'col-12' }}">
-                                        <strong>{{ $extension->reservation->vehicle }} · Extension</strong>
-                                        <div class="small mt-2">Extension Total: ₱{{ number_format($extension->amount, 2) }} · Paid: ₱{{ number_format($extension->paid_amount, 2) }}</div>
-                                        @forelse($extensionApprovals->get($extension->id, collect()) as $approval)
-                                            <small class="d-block text-success mt-1">Approved by {{ $approval['role'] }}: {{ $approval['name'] }}@if($approval['amount'] !== null) · ₱{{ number_format((float) $approval['amount'], 2) }}@endif · {{ $approval['date'] }}</small>
-                                        @empty
-                                            <small class="d-block text-muted mt-1">Approval staff details are unavailable for this payment.</small>
-                                        @endforelse
+                                        <div class="completed-payment-detail">
+                                            <strong class="completed-payment-detail-title"><i class="fas fa-calendar-plus" aria-hidden="true"></i>{{ $extension->reservation->vehicle }} · Extension</strong>
+                                            <div class="completed-payment-amounts">
+                                                <div class="completed-payment-amount">
+                                                    <span class="completed-payment-amount-label">Extension total</span>
+                                                    <strong class="completed-payment-amount-value">₱{{ number_format($extension->amount, 2) }}</strong>
+                                                </div>
+                                                <div class="completed-payment-amount paid">
+                                                    <span class="completed-payment-amount-label">Amount paid</span>
+                                                    <strong class="completed-payment-amount-value">₱{{ number_format($extension->paid_amount, 2) }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="completed-payment-approvals">
+                                                @forelse($extensionApprovals->get($extension->id, collect()) as $approval)
+                                                    <div class="completed-payment-approval"><i class="fas fa-circle-check" aria-hidden="true"></i><span>Approved by {{ $approval['role'] }}: {{ $approval['name'] }}@if($approval['amount'] !== null) · ₱{{ number_format((float) $approval['amount'], 2) }}@endif · {{ $approval['date'] }}</span></div>
+                                                @empty
+                                                    <div class="small text-muted">Approval staff details are unavailable for this payment.</div>
+                                                @endforelse
+                                            </div>
                                         @if($extension->payment_proof_path)
                                             <button type="button" class="btn btn-link btn-sm p-0 mt-2" data-screenshot-url="{{ asset('storage/'.$extension->payment_proof_path) }}" onclick="openPaymentScreenshot(this)">
                                                 <i class="fas fa-image me-1"></i>View payment screenshot
                                             </button>
                                         @endif
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
                         </div>
                     @empty
-                        <p class="text-center text-muted mb-0">No completed payments yet.</p>
+                        <div class="completed-payment-empty text-center text-muted">
+                            <i class="fas fa-receipt fa-2x text-secondary mb-2" aria-hidden="true"></i>
+                            <p class="fw-bold text-dark mb-1">No completed payments yet</p>
+                            <small>Your completed bookings and extensions will appear here.</small>
+                        </div>
                     @endforelse
                 </div>
             </div>
