@@ -38,7 +38,16 @@
         .calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto; overscroll-behavior: contain; }
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
-        .vehicle-card-image { height:140px; max-width:240px; width:100%; object-fit:contain; }
+        .vehicle-photo-frame { margin:14px 16px 0; padding:10px; border:1px solid #e9ecef; border-radius:12px; background:#f8f9fa; }
+        .vehicle-photo-button { display:flex; width:100%; height:clamp(140px, 22vw, 190px); align-items:center; justify-content:center; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
+        .vehicle-photo-button:focus-visible { outline:3px solid rgba(183,28,28,.25); outline-offset:3px; }
+        .vehicle-card-image { display:block; width:100%; height:100%; object-fit:contain; }
+        .vehicle-photo-modal-image { display:block; max-width:100%; max-height:78vh; margin:auto; object-fit:contain; }
+        .catalog-vehicle-identity { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; }
+        .catalog-vehicle-identity h5 { font-size:1.05rem; }
+        .catalog-vehicle-model { font-size:.76rem; }
+        .catalog-times-rented { font-size:.72rem; }
+        .catalog-plate { font-family:'Courier New',Courier,monospace; background:#eee; padding:2px 8px; border:1px solid #ccc; border-radius:4px; font-size:.8rem; font-weight:700; }
         .guest-vehicle-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap:1.5rem; }
         .guest-vehicle-grid-item { min-width:0; }
         @media (max-width: 991.98px) {
@@ -64,7 +73,7 @@
             .car-info-tag { font-size:.68rem; padding:4px 8px; }
             .specifications-button { font-size:.68rem; }
             .status-badge { top:10px; right:10px; font-size:.65rem; padding:4px 8px; }
-            .vehicle-card-image { height:120px; max-width:200px; }
+            .vehicle-photo-button { height:140px; }
             .btn-float { bottom:16px; right:16px; width:48px; height:48px; }
             .btn-float[style*="right: 105px"] { right:74px !important; }
             .calendar-table { min-width:620px; }
@@ -160,10 +169,10 @@
                     <div class="guest-vehicle-grid-item">
                         <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative">
                             <span id="guest-status-{{ $vehicle->id }}" class="status-badge bg-{{ $statusColor }} {{ $statusColor === 'warning' ? 'text-dark' : 'text-white' }}">{{ $status }}</span>
-                            <div class="p-4 text-center bg-white"><img src="{{ $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg') }}" alt="{{ $vehicle->name }}" class="img-fluid vehicle-card-image" width="240" height="140" loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async" fetchpriority="{{ $loop->first ? 'high' : 'auto' }}" style="height: 140px; max-width: 240px; object-fit: contain;"></div>
+                            <div class="vehicle-photo-frame"><button type="button" class="vehicle-photo-button" id="guest-photo-button-{{ $vehicle->id }}" onclick="openGuestVehiclePhoto({{ $vehicle->id }})" aria-label="Enlarge photo of {{ $vehicle->name }}"><img src="{{ $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg') }}" alt="{{ $vehicle->name }}" class="vehicle-card-image" width="240" height="140" loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async" fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"></button></div>
                             <div class="p-4 pt-0 bg-white catalog-card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div><h5 id="guest-title-{{ $vehicle->id }}" class="fw-bold mb-0">{{ $vehicle->name }} Unit #{{ $modelUnits->search(fn ($unit) => $unit['id'] === $vehicle->id) + 1 }}</h5><small id="guest-brand-{{ $vehicle->id }}" class="text-muted d-block {{ $vehicle->brand_name ? '' : 'd-none' }}">{{ $vehicle->brand_name }}</small><small id="guest-times-{{ $vehicle->id }}" class="text-muted"><i class="fas fa-history me-1"></i>{{ $vehicle->reservations_count }} Times Rented</small></div>
+                                    <div><small id="guest-times-{{ $vehicle->id }}" class="catalog-times-rented text-muted d-block mb-1"><i class="fas fa-history me-1"></i>{{ $vehicle->reservations_count }} Times Rented</small><div class="catalog-vehicle-identity"><h5 id="guest-brand-{{ $vehicle->id }}" class="fw-bold mb-0">{{ $vehicle->brand_name ?: $vehicle->name }}</h5><span class="text-muted fw-bold">|</span><span class="catalog-plate" id="guest-unit-{{ $vehicle->id }}">Car No: {{ $vehicle->plate ?: 'Not assigned' }}</span></div><small id="guest-title-{{ $vehicle->id }}" class="catalog-vehicle-model text-muted d-block">{{ $vehicle->name }} Unit #{{ $modelUnits->search(fn ($unit) => $unit['id'] === $vehicle->id) + 1 }}</small></div>
                                     <div class="text-end"><div id="guest-rating-{{ $vehicle->id }}" class="rating-stars">{!! str_repeat('<i class="fas fa-star"></i>', (int) round($vehicle->rating)) !!}</div><a id="guest-feedback-{{ $vehicle->id }}" class="view-feedback" href="#feedback-{{ $vehicle->id }}" data-bs-toggle="modal">{{ count($feedbacks) }} Feedback{{ count($feedbacks) === 1 ? '' : 's' }}</a></div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2 mb-3">
@@ -172,7 +181,6 @@
                                     <button type="button" class="specifications-button" id="guest-specs-button-{{ $vehicle->id }}" data-card-id="{{ $vehicle->id }}" data-unit-id="{{ $vehicle->id }}" onclick="showGuestSpecifications(this)"><i class="fas fa-list-ul" aria-hidden="true"></i>View Specifications</button>
                                     <span id="guest-damage-{{ $vehicle->id }}" class="car-info-tag">{{ count($damageLogs) }} Condition Log{{ count($damageLogs) === 1 ? '' : 's' }}</span>
                                 </div>
-                                <div class="small text-muted mb-1" id="guest-unit-{{ $vehicle->id }}"><strong>Car No:</strong> {{ $vehicle->plate }}</div>
                                 <div class="small fw-bold mb-3" id="guest-schedule-{{ $vehicle->id }}"></div>
                                 <div class="catalog-card-footer">
                                 @if ($activeReservation)
@@ -234,6 +242,20 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="list-group list-group-flush" id="guestSpecificationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="guestVehiclePhotoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold" id="guestVehiclePhotoTitle">Vehicle Photo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 text-center">
+                    <img id="guestVehiclePhotoPreview" class="vehicle-photo-modal-image" src="" alt="">
+                </div>
             </div>
         </div>
     </div>
@@ -485,11 +507,10 @@
             const currentModelName = unit.name || modelName;
             const card = document.getElementById('guest-status-' + cardId).closest('.card');
             document.getElementById('guest-title-' + cardId).textContent = currentModelName + ' Unit #' + (index + 1);
-            document.getElementById('guest-unit-' + cardId).innerHTML = '<strong>Car No:</strong> ' + escapeGuestHtml(unit.plate || 'Not assigned');
+            document.getElementById('guest-unit-' + cardId).textContent = 'Car No: ' + (unit.plate || 'Not assigned');
             document.getElementById('guest-category-' + cardId).textContent = displayGuestCategory(unit.category);
             const brand = document.getElementById('guest-brand-' + cardId);
-            brand.textContent = unit.brand_name || '';
-            brand.classList.toggle('d-none', !unit.brand_name);
+            brand.textContent = unit.brand_name || currentModelName;
             if (unit.timesRented !== undefined) {
                 document.getElementById('guest-times-' + cardId).innerHTML = '<i class="fas fa-history me-1"></i>' + Number(unit.timesRented || 0) + ' Times Rented';
             }
@@ -509,6 +530,7 @@
             const image = card.querySelector('.vehicle-card-image');
             if (unit.photo && image.src !== unit.photo) image.src = unit.photo;
             image.alt = currentModelName;
+            document.getElementById('guest-photo-button-' + cardId).setAttribute('aria-label', 'Enlarge photo of ' + currentModelName);
             const price = document.getElementById('guest-price-' + cardId);
             if (price && Number.isFinite(Number(unit.price))) {
                 price.textContent = '₱' + Number(unit.price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -549,6 +571,19 @@
                 rentButton.setAttribute('aria-disabled', 'true');
             }
             bootstrap.Modal.getInstance(document.getElementById('guestUnitsModal')).hide();
+        }
+
+        function openGuestVehiclePhoto(cardId) {
+            const image = document.querySelector('#guest-photo-button-' + cardId + ' .vehicle-card-image');
+            if (!image) return;
+
+            const brand = document.getElementById('guest-brand-' + cardId).textContent;
+            const plate = document.getElementById('guest-unit-' + cardId).textContent;
+            const preview = document.getElementById('guestVehiclePhotoPreview');
+            preview.src = image.src;
+            preview.alt = image.alt + ' vehicle photo';
+            document.getElementById('guestVehiclePhotoTitle').textContent = brand + ' | ' + plate;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('guestVehiclePhotoModal')).show();
         }
 
         function escapeGuestHtml(value) {

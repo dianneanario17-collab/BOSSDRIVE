@@ -507,6 +507,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('id="vehicleSearchInput"', $adminPage->getContent());
         $this->assertStringContainsString('aria-label="Search vehicles"', $adminPage->getContent());
         $this->assertStringContainsString('vehicle.brand_name', $adminPage->getContent());
+        $this->assertStringContainsString('height: clamp(140px, 22vw, 190px)', $adminPage->getContent());
         $this->assertStringContainsString('id="vehiclePhotoModal"', $adminPage->getContent());
         $this->assertStringContainsString('function openVehiclePhoto(vehicleId)', $adminPage->getContent());
         $this->assertStringContainsString('v.timesRented + \' Times Rented</small>\'', $adminPage->getContent());
@@ -730,6 +731,11 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('class="guest-vehicle-grid"', $guestContent);
         $this->assertStringContainsString('repeat(auto-fit, minmax(min(100%, 340px), 1fr))', $guestContent);
         $this->assertStringContainsString('class="guest-vehicle-grid-item"', $guestContent);
+        $this->assertStringContainsString('id="guestVehiclePhotoModal"', $guestContent);
+        $this->assertStringContainsString('function openGuestVehiclePhoto(cardId)', $guestContent);
+        $this->assertStringContainsString('class="vehicle-photo-frame"', $guestContent);
+        $this->assertStringContainsString('class="catalog-vehicle-identity"', $guestContent);
+        $this->assertStringContainsString('catalog-times-rented text-muted d-block mb-1', $guestContent);
         $this->assertSame(1, substr_count($guestContent, 'id="guestSpecificationsModal"'));
         $this->assertStringContainsString('View Specifications', $guestContent);
         $this->assertStringContainsString('class="specifications-button"', $guestContent);
@@ -750,6 +756,10 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('Choose at least 2 full days, up to 7 days within the open booking window.', $userPage->getContent());
         $this->assertStringNotContainsString('Selected Vehicle Details', $userPage->getContent());
         $this->assertStringNotContainsString('rentVehicleSpecs', $userPage->getContent());
+        $this->assertStringContainsString('id="userVehiclePhotoModal"', $userPage->getContent());
+        $this->assertStringContainsString('function openUserVehiclePhoto(vehicleId)', $userPage->getContent());
+        $this->assertStringContainsString('height:clamp(140px, 22vw, 190px)', $userPage->getContent());
+        $this->assertStringContainsString('class="catalog-vehicle-identity"', $userPage->getContent());
         $this->assertSame(1, substr_count($userPage->getContent(), 'id="vehicleSpecificationsModal"'));
         $this->assertStringContainsString('View Specifications', $userPage->getContent());
         $this->assertStringContainsString('class="specifications-button"', $userPage->getContent());

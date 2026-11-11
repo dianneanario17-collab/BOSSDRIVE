@@ -93,6 +93,16 @@
         .gcash-qr-preview-image { display:block; max-width:min(90vw,760px); max-height:min(78vh,760px); margin:auto; object-fit:contain; }
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
+        .vehicle-photo-frame { margin:14px 16px 0; padding:10px; border:1px solid #e9ecef; border-radius:12px; background:#f8f9fa; }
+        .vehicle-photo-button { display:flex; width:100%; height:clamp(140px, 22vw, 190px); align-items:center; justify-content:center; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
+        .vehicle-photo-button:focus-visible { outline:3px solid rgba(183,28,28,.25); outline-offset:3px; }
+        .vehicle-card-image { display:block; width:100%; height:100%; object-fit:contain; }
+        .vehicle-photo-modal-image { display:block; max-width:100%; max-height:78vh; margin:auto; object-fit:contain; }
+        .catalog-vehicle-identity { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; }
+        .catalog-vehicle-identity h5 { font-size:1.05rem; }
+        .catalog-vehicle-model { font-size:.76rem; }
+        .catalog-times-rented { font-size:.72rem; }
+        .catalog-plate { font-family:'Courier New',Courier,monospace; background:#eee; padding:2px 8px; border:1px solid #ccc; border-radius:4px; font-size:.8rem; font-weight:700; }
 
         .step-indicator { font-size: 0.85rem; font-weight: 800; color: var(--boss-red); letter-spacing: 1px; }
         .btn-next-step { border-radius: 50px; font-weight: bold; padding: 12px; margin-top: 20px; }
@@ -208,6 +218,20 @@
                 <i class="fas fa-car-side fa-3x mb-3"></i>
                 <p class="fw-bold mb-0">No vehicles found.</p>
                 <p class="small">Subukan mong baguhin ang search o ang capacity filter.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="userVehiclePhotoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold" id="userVehiclePhotoTitle">Vehicle Photo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 text-center">
+                    <img id="userVehiclePhotoPreview" class="vehicle-photo-modal-image" src="" alt="">
+                </div>
             </div>
         </div>
     </div>
@@ -1112,6 +1136,19 @@
         return '{{ asset('image') }}/car' + ((index % 4) + 1) + '.jpg';
     }
 
+    function openUserVehiclePhoto(vehicleId) {
+        const vehicle = fleet.find(function (unit) { return Number(unit.id) === Number(vehicleId); });
+        if (!vehicle) return;
+
+        const index = fleet.findIndex(function (unit) { return Number(unit.id) === Number(vehicleId); });
+        const preview = document.getElementById('userVehiclePhotoPreview');
+        preview.src = vehiclePhoto(vehicle, index);
+        preview.alt = vehicle.name + ' vehicle photo';
+        document.getElementById('userVehiclePhotoTitle').textContent =
+            (vehicle.brand_name || vehicle.name) + ' | Car No: ' + (vehicle.plate || 'Not assigned');
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('userVehiclePhotoModal')).show();
+    }
+
     function displayReservationCategory(category) {
         const normalized = String(category || '').toLowerCase();
         if (normalized === 'expanded — diesel') return 'Diesel';
@@ -1252,14 +1289,13 @@
             '<div class="col-md-6">' +
                 '<div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative">' +
                     '<span class="status-badge ' + statusBadgeClass(label) + '">' + label + '</span>' +
-                    '<div class="p-4 text-center bg-white"><img src="' + vehiclePhoto(v, index) + '" alt="' + escapeHtml(v.name) + '" class="img-fluid" width="240" height="140" loading="' + (index < 2 ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (index === 0 ? 'high' : 'auto') + '" style="max-height: 140px;' + (dimmed ? ' opacity: 0.5;' : '') + '"></div>' +
+                    '<div class="vehicle-photo-frame"><button type="button" class="vehicle-photo-button" onclick="openUserVehiclePhoto(' + v.id + ')" aria-label="Enlarge photo of ' + escapeHtml(v.name) + '"><img src="' + vehiclePhoto(v, index) + '" alt="' + escapeHtml(v.name) + '" class="vehicle-card-image" width="240" height="140" loading="' + (index < 2 ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (index === 0 ? 'high' : 'auto') + '"' + (dimmed ? ' style="opacity: 0.5;"' : '') + '></button></div>' +
                     '<div class="p-4 pt-0 bg-white catalog-card-body">' +
                         '<div class="d-flex justify-content-between align-items-start mb-1">' +
                             '<div>' +
-                                '<h5 class="fw-bold mb-0' + (dimmed ? ' text-muted' : '') + '">' + escapeHtml(v.name) + ' Unit #' + unitNumber + '</h5>' +
-                                (v.brand_name ? '<small class="text-muted d-block">' + escapeHtml(v.brand_name) + '</small>' : '') +
-                                '<small class="text-muted d-block">Car No: ' + escapeHtml(v.plate || 'Not assigned') + '</small>' +
-                                '<small class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-history me-1"></i>' + v.timesRented + ' Times Rented</small>' +
+                                '<small class="catalog-times-rented text-muted d-block mb-1"><i class="fas fa-history me-1"></i>' + v.timesRented + ' Times Rented</small>' +
+                                '<div class="catalog-vehicle-identity"><h5 class="fw-bold mb-0' + (dimmed ? ' text-muted' : '') + '">' + escapeHtml(v.brand_name || v.name) + '</h5><span class="text-muted fw-bold">|</span><span class="catalog-plate">Car No: ' + escapeHtml(v.plate || 'Not assigned') + '</span></div>' +
+                                '<small class="catalog-vehicle-model text-muted d-block">' + escapeHtml(v.name) + ' Unit #' + unitNumber + '</small>' +
                             '</div>' +
                             '<div class="text-end">' +
                                 '<div class="rating-stars">' + renderStars(v.rating) + '</div>' +
