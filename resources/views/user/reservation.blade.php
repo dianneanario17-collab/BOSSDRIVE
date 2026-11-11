@@ -83,10 +83,12 @@
         .cal-more:hover { color: var(--boss-red); text-decoration: underline; }
         .calendar-details-modal .modal-dialog { width: min(500px, calc(100vw - 1rem)); max-width: none; }
         .calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto; overscroll-behavior: contain; }
-        .reservation-gcash-panel { height:100%; padding:14px; border:1px solid #dee2e6; border-radius:12px; background:#f8f9fa; }
-        .reservation-gcash-qr-thumbnail { display:inline-flex; padding:0; border:0; border-radius:8px; background:transparent; cursor:zoom-in; }
-        .reservation-gcash-qr-thumbnail img { width:96px; height:96px; border:2px solid #fff; border-radius:7px; object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,.12); transition:transform .15s ease; }
+        .reservation-gcash-panel { height:100%; min-width:0; overflow:hidden; padding:12px; border:1px solid #dee2e6; border-radius:12px; background:#f8f9fa; }
+        .reservation-gcash-qr-thumbnail { display:inline-flex; width:82px; height:82px; max-width:100%; align-items:center; justify-content:center; overflow:hidden; padding:3px; border:0; border-radius:8px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.12); cursor:zoom-in; }
+        .reservation-gcash-qr-thumbnail img { display:block; width:100%; height:100%; border-radius:6px; object-fit:contain; transition:transform .15s ease; }
         .reservation-gcash-qr-thumbnail:hover img { transform:scale(1.04); }
+        .reservation-gcash-account { font-size:.76rem; line-height:1.35; overflow-wrap:anywhere; }
+        .reservation-gcash-instructions { font-size:.76rem; line-height:1.4; }
         .gcash-qr-preview-image { display:block; max-width:min(90vw,760px); max-height:min(78vh,760px); margin:auto; object-fit:contain; }
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
@@ -584,14 +586,15 @@
                                         <p class="small fw-bold mb-2"><i class="fas fa-qrcode text-primary me-1"></i>GCash QR</p>
                                         @if($paymentSettings->gcash_qr_path)
                                             <button type="button" class="reservation-gcash-qr-thumbnail" aria-label="View full-size GCash QR code" data-qr-src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" onclick="openReservationGcashQr(this)">
-                                                <img src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code">
+                                                <img class="reservation-gcash-qr-image" src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code">
                                             </button>
-                                            <span class="d-block text-muted mt-1" style="font-size:.7rem;">Tap QR to enlarge</span>
+                                            <span class="d-block text-muted mt-1 reservation-gcash-instructions">Tap QR to enlarge</span>
+                                            <span id="reservationGcashQrError" class="d-block text-danger mt-1 reservation-gcash-instructions" hidden>QR code could not be loaded.</span>
                                         @else
                                             <div class="bg-primary mx-auto text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 5px;">QR</div>
-                                            <span class="d-block text-muted mt-1" style="font-size:.7rem;">QR code unavailable</span>
+                                            <span class="d-block text-muted mt-1 reservation-gcash-instructions">QR code unavailable</span>
                                         @endif
-                                        <div class="small mt-3">
+                                        <div class="reservation-gcash-account mt-2">
                                             <span class="d-block text-muted">Account Name</span>
                                             <strong>{{ $paymentSettings->account_name ?: 'BIG BOSS RENTAL' }}</strong>
                                             <span class="d-block text-muted mt-1">GCash Number</span>
@@ -602,13 +605,13 @@
                                 <div class="col-md-7">
                                     <div class="reservation-gcash-panel h-100">
                                         <h6 class="fw-bold mb-1"><i class="fas fa-receipt text-danger me-1"></i>Payment Proof</h6>
-                                        <p class="small text-muted mb-3">Upload a screenshot or enter your GCash reference number.</p>
+                                        <p class="reservation-gcash-instructions text-muted mb-2">Upload a screenshot or enter your GCash reference number.</p>
                                         @error('gcash_payment')
                                             <div class="alert alert-danger py-2 small">{{ $message }}</div>
                                         @enderror
-                                        <label class="small fw-bold mb-1" for="reservationGcashScreenshot">GCash Screenshot <span class="text-muted fw-normal">(optional if reference is provided)</span></label>
+                                        <label class="reservation-gcash-instructions fw-bold mb-1" for="reservationGcashScreenshot">GCash Screenshot <span class="text-muted fw-normal">(optional if reference is provided)</span></label>
                                         <input id="reservationGcashScreenshot" type="file" name="gcash_screenshot" class="form-control form-control-sm mb-3" accept=".jpg,.jpeg,.png">
-                                        <label class="small fw-bold mb-1" for="reservationGcashReference">GCash Reference <span class="text-muted fw-normal">(or upload a screenshot)</span></label>
+                                        <label class="reservation-gcash-instructions fw-bold mb-1" for="reservationGcashReference">GCash Reference <span class="text-muted fw-normal">(or upload a screenshot)</span></label>
                                         <input id="reservationGcashReference" type="text" name="gcash_reference" class="form-control" placeholder="Enter GCash reference number" inputmode="numeric" maxlength="17">
                                     </div>
                                 </div>
@@ -696,6 +699,18 @@
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
       let returnToRentModalAfterQrPreview = false;
+      const reservationGcashQrImage = document.querySelector('.reservation-gcash-qr-image');
+
+      if (reservationGcashQrImage) {
+          const showReservationGcashQrError = function () {
+              reservationGcashQrImage.closest('.reservation-gcash-qr-thumbnail').hidden = true;
+              document.getElementById('reservationGcashQrError')?.removeAttribute('hidden');
+          };
+          reservationGcashQrImage.addEventListener('error', showReservationGcashQrError);
+          if (reservationGcashQrImage.complete && reservationGcashQrImage.naturalWidth === 0) {
+              showReservationGcashQrError();
+          }
+      }
 
       function openReservationGcashQr(button) {
           const rentModalElement = document.getElementById('rentModal');
