@@ -368,39 +368,46 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="row">
-                        <div class="col-md-4 border-end" id="reviewProfilePanel">
-                            <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-user-circle me-2"></i>Profile & Logistics</h6>
-                            <label class="info-label">Full Name & Age</label><span class="info-value" id="mName"></span>
-                            <label class="info-label">Contact Number</label><span class="info-value text-danger" id="mPhone"></span>
-                            <label class="info-label">Registered Home Address</label><span class="info-value" id="mHome"></span>
-                            <hr>
-                            <label class="info-label">Service & Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span>
-                            <label class="info-label">Unit Target Address</label><span class="info-value text-primary" id="mTarget"></span>
-                            <label class="info-label">Delivery Notes</label><span class="info-value" id="mDeliveryNotes"></span>
-                            <label class="info-label">Pickup Schedule</label><span class="info-value" id="mPickupSchedule"></span>
-                            <label class="info-label">Return Schedule</label><span class="info-value" id="mReturnSchedule"></span>
-                            <label class="info-label">Assigned Vehicle Unit</label><span class="info-value" id="mVehicleUnit"></span>
-                            <label class="info-label">Vehicle Details</label><span class="info-value" id="mVehicleSpecs"></span>
+                    <section id="reviewProfilePanel" class="pb-3 mb-4 border-bottom">
+                        <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-user-circle me-2"></i>Profile & Logistics</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="info-label">Full Name & Age</label><span class="info-value" id="mName"></span>
+                                <label class="info-label">Contact Number</label><span class="info-value text-danger" id="mPhone"></span>
+                                <label class="info-label">Registered Home Address</label><span class="info-value mb-0" id="mHome"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="info-label">Service & Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span>
+                                <label class="info-label">Unit Target Address</label><span class="info-value text-primary" id="mTarget"></span>
+                                <label class="info-label">Delivery Notes</label><span class="info-value mb-0" id="mDeliveryNotes"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="info-label">Pickup Schedule</label><span class="info-value" id="mPickupSchedule"></span>
+                                <label class="info-label">Return Schedule</label><span class="info-value" id="mReturnSchedule"></span>
+                                <label class="info-label">Assigned Vehicle Unit</label><span class="info-value" id="mVehicleUnit"></span>
+                                <label class="info-label">Vehicle Details</label><span class="info-value mb-0" id="mVehicleSpecs"></span>
+                            </div>
                         </div>
-                        <div class="col-md-5 border-end text-center" id="verificationDocumentsPanel">
+                    </section>
+                    <div class="row g-4">
+                        <div class="col-md-8" id="verificationDocumentsPanel">
                             <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-file-alt me-2"></i>Verification Documents</h6>
                             <div class="row g-2">
-                                <div class="col-6">
+                                <div class="col-md-4">
                                     <small class="fw-bold text-muted d-block mb-1">Driver's License</small>
                                     <a id="mDriverLicenseLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                         <img id="mDriverLicense" src="" alt="Driver's License" class="doc-preview" loading="eager">
                                     </a>
                                     <span id="mDriverLicenseMissing" class="small text-muted d-none">File is missing. Ask the customer to upload it again.</span>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-md-4">
                                     <small class="fw-bold text-muted d-block mb-1">Gov ID</small>
                                     <a id="mValidIdLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                         <img id="mValidId" src="" alt="Government ID" class="doc-preview" loading="eager">
                                     </a>
                                     <span id="mValidIdMissing" class="small text-muted d-none">File is missing. Ask the customer to upload it again.</span>
                                 </div>
-                                <div class="col-12 mt-3">
+                                <div class="col-md-4">
                                     <small class="fw-bold text-muted d-block mb-1">Proof of Billing</small>
                                     <a id="mProofOfBillingLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                         <img id="mProofOfBilling" src="" alt="Proof of Billing" class="doc-preview" loading="eager">
@@ -410,7 +417,7 @@
                             </div>
                             <div id="updatedDocumentsNotice" class="alert alert-warning small mt-3 mb-0 d-none">The customer updated documents after verification. Review the latest files and confirm them again.</div>
                         </div>
-                        <div class="col-md-3" id="reviewPaymentPanel">
+                        <div class="col-md-4" id="reviewPaymentPanel">
                             <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-wallet me-2"></i>Payment Status</h6>
                             <label class="info-label">Current Mode</label><span class="info-value" id="mPayMethod"></span>
                             <label class="info-label">Amount Paid for Rental</label><span class="info-value text-success" id="mPaid"></span>

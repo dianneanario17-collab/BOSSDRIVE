@@ -757,10 +757,18 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('car-loader-icon', $userPage->getContent());
 
         $adminPage = $this->withSession(['is_admin' => true])->get(route('admin.reservations'))->assertOk();
-        $this->assertStringContainsString('id="mVehicleSpecs"', $adminPage->getContent());
-        $this->assertStringContainsString('"vehicleTransmission":"Automatic"', $adminPage->getContent());
-        $this->assertStringContainsString('"vehicleFuel":"Diesel"', $adminPage->getContent());
-        $this->assertStringContainsString('"vehicleCapacity":"4 Seater"', $adminPage->getContent());
+        $adminContent = $adminPage->getContent();
+        $this->assertStringContainsString('id="mVehicleSpecs"', $adminContent);
+        $this->assertStringContainsString('"vehicleTransmission":"Automatic"', $adminContent);
+        $this->assertStringContainsString('"vehicleFuel":"Diesel"', $adminContent);
+        $this->assertStringContainsString('"vehicleCapacity":"4 Seater"', $adminContent);
+        $profilePosition = strpos($adminContent, 'id="reviewProfilePanel"');
+        $documentsPosition = strpos($adminContent, 'id="verificationDocumentsPanel"');
+        $paymentPosition = strpos($adminContent, 'id="reviewPaymentPanel"');
+        $this->assertLessThan($documentsPosition, $profilePosition);
+        $this->assertLessThan($paymentPosition, $documentsPosition);
+        $this->assertStringContainsString('class="col-md-8" id="verificationDocumentsPanel"', $adminContent);
+        $this->assertStringContainsString('class="col-md-4" id="reviewPaymentPanel"', $adminContent);
 
         $staffPage = $this->withSession(['is_staff' => true])->get(route('staff.reservations'))->assertOk();
         $this->assertStringContainsString('id="mVehicleSpecs"', $staffPage->getContent());
