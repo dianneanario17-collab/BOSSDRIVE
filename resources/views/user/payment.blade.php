@@ -393,17 +393,17 @@
                     <img id="paymentScreenshotImage" src="" alt="Submitted payment screenshot" class="img-fluid rounded" style="max-height:75vh;">
                 </div>
             </div>
-            <div class="modal fade" id="gcashQrPreviewModal" tabindex="-1" aria-labelledby="gcashQrPreviewModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content border-0 rounded-4 overflow-hidden">
-                        <div class="modal-header">
-                            <h5 class="modal-title fw-bold" id="gcashQrPreviewModalLabel">GCash QR Code</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center bg-light p-3">
-                            <img id="gcashQrPreviewImage" src="" alt="Full-size GCash QR Code" class="img-fluid rounded gcash-qr-preview-image">
-                        </div>
-                    </div>
+        </div>
+    </div>
+    <div class="modal fade" id="gcashQrPreviewModal" tabindex="-1" aria-labelledby="gcashQrPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 overflow-hidden">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="gcashQrPreviewModalLabel">GCash QR Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center bg-light p-3">
+                    <img id="gcashQrPreviewImage" src="" alt="Full-size GCash QR Code" class="img-fluid rounded gcash-qr-preview-image">
                 </div>
             </div>
         </div>
