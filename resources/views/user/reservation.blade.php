@@ -83,6 +83,10 @@
         .cal-more:hover { color: var(--boss-red); text-decoration: underline; }
         .calendar-details-modal .modal-dialog { width: min(500px, calc(100vw - 1rem)); max-width: none; }
         .calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto; overscroll-behavior: contain; }
+        .reservation-gcash-qr-thumbnail { display:inline-flex; padding:0; border:0; border-radius:8px; background:transparent; cursor:zoom-in; }
+        .reservation-gcash-qr-thumbnail img { width:96px; height:96px; border:2px solid #fff; border-radius:7px; object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,.12); transition:transform .15s ease; }
+        .reservation-gcash-qr-thumbnail:hover img { transform:scale(1.04); }
+        .gcash-qr-preview-image { display:block; max-width:min(90vw,760px); max-height:min(78vh,760px); margin:auto; object-fit:contain; }
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
 
@@ -576,7 +580,10 @@
                             <div class="text-center bg-light p-2 border rounded mb-2">
                                 <p class="small fw-bold mb-1">GCash QR</p>
                                 @if($paymentSettings->gcash_qr_path)
-                                    <img src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code" style="width: 180px; height: 180px; object-fit: cover; border-radius: 5px;">
+                                    <button type="button" class="reservation-gcash-qr-thumbnail" aria-label="View full-size GCash QR code" data-qr-src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" onclick="openReservationGcashQr(this)">
+                                        <img src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code">
+                                    </button>
+                                    <span class="d-block text-muted" style="font-size:.7rem;">Tap QR to enlarge</span>
                                 @else
                                     <div class="bg-primary mx-auto text-white d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 5px;">QR</div>
                                 @endif
@@ -651,6 +658,20 @@
     </div>
 </div>
 
+<div class="modal fade" id="reservationGcashQrModal" tabindex="-1" aria-labelledby="reservationGcashQrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="reservationGcashQrModalLabel">GCash QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center bg-light p-3">
+                <img id="reservationGcashQrPreviewImage" src="" alt="Full-size GCash QR Code" class="img-fluid rounded gcash-qr-preview-image">
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="user-page-loader" id="userPageLoader" aria-hidden="true">
     <div class="text-center text-white">
         <div role="status" aria-live="polite"><i class="fas fa-car-side car-loader-icon" aria-hidden="true"></i><span class="visually-hidden">Loading...</span></div>
@@ -659,7 +680,39 @@
 </div>
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-   document.addEventListener('DOMContentLoaded', function () {
+      let returnToRentModalAfterQrPreview = false;
+
+      function openReservationGcashQr(button) {
+          const rentModalElement = document.getElementById('rentModal');
+          const qrModalElement = document.getElementById('reservationGcashQrModal');
+          const qrImage = document.getElementById('reservationGcashQrPreviewImage');
+          const rentModalIsOpen = rentModalElement.classList.contains('show');
+
+          qrImage.src = button.dataset.qrSrc;
+          returnToRentModalAfterQrPreview = rentModalIsOpen;
+
+          const showQrModal = function () {
+              bootstrap.Modal.getOrCreateInstance(qrModalElement).show();
+          };
+
+          if (rentModalIsOpen) {
+              rentModalElement.addEventListener('hidden.bs.modal', showQrModal, { once: true });
+              bootstrap.Modal.getOrCreateInstance(rentModalElement).hide();
+              return;
+          }
+
+          showQrModal();
+      }
+
+      document.getElementById('reservationGcashQrModal')?.addEventListener('hidden.bs.modal', function () {
+          document.getElementById('reservationGcashQrPreviewImage').src = '';
+          if (!returnToRentModalAfterQrPreview) return;
+
+          returnToRentModalAfterQrPreview = false;
+          bootstrap.Modal.getOrCreateInstance(document.getElementById('rentModal')).show();
+      });
+
+      document.addEventListener('DOMContentLoaded', function () {
        const sidebar = document.querySelector('.sidebar');
        const toggle = document.getElementById('userSidebarToggle');
        const backdrop = document.getElementById('userSidebarBackdrop');

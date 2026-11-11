@@ -18,8 +18,11 @@
         .payment-section-heading h5,.payment-section-heading h6 { margin:0; font-weight:800; }
         .payment-section-description { margin:.2rem 0 0; color:#6c757d; font-size:.82rem; }
         .gcash-header-badge { background:linear-gradient(135deg,#0788ff,#0069d9); color:#fff; padding:12px 20px; border-radius:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px; margin:20px 0; }
-        .payment-qr-frame { width:100%; min-height:170px; padding:8px; display:flex; flex-direction:column; align-items:stretch; justify-content:center; gap:10px; border:1px solid #e9ecef; border-radius:14px; background:#f8f9fa; }
-        .qr-code-img { display:block; width:100%; max-width:none; height:auto; border:4px solid #fff; border-radius:10px; box-shadow:0 2px 10px rgba(18,18,18,.08); object-fit:contain; }
+        .payment-qr-frame { width:100%; min-height:150px; padding:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border:1px solid #e9ecef; border-radius:14px; background:#f8f9fa; }
+        .gcash-qr-thumbnail { display:inline-flex; max-width:100%; padding:0; border:0; border-radius:10px; background:transparent; cursor:zoom-in; }
+        .qr-code-img { display:block; width:min(132px,42vw); height:auto; border:3px solid #fff; border-radius:10px; box-shadow:0 2px 10px rgba(18,18,18,.08); object-fit:contain; transition:transform .15s ease; }
+        .gcash-qr-thumbnail:hover .qr-code-img { transform:scale(1.03); }
+        .gcash-qr-preview-image { display:block; max-width:min(90vw,760px); max-height:min(78vh,760px); margin:auto; object-fit:contain; }
         .status-badge { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; max-width:125px; padding:7px 10px; border-radius:16px; font-weight:700; font-size:.7rem; line-height:1.25; text-align:center; white-space:normal; }
         .status-pending { background:#f5c451; color:#3f2d00; } .status-paid { background:#d1e7dd; color:#0f5132; }
         .status-approved,.status-payment_pending { background:#fff3cd; color:#856404; }
@@ -64,7 +67,7 @@
         .payment-history-tabs .nav-link { width:100%; min-height:46px; margin:0; padding:10px 8px; border-radius:10px; color:#495057; background:#f1f3f5; font-weight:700; white-space:normal; line-height:1.25; }
         .payment-history-tabs .nav-link.active { color:#fff; background:var(--boss-red); }
         @media(max-width:991.98px){ .payment-history-scroll { max-height:50vh; } }
-        @media(max-width:575.98px){.payment-card,.payment-panel{border-radius:15px!important}.payment-card.p-4,.payment-panel.p-4{padding:1rem!important}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.payment-qr-frame{min-height:150px;padding:6px}.payment-completed-dialog .modal-content{max-height:80vh;border-radius:16px}.payment-completed-dialog .modal-header{padding:12px 14px}.payment-completed-dialog .modal-body{max-height:calc(80vh - 60px);padding:10px!important}.completed-payment-card{padding:10px}.completed-payment-vehicle-icon{width:30px;height:30px;flex-basis:30px}.completed-payment-vehicle-name{font-size:.84rem}.completed-payment-control{font-size:.66rem}.completed-payment-detail{padding:8px}.completed-payment-detail-title{font-size:.74rem}.completed-payment-amount-value{font-size:.78rem}.completed-payment-approval{font-size:.65rem;padding:5px 7px}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
+        @media(max-width:575.98px){.payment-card,.payment-panel{border-radius:15px!important}.payment-card.p-4,.payment-panel.p-4{padding:1rem!important}.payment-history-scroll{max-height:55vh}.gcash-header-badge{padding:10px 12px;font-size:.85rem}.payment-qr-frame{min-height:140px;padding:6px}.qr-code-img{width:112px}.payment-completed-dialog .modal-content{max-height:80vh;border-radius:16px}.payment-completed-dialog .modal-header{padding:12px 14px}.payment-completed-dialog .modal-body{max-height:calc(80vh - 60px);padding:10px!important}.completed-payment-card{padding:10px}.completed-payment-vehicle-icon{width:30px;height:30px;flex-basis:30px}.completed-payment-vehicle-name{font-size:.84rem}.completed-payment-control{font-size:.66rem}.completed-payment-detail{padding:8px}.completed-payment-detail-title{font-size:.74rem}.completed-payment-amount-value{font-size:.78rem}.completed-payment-approval{font-size:.65rem;padding:5px 7px}.payment-history-tabs .nav-link{min-height:44px;padding:8px 5px;font-size:.78rem}.table-responsive{font-size:.85rem}.modal-dialog{margin:.5rem}.modal-body{padding:1rem!important}}
     </style>
 </head>
 <body>
@@ -109,7 +112,9 @@
                                         <h6 class="fw-bold mb-3 text-primary">Scan QR Code to Pay</h6>
                                         <div class="payment-qr-frame mb-3">
                                             @if($paymentSettings->gcash_qr_path)
-                                                <img id="gcashQrCode" src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code" class="img-fluid qr-code-img">
+                                                <button type="button" class="gcash-qr-thumbnail" aria-label="View full-size GCash QR code" data-qr-src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" onclick="openGcashQrPreview(this)">
+                                                    <img id="gcashQrCode" src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="GCash QR Code" class="img-fluid qr-code-img">
+                                                </button>
                                                 <p id="gcashQrError" class="small text-danger text-center mb-0" hidden>GCash QR code is unavailable. Please contact us for payment assistance.</p>
                                             @else
                                                 <i class="fas fa-qrcode fa-3x text-primary mb-2 d-block"></i>
@@ -388,6 +393,19 @@
                     <img id="paymentScreenshotImage" src="" alt="Submitted payment screenshot" class="img-fluid rounded" style="max-height:75vh;">
                 </div>
             </div>
+            <div class="modal fade" id="gcashQrPreviewModal" tabindex="-1" aria-labelledby="gcashQrPreviewModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 rounded-4 overflow-hidden">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="gcashQrPreviewModalLabel">GCash QR Code</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center bg-light p-3">
+                            <img id="gcashQrPreviewImage" src="" alt="Full-size GCash QR Code" class="img-fluid rounded gcash-qr-preview-image">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:2000">
@@ -410,6 +428,15 @@
             gcashQrCode.addEventListener('error', showGcashQrError);
             if (gcashQrCode.complete && gcashQrCode.naturalWidth === 0) showGcashQrError();
         }
+
+        function openGcashQrPreview(button) {
+            document.getElementById('gcashQrPreviewImage').src = button.dataset.qrSrc;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('gcashQrPreviewModal')).show();
+        }
+
+        document.getElementById('gcashQrPreviewModal')?.addEventListener('hidden.bs.modal', function () {
+            document.getElementById('gcashQrPreviewImage').src = '';
+        });
 
         function showPaymentToast(message) {
             const toastElement = document.getElementById('paymentToast');
