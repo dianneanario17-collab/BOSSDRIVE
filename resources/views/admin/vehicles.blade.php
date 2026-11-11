@@ -48,8 +48,15 @@
         /* ===== Vehicle Cards - styled after the User Reservation catalogue ===== */
         .vehicle-card { border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: white; position: relative; height: 100%; transition: 0.25s; }
         .vehicle-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
-        .vehicle-photo-wrap { padding: 25px; text-align: center; background: white; }
-        .vehicle-photo-wrap img { max-height: 140px; width: auto; }
+        .vehicle-photo-wrap { margin: 14px 16px 0; padding: 10px; text-align: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; }
+        .vehicle-photo-button { display: flex; width: 100%; min-height: 150px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 8px; background: #fff; cursor: zoom-in; }
+        .vehicle-photo-button:focus-visible { outline: 3px solid rgba(220,53,69,.35); outline-offset: 3px; }
+        .vehicle-photo-wrap img { max-width: 100%; max-height: 150px; width: auto; object-fit: contain; }
+        .vehicle-card-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+        .vehicle-card-heading h5 { font-size: 1.05rem; }
+        .vehicle-card-model { font-size: .76rem; }
+        .vehicle-times-rented { font-size: .72rem; }
+        .vehicle-photo-modal-image { display: block; max-width: 100%; max-height: 78vh; margin: auto; object-fit: contain; }
         .vehicle-card { display: flex; flex-direction: column; }
         .vehicle-card > .p-4 { display: flex; flex: 1 1 auto; flex-direction: column; }
         .vehicle-card-footer { margin-top: auto; }
@@ -359,6 +366,20 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="list-group list-group-flush" id="vehicleSpecificationsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="vehiclePhotoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold" id="vehiclePhotoTitle">Vehicle Photo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 text-center">
+                    <img id="vehiclePhotoPreview" class="vehicle-photo-modal-image" src="" alt="">
+                </div>
             </div>
         </div>
     </div>
@@ -1312,14 +1333,13 @@
                 '<div class="col-md-6" id="vehicle-card-' + v.id + '">' +
                     '<div class="vehicle-card">' +
                         '<span class="status-badge ' + st.class + '">' + v.status + '</span>' +
-                        '<div class="vehicle-photo-wrap"><img src="' + photoSrc + '" alt="' + escapeHtml(v.name) + '" class="img-fluid" width="240" height="140" loading="' + (index < 2 ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (index === 0 ? 'high' : 'auto') + '"></div>' +
-                        '<div class="p-4 pt-0">' +
+                        '<div class="vehicle-photo-wrap"><button type="button" class="vehicle-photo-button" onclick="openVehiclePhoto(' + v.id + ')" aria-label="Enlarge photo of ' + escapeHtml(v.name) + '"><img src="' + photoSrc + '" alt="' + escapeHtml(v.name) + '" class="img-fluid" width="240" height="140" loading="' + (index < 2 ? 'eager' : 'lazy') + '" decoding="async" fetchpriority="' + (index === 0 ? 'high' : 'auto') + '"></button></div>' +
+                        '<div class="p-4 pt-2">' +
                             '<div class="d-flex justify-content-between align-items-start mb-1">' +
                                 '<div>' +
-                                    '<h5 class="fw-bold mb-0">' + escapeHtml(modelName) + ' Unit #' + unitNumber + '</h5>' +
-                                    (v.brand_name ? '<small class="text-muted d-block">' + escapeHtml(v.brand_name) + '</small>' : '') +
-                                    '<span class="plate-number">Car No: ' + escapeHtml(v.plate) + '</span>' +
-                                    '<small class="text-muted d-block mt-1" style="font-size:0.72rem;"><i class="fas fa-history me-1"></i>' + v.timesRented + ' Times Rented</small>' +
+                                    '<small class="vehicle-times-rented text-muted d-block mb-1"><i class="fas fa-history me-1"></i>' + v.timesRented + ' Times Rented</small>' +
+                                    '<div class="vehicle-card-heading"><h5 class="fw-bold mb-0">' + escapeHtml(v.brand_name || modelName) + '</h5><span class="text-muted fw-bold">|</span><span class="plate-number">Car No: ' + escapeHtml(v.plate) + '</span></div>' +
+                                    '<small class="vehicle-card-model text-muted d-block">' + escapeHtml(modelName) + ' Unit #' + unitNumber + '</small>' +
                                 '</div>' +
                                 '<div class="text-end">' +
                                     '<div class="rating-stars">' + renderStars(v.rating) + '</div>' +
@@ -1360,6 +1380,19 @@
             }).join('');
 
             updateStatCounts();
+        }
+
+        function openVehiclePhoto(vehicleId) {
+            const vehicle = fleet.find(function (unit) { return Number(unit.id) === Number(vehicleId); });
+            if (!vehicle) return;
+
+            const photo = document.getElementById('vehiclePhotoPreview');
+            photo.src = vehicle.photo && vehicle.photo.trim() !== ''
+                ? vehicle.photo
+                : 'https://via.placeholder.com/280x140?text=' + encodeURIComponent(vehicle.name);
+            photo.alt = vehicle.name + ' vehicle photo';
+            document.getElementById('vehiclePhotoTitle').textContent = vehicle.name + ' — Car No: ' + vehicle.plate;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('vehiclePhotoModal')).show();
         }
 
         function openUnitStockModalFromButton(button) {

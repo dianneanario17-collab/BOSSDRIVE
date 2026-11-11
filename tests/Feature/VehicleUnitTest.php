@@ -507,6 +507,11 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('id="vehicleSearchInput"', $adminPage->getContent());
         $this->assertStringContainsString('aria-label="Search vehicles"', $adminPage->getContent());
         $this->assertStringContainsString('vehicle.brand_name', $adminPage->getContent());
+        $this->assertStringContainsString('id="vehiclePhotoModal"', $adminPage->getContent());
+        $this->assertStringContainsString('function openVehiclePhoto(vehicleId)', $adminPage->getContent());
+        $this->assertStringContainsString('v.timesRented + \' Times Rented</small>\'', $adminPage->getContent());
+        $this->assertStringContainsString('vehicle-photo-button', $adminPage->getContent());
+        $this->assertStringContainsString('Car No: \' + escapeHtml(v.plate)', $adminPage->getContent());
         $this->assertStringContainsString("Stock: ' + units.length", $adminPage->getContent());
         $this->assertStringContainsString('.admin-sidebar { width:250px;', $adminPage->getContent());
         $this->assertStringContainsString('.main-content { margin-left:250px;', $adminPage->getContent());
@@ -553,6 +558,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('ADM 1003', $staffPage->getContent());
         $this->assertStringContainsString('id="vehicleSearchInput"', $staffPage->getContent());
         $this->assertStringContainsString('aria-label="Search vehicles"', $staffPage->getContent());
+        $this->assertStringContainsString('id="vehiclePhotoModal"', $staffPage->getContent());
+        $this->assertStringContainsString('function openVehiclePhoto(vehicleId)', $staffPage->getContent());
         $this->assertStringContainsString("Stock: ' + units.length", $staffPage->getContent());
         $this->assertStringContainsString('.staff-sidebar { width:250px;', $staffPage->getContent());
         $this->assertStringContainsString('.staff-main-content { margin-left:250px;', $staffPage->getContent());
