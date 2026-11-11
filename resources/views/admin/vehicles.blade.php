@@ -2045,8 +2045,7 @@
             const gcashReference = document.getElementById('b-gcash-reference').value.replace(/\s+/g, '');
 
             const maximumDays = getBookMaximumDays();
-            if (!start || !end || durationSeconds <= 0 || (maximumDays !== null && days > maximumDays)
-                || (bookRateType === 'long_distance' && durationSeconds < 2 * 86400)) {
+            if (!start || !end || durationSeconds < getBookMinimumDurationSeconds() || days > maximumDays) {
                 errorArea.innerHTML = '<div class="alert alert-danger py-2 small fw-bold">Please select valid pickup and return dates and times within the allowed rental duration.</div>';
                 return;
             }
@@ -2134,8 +2133,7 @@
                 const durationSeconds = getBookDurationSeconds();
                 const days = getBookRentalDays();
                 const maximumDays = getBookMaximumDays();
-                if (!start || !end || durationSeconds <= 0 || (maximumDays !== null && days > maximumDays)
-                    || (bookRateType === 'long_distance' && durationSeconds < 2 * 86400)) {
+                if (!start || !end || durationSeconds < getBookMinimumDurationSeconds() || days > maximumDays) {
                     errorArea.innerHTML = '<div class="alert alert-danger py-2 small fw-bold">Please select valid pickup and return dates and times within the allowed rental duration.</div>';
                     return;
                 }
@@ -2220,7 +2218,11 @@
         }
 
         function getBookMaximumDays() {
-            return bookRateType === 'long_distance' ? null : 1;
+            return 7;
+        }
+
+        function getBookMinimumDurationSeconds() {
+            return bookRateType === 'long_distance' ? 2 * 86400 : 86400;
         }
 
         function getBookDurationSeconds() {
@@ -2267,14 +2269,12 @@
             const labels = {city: 'City Driving', province: 'Province', long_distance: 'Long Distance'};
             const maxDays = getBookMaximumDays();
             hint.innerHTML = '<strong>' + (type === 'long_distance'
-                ? labels[type] + ': Minimum rental period: 2 full days.'
-                : labels[type] + ': 1 day.') + '</strong>' +
+                ? labels[type] + ': Choose at least 2 full days, up to 7 days within the open booking window.'
+                : labels[type] + ': Choose at least 1 full day, up to 7 days within the open booking window.') + '</strong>' +
                 '<div class="fw-normal mt-1"><i class="fas fa-info-circle me-1"></i>You may request an extension if you need to rent the vehicle longer.</div>';
             end.min = start.value || new Date().toISOString().slice(0, 10);
-            if (start.value && maxDays !== null) {
+            if (start.value) {
                 end.max = getBookDateAfter(start.value, maxDays);
-            } else {
-                end.removeAttribute('max');
             }
             updateBookCompute();
         }
@@ -2296,12 +2296,7 @@
             if (startVal) {
                 const end = document.getElementById('b-end');
                 end.min = getBookDateAfter(startVal, 1);
-                const maximumDays = getBookMaximumDays();
-                if (maximumDays === null) {
-                    end.removeAttribute('max');
-                } else {
-                    end.max = getBookDateAfter(startVal, maximumDays);
-                }
+                end.max = getBookDateAfter(startVal, getBookMaximumDays());
             }
             if (startVal && endVal === startVal) {
                 endTime.min = startTime.value || '00:00';
@@ -2379,8 +2374,7 @@
                 return;
             }
             const maximumDays = getBookMaximumDays();
-            if (durationSeconds <= 0 || (maximumDays !== null && days > maximumDays)
-                || (bookRateType === 'long_distance' && durationSeconds < 2 * 86400)) {
+            if (durationSeconds < getBookMinimumDurationSeconds() || days > maximumDays) {
                 errorArea.innerHTML = '<div class="alert alert-danger py-2 px-3 mb-3 small fw-bold">Selected pickup and return dates/times do not match the allowed rental duration.</div>';
                 return;
             }

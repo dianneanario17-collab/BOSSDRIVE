@@ -241,17 +241,16 @@ class ReservationController extends Controller
 
         $rentalDurationSeconds = $returnDateTime->getTimestamp() - $pickupDateTime->getTimestamp();
         $rentalDays = max(1, (int) ceil($rentalDurationSeconds / 86400));
-        $maximumRentalDays = $data['rate_type'] === 'long_distance' ? null : 1;
-        if ($data['rate_type'] === 'long_distance' && $rentalDurationSeconds < 2 * 86400) {
-            return back()->withErrors(['return_date' => 'Long Distance bookings require a minimum rental period of 2 full days.'])->withInput();
+        $minimumRentalSeconds = $data['rate_type'] === 'long_distance' ? 2 * 86400 : 86400;
+        if ($rentalDurationSeconds < $minimumRentalSeconds) {
+            $message = $data['rate_type'] === 'long_distance'
+                ? 'Long Distance bookings require a minimum rental period of 2 full days.'
+                : ucfirst($data['rate_type'] === 'city' ? 'City Driving' : 'Province').' bookings require a minimum rental period of 1 full day.';
+
+            return back()->withErrors(['return_date' => $message])->withInput();
         }
-        if ($maximumRentalDays !== null && $rentalDays > $maximumRentalDays) {
-            return back()->withErrors([
-                'return_date' => match ($data['rate_type']) {
-                    'province' => 'Province bookings are limited to 1 rental day.',
-                    default => 'City Driving bookings are limited to 1 rental day.',
-                },
-            ])->withInput();
+        if ($rentalDays > 7) {
+            return back()->withErrors(['return_date' => 'Bookings are limited to 7 days within the open booking window.'])->withInput();
         }
 
         if ($data['payment_mode'] !== 'walkin'

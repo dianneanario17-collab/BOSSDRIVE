@@ -323,16 +323,16 @@ class AdminManagementController extends Controller
                 }
             }
 
-            $maximumDays = $data['rate_type'] === 'long_distance' ? null : 1;
-            if (($maximumDays !== null && $days > $maximumDays)
-                || ($data['rate_type'] === 'long_distance' && $days < 2)) {
+            $minimumDurationSeconds = $data['rate_type'] === 'long_distance' ? 2 * 86400 : 86400;
+            if ($rentalDurationSeconds < $minimumDurationSeconds) {
                 $message = $data['rate_type'] === 'long_distance'
                     ? 'Long Distance bookings require a minimum rental period of 2 full days.'
-                    : ($data['rate_type'] === 'province'
-                        ? 'Province bookings are limited to 1 rental day.'
-                        : 'City Driving bookings are limited to 1 rental day.');
+                    : sprintf('%s bookings require a minimum rental period of 1 full day.', ucfirst(str_replace('_', ' ', $data['rate_type'])));
 
                 return response()->json(['message' => $message], 422);
+            }
+            if ($days > 7) {
+                return response()->json(['message' => 'Bookings are limited to 7 days within the open booking window.'], 422);
             }
             $rate = match ($data['rate_type']) {
                 'province' => (float) $vehicle->price + (str_contains(strtolower((string) $vehicle->category), 'diesel') ? 500 : 1000),

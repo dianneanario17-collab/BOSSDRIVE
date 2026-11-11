@@ -227,6 +227,8 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertOk()
             ->assertSee('b-driver-id')
             ->assertSee('id="bookError" role="alert" aria-live="polite"', false)
+            ->assertSee('Choose at least 1 full day, up to 7 days within the open booking window.')
+            ->assertSee('Choose at least 2 full days, up to 7 days within the open booking window.')
             ->assertSee('Test Driver')
             ->assertSee((string) $driver->id);
 
@@ -415,15 +417,15 @@ class WalkInDriverAssignmentTest extends TestCase
         $this->assertSame(1, $cityReservation->rentalDays());
 
         $twoDayCityVehicle = $this->createVehicle('CITY 1005');
-        $this->withSession(['is_admin' => true])
+        $twoDayCityResponse = $this->withSession(['is_admin' => true])
             ->postJson(route('admin.reservations.store'), $this->bookingData($twoDayCityVehicle, [
                 'start_date' => now()->addDays(3)->toDateString(),
                 'end_date' => now()->addDays(5)->toDateString(),
                 'pickup_time' => '12:00',
                 'return_time' => '12:00',
-            ]))
-            ->assertUnprocessable()
-            ->assertJsonPath('message', 'City Driving bookings are limited to 1 rental day.');
+            ]));
+        $twoDayCityResponse->assertCreated();
+        $this->assertSame(2, Reservation::findOrFail($twoDayCityResponse->json('reservation_id'))->rentalDays());
 
         $provinceVehicle = $this->createVehicle('TEST 1004');
         $provinceResponse = $this->withSession(['is_admin' => true])
@@ -440,16 +442,16 @@ class WalkInDriverAssignmentTest extends TestCase
         $this->assertSame(1, $provinceReservation->rentalDays());
 
         $twoDayProvinceVehicle = $this->createVehicle('PROV 1005');
-        $this->withSession(['is_admin' => true])
+        $twoDayProvinceResponse = $this->withSession(['is_admin' => true])
             ->postJson(route('admin.reservations.store'), $this->bookingData($twoDayProvinceVehicle, [
                 'rate_type' => 'province',
                 'start_date' => now()->addDays(3)->toDateString(),
                 'end_date' => now()->addDays(5)->toDateString(),
                 'pickup_time' => '12:00',
                 'return_time' => '12:00',
-            ]))
-            ->assertUnprocessable()
-            ->assertJsonPath('message', 'Province bookings are limited to 1 rental day.');
+            ]));
+        $twoDayProvinceResponse->assertCreated();
+        $this->assertSame(2, Reservation::findOrFail($twoDayProvinceResponse->json('reservation_id'))->rentalDays());
 
         $longDistanceVehicle = $this->createVehicle('TEST 1003');
         $oneDayLongDistance = $this->bookingData($longDistanceVehicle, [
@@ -473,6 +475,25 @@ class WalkInDriverAssignmentTest extends TestCase
         $longDistanceReservation = Reservation::findOrFail($longDistanceResponse->json('reservation_id'));
         $this->assertEquals(6600, (float) $longDistanceReservation->total_amount);
         $this->assertSame(2, $longDistanceReservation->rentalDays());
+    }
+
+    public function test_walk_in_city_province_and_long_distance_can_use_the_full_seven_day_window(): void
+    {
+        foreach (['city', 'province', 'long_distance'] as $index => $rateType) {
+            $vehicle = $this->createVehicle('WEEK '.(3000 + $index));
+            $response = $this->withSession(['is_admin' => true])
+                ->postJson(route('admin.reservations.store'), $this->bookingData($vehicle, [
+                    'rate_type' => $rateType,
+                    'start_date' => today()->toDateString(),
+                    'end_date' => today()->addDays(7)->toDateString(),
+                    'pickup_time' => '09:00',
+                    'return_time' => '09:00',
+                ]));
+
+            $response->assertCreated();
+            $reservation = Reservation::findOrFail($response->json('reservation_id'));
+            $this->assertSame(7, $reservation->rentalDays());
+        }
     }
 
     public function test_completing_a_user_reservation_keeps_its_uploaded_documents_available(): void

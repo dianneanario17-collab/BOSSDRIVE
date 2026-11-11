@@ -699,6 +699,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('car-loader-icon', $guestContent);
 
         $userPage = $this->actingAs($user)->get(route('user.reservations'))->assertOk();
+        $this->assertStringContainsString('Choose at least 1 full day, up to 7 days within the open booking window.', $userPage->getContent());
+        $this->assertStringContainsString('Choose at least 2 full days, up to 7 days within the open booking window.', $userPage->getContent());
         $this->assertStringNotContainsString('Selected Vehicle Details', $userPage->getContent());
         $this->assertStringNotContainsString('rentVehicleSpecs', $userPage->getContent());
         $this->assertSame(1, substr_count($userPage->getContent(), 'id="vehicleSpecificationsModal"'));
@@ -1126,12 +1128,12 @@ class VehicleUnitTest extends TestCase
         $this->assertEquals(2800, (float) $reservation->total_amount);
     }
 
-    public function test_user_city_and_province_bookings_are_limited_to_one_rental_day(): void
+    public function test_user_can_book_full_seven_day_window_and_city_or_province_requires_one_full_day(): void
     {
         Storage::fake('public');
         $user = User::factory()->create();
 
-        foreach (['city', 'province'] as $rateType) {
+        foreach (['city', 'province', 'long_distance'] as $rateType) {
             $vehicle = Vehicle::create([
                 'name' => ucfirst($rateType).' Duration Sedan',
                 'plate' => strtoupper(substr($rateType, 0, 3)).' 1999',
@@ -1140,15 +1142,14 @@ class VehicleUnitTest extends TestCase
             ]);
 
             $this->actingAs($user)
-                ->from(route('user.reservations'))
                 ->post(route('user.reservations.store'), [
                     'vehicle' => $vehicle->name,
                     'vehicle_id' => $vehicle->id,
                     'rate_type' => $rateType,
                     'service_option' => 'pickup',
                     'driver_option' => 'self_drive',
-                    'pickup_date' => now()->addDays(3)->toDateString(),
-                    'return_date' => now()->addDays(5)->toDateString(),
+                    'pickup_date' => today()->toDateString(),
+                    'return_date' => today()->addDays(7)->toDateString(),
                     'pickup_time' => '12:00',
                     'return_time' => '12:00',
                     'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
@@ -1158,10 +1159,37 @@ class VehicleUnitTest extends TestCase
                     'final_agreement' => '1',
                     'payment_mode' => 'walkin',
                 ])
-                ->assertRedirect(route('user.reservations'))
-                ->assertSessionHasErrors('return_date');
+                ->assertRedirect(route('user.dashboard'));
         }
 
-        $this->assertDatabaseCount('reservations', 0);
+        $vehicle = Vehicle::create([
+            'name' => 'Short Rental Sedan',
+            'plate' => 'SHORT 1999',
+            'price' => 1800,
+            'status' => 'available',
+        ]);
+        $this->actingAs($user)
+            ->from(route('user.reservations'))
+            ->post(route('user.reservations.store'), [
+                'vehicle' => $vehicle->name,
+                'vehicle_id' => $vehicle->id,
+                'rate_type' => 'city',
+                'service_option' => 'pickup',
+                'driver_option' => 'self_drive',
+                'pickup_date' => today()->toDateString(),
+                'return_date' => today()->toDateString(),
+                'pickup_time' => '12:00',
+                'return_time' => '12:30',
+                'valid_id' => UploadedFile::fake()->create('valid-id.png', 10, 'image/png'),
+                'driver_license' => UploadedFile::fake()->create('license.png', 10, 'image/png'),
+                'proof_of_billing' => UploadedFile::fake()->create('billing.png', 10, 'image/png'),
+                'privacy_consent' => '1',
+                'final_agreement' => '1',
+                'payment_mode' => 'walkin',
+            ])
+            ->assertRedirect(route('user.reservations'))
+            ->assertSessionHasErrors('return_date');
+
+        $this->assertDatabaseCount('reservations', 3);
     }
 }
