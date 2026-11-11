@@ -87,11 +87,13 @@
         #reservationTable td:nth-child(5) { width: 125px; }
         #reservationTable .pay-tag { max-width: 118px; overflow: hidden; text-overflow: ellipsis; }
 
-        #verifyModal .modal-dialog { width: calc(100vw - 6rem); max-width: 1050px; margin: 1rem auto; }
+        #verifyModal .modal-dialog { width: calc(100vw - 3rem); max-width: 1320px; margin: 1rem auto; }
         #verifyModal .modal-content { max-width: 100%; overflow: hidden; }
         #verifyModal .modal-body { overflow-x: hidden; }
         #verifyModal .modal-header { padding: 1rem 1.25rem !important; }
         #verifyModal .modal-body { padding: 1.25rem !important; }
+        #verifyModal #reviewProfilePanel { display: block; width: 100%; }
+        #verifyModal #reviewProfilePanel > .row { width: 100%; }
         #verifyModal .driver-assign-box { margin-top: 1rem; padding-top: 1rem; }
         #verifyModal .row > [class*="col-"] { min-width: 0; }
         .doc-preview { display: block; width: 100% !important; max-width: 100%; height: 110px !important; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; cursor: zoom-in; }
