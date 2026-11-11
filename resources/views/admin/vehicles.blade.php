@@ -1714,6 +1714,16 @@
                 return;
             }
 
+            const normalizedPlate = plate.trim().toLowerCase();
+            if (fleet.some(function (vehicle) {
+                return String(vehicle.plate || '').trim().toLowerCase() === normalizedPlate;
+            })) {
+                const message = 'This Car No. is already in use. Please enter a different Car No.';
+                errorArea.innerHTML = '<div class="alert alert-danger py-2 px-3 mt-3 mb-0 small fw-bold">' + message + '</div>';
+                showToast(message, 'error');
+                return;
+            }
+
             if (!(await showConfirm('Add "' + name + '" to the fleet?'))) {
                 showToast('Cancelled — vehicle was not added.', 'cancel');
                 return;

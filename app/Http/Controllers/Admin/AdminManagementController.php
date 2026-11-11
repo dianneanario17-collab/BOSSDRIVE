@@ -1268,6 +1268,8 @@ class AdminManagementController extends Controller
             'image_path' => ['nullable', 'string', 'max:500'],
             'schedule' => ['nullable', 'array'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'plate.unique' => 'This Car No. is already in use. Please enter a different Car No.',
         ]);
         $guidePrice = $this->cityDrivingPrice($data['category'] ?? null);
         if ($guidePrice !== null) {

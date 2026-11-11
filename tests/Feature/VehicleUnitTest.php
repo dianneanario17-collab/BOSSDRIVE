@@ -572,6 +572,29 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('View Specifications', $staffPage->getContent());
     }
 
+    public function test_vehicle_creation_rejects_a_car_number_that_is_already_in_use(): void
+    {
+        Vehicle::create([
+            'name' => 'Existing Unit',
+            'plate' => 'CAR 1001',
+            'price' => 1800,
+            'status' => 'available',
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->postJson(route('admin.vehicles.store'), [
+                'name' => 'Duplicate Unit',
+                'plate' => 'CAR 1001',
+                'price' => 1800,
+                'status' => 'available',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('plate')
+            ->assertJsonPath('errors.plate.0', 'This Car No. is already in use. Please enter a different Car No.');
+
+        $this->assertSame(1, Vehicle::where('plate', 'CAR 1001')->count());
+    }
+
     public function test_custom_vehicle_categories_and_capacities_keep_their_manual_values(): void
     {
         $this->withSession(['is_admin' => true])
