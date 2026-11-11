@@ -28,6 +28,11 @@
         .top-nav { background: white; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
 
         .content-container { padding: 30px; }
+        .price-guide-tabs { gap: 8px; padding: 5px; border: 1px solid #e9ecef; border-radius: 12px; background: #f8f9fa; }
+        .price-guide-tabs .nav-item { flex: 1 1 0; }
+        .price-guide-tabs .nav-link { width: 100%; border-radius: 9px; color: #495057; font-size: .85rem; font-weight: 700; }
+        .price-guide-tabs .nav-link.active { background: var(--boss-red); }
+        .price-guide-tabs .nav-link:not(.active):hover { background: #fff; color: var(--boss-red); }
 
         .stat-card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: white; text-align: center; cursor: pointer; transition: 0.25s; }
         .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); }
@@ -750,17 +755,32 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="small text-muted mb-4">Reference rates per category — use this when setting a vehicle's Price/Day.</p>
+                    <p class="small text-muted mb-3">Reference rates per category — use this when setting a vehicle's Price/Day.</p>
                     @php
                         $sedanGuide = $priceGuides->firstWhere('category', 'Sedan');
                         $gasGuide = $priceGuides->firstWhere('category', 'Pick-up / Expanded (7-Seater) (2 Days) — Gas');
                         $dieselGuide = $priceGuides->firstWhere('category', 'Expanded — Diesel');
                     @endphp
+                    <ul class="nav nav-pills price-guide-tabs mb-3" role="tablist" aria-label="Price guide sections">
+                        @if(!$isStaffMode)
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="edit-price-guide-tab" data-bs-toggle="pill" data-bs-target="#edit-price-guide-panel" type="button" role="tab" aria-controls="edit-price-guide-panel" aria-selected="false">
+                                    <i class="fas fa-pen-to-square me-1"></i>Edit Price Guide
+                                </button>
+                            </li>
+                        @endif
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="view-price-guide-tab" data-bs-toggle="pill" data-bs-target="#view-price-guide-panel" type="button" role="tab" aria-controls="view-price-guide-panel" aria-selected="true">
+                                <i class="fas fa-tags me-1"></i>Price Guide
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
                     @if(!$isStaffMode)
-                    <form method="POST" action="{{ route('admin.price-guide.update') }}" class="border rounded-4 p-3 mb-4">
+                    <div class="tab-pane fade" id="edit-price-guide-panel" role="tabpanel" aria-labelledby="edit-price-guide-tab" tabindex="0">
+                    <form method="POST" action="{{ route('admin.price-guide.update') }}" class="border rounded-4 p-3">
                         @csrf
                         @method('PUT')
-                        <h6 class="fw-bold mb-3">Edit Price Guide</h6>
                         @foreach($priceGuides as $guide)
                             <div class="border-bottom pb-3 mb-3">
                                 <div class="small fw-bold text-danger mb-2">{{ $guide->category }}</div>
@@ -775,8 +795,10 @@
                         @endforeach
                         <button type="submit" class="btn btn-danger rounded-pill fw-bold"><i class="fas fa-save me-1"></i>Save Price Guide</button>
                     </form>
+                    </div>
                     @endif
 
+                    <div class="tab-pane fade show active" id="view-price-guide-panel" role="tabpanel" aria-labelledby="view-price-guide-tab" tabindex="0">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="border rounded-4 p-3 h-100">
@@ -826,6 +848,8 @@
                                 </table>
                             </div>
                         </div>
+                    </div>
+                    </div>
                     </div>
 
                 </div>
