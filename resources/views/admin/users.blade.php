@@ -221,9 +221,11 @@
                                 <div class="mb-3">
                                     <label class="form-label-custom">Account Role</label>
                                     <select id="m_role" class="form-select input-custom">
-                                        <option value="User">User</option>
-                                        <option value="Admin">Admin</option>
+                                        <option value="user">User</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="admin">Admin</option>
                                     </select>
+                                    <small class="text-muted d-block mt-1">Staff accounts can sign in through the Staff Login page.</small>
                                 </div>
                                 <button type="submit" id="btnSubmit" class="btn btn-danger w-100 rounded-pill fw-bold py-3 mt-2 text-uppercase">Create Account</button>
                             </div>
@@ -410,10 +412,12 @@
             tbody.innerHTML = serverUsers.map(function (user) {
                 const initials = user.name.split(' ').map(function (part) { return part[0]; }).join('').slice(0, 2).toUpperCase();
                 const role = (user.role || 'user').toLowerCase();
+                const roleLabel = role === 'admin' ? 'Admin' : (role === 'staff' ? 'Staff' : 'User');
+                const roleClass = role === 'admin' ? 'bg-danger' : (role === 'staff' ? 'bg-primary' : 'bg-dark');
                 return '<tr id="user-' + user.id + '">' +
                     '<td><div class="d-flex align-items-center"><div class="bg-primary text-white rounded-circle me-3 d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">' + initials + '</div><div><span class="fw-bold d-block">' + escapeHtml(user.name) + '</span><small class="text-muted">' + escapeHtml(user.email) + '</small></div></div></td>' +
                     '<td>' + escapeHtml(user.email) + '</td>' +
-                    '<td><span class="badge rounded-pill px-3 py-2 ' + (role === 'admin' ? 'bg-danger' : 'bg-dark') + ' fw-normal">' + (role === 'admin' ? 'Admin' : 'User') + '</span></td>' +
+                    '<td><span class="badge rounded-pill px-3 py-2 ' + roleClass + ' fw-normal">' + roleLabel + '</span></td>' +
                     '<td class="text-center"><button type="button" class="btn btn-sm btn-light" data-action="view" data-user-id="' + user.id + '"><i class="fas fa-eye text-success"></i></button> <button type="button" class="btn btn-sm btn-light" data-action="edit" data-user-id="' + user.id + '"><i class="fas fa-edit text-primary"></i></button> <button type="button" class="btn btn-sm btn-light text-danger" data-action="delete" data-user-id="' + user.id + '"><i class="fas fa-trash"></i></button></td>' +
                     '</tr>';
             }).join('');
@@ -434,7 +438,7 @@
                 return String(item.id) === button.dataset.userId;
             });
             if (!user) return;
-            const role = (user.role || 'user').toLowerCase() === 'admin' ? 'Admin' : 'User';
+            const role = (user.role || 'user').toLowerCase();
             const details = [
                 user.name,
                 user.email,
@@ -586,8 +590,9 @@
             document.getElementById('d_initials').innerText = name.split(' ').map(n => n[0]).join('').toUpperCase();
             
             let badge = document.getElementById('d_role_badge');
-            badge.innerText = role;
-            badge.className = role === 'Admin' ? 'badge rounded-pill bg-danger' : 'badge rounded-pill bg-dark';
+            const roleKey = role.toLowerCase();
+            badge.innerText = roleKey === 'admin' ? 'Admin' : (roleKey === 'staff' ? 'Staff' : 'User');
+            badge.className = 'badge rounded-pill ' + (role.toLowerCase() === 'admin' ? 'bg-danger' : (role.toLowerCase() === 'staff' ? 'bg-primary' : 'bg-dark'));
             
             openAdminModal('detailsModal');
         }

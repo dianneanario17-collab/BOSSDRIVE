@@ -1480,7 +1480,7 @@ class AdminManagementController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'role' => ['required', 'in:user,admin'],
+            'role' => ['required', 'in:user,staff,admin'],
             'password' => [
                 'required',
                 'string',
@@ -1507,7 +1507,7 @@ class AdminManagementController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'role' => ['required', 'in:user,admin'],
+            'role' => ['required', 'in:user,staff,admin'],
             'password' => [
                 'nullable',
                 'string',
