@@ -39,7 +39,7 @@
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
         .vehicle-photo-frame { margin:14px 16px 0; padding:10px; border:1px solid #e9ecef; border-radius:12px; background:#f8f9fa; }
-        .vehicle-photo-button { display:flex; width:100%; height:180px; align-items:center; justify-content:center; overflow:hidden; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
+        .vehicle-photo-button { display:flex; width:100%; height:190px; align-items:center; justify-content:center; overflow:hidden; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
         .vehicle-photo-button:focus-visible { outline:3px solid rgba(183,28,28,.25); outline-offset:3px; }
         .vehicle-photo-button .vehicle-card-image { display:block; flex:0 0 100%; width:100% !important; max-width:100%; height:100% !important; object-fit:contain; }
         .vehicle-photo-modal-image { display:block; max-width:100%; max-height:78vh; margin:auto; object-fit:contain; }
@@ -173,7 +173,7 @@
                             <span id="guest-status-{{ $vehicle->id }}" class="status-badge bg-{{ $statusColor }} {{ $statusColor === 'warning' ? 'text-dark' : 'text-white' }}">{{ $status }}</span>
                             <div class="vehicle-photo-frame"><button type="button" class="vehicle-photo-button" id="guest-photo-button-{{ $vehicle->id }}" onclick="openGuestVehiclePhoto({{ $vehicle->id }})" aria-label="Enlarge photo of {{ $vehicle->name }}"><img src="{{ $vehicle->image_path ? asset('storage/'.$vehicle->image_path) : asset('image/car'.(($vehicle->id - 1) % 4 + 1).'.jpg') }}" alt="{{ $vehicle->name }}" class="vehicle-card-image" width="240" height="140" loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async" fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"></button></div>
                             <div class="p-4 pt-2 bg-white catalog-card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
                                     <div><small id="guest-times-{{ $vehicle->id }}" class="catalog-times-rented text-muted d-block mb-1"><i class="fas fa-history me-1"></i>{{ $vehicle->reservations_count }} Times Rented</small><div class="catalog-vehicle-identity"><h5 id="guest-brand-{{ $vehicle->id }}" class="fw-bold mb-0">{{ $vehicle->brand_name ?: $vehicle->name }}</h5><span class="text-muted fw-bold">|</span><span class="catalog-plate" id="guest-unit-{{ $vehicle->id }}">Car No: {{ $vehicle->plate ?: 'Not assigned' }}</span></div><small id="guest-title-{{ $vehicle->id }}" class="catalog-vehicle-model text-muted d-block">{{ $vehicle->name }} Unit #{{ $modelUnits->search(fn ($unit) => $unit['id'] === $vehicle->id) + 1 }}</small></div>
                                     <div class="text-end"><div id="guest-rating-{{ $vehicle->id }}" class="rating-stars">{!! str_repeat('<i class="fas fa-star"></i>', (int) round($vehicle->rating)) !!}</div><a id="guest-feedback-{{ $vehicle->id }}" class="view-feedback" href="#feedback-{{ $vehicle->id }}" data-bs-toggle="modal">{{ count($feedbacks) }} Feedback{{ count($feedbacks) === 1 ? '' : 's' }}</a></div>
                                 </div>

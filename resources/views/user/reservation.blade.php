@@ -94,7 +94,7 @@
         .catalog-card-body { display: flex; flex-direction: column; height: 100%; }
         .catalog-card-footer { margin-top: auto; }
         .vehicle-photo-frame { margin:14px 16px 0; padding:10px; border:1px solid #e9ecef; border-radius:12px; background:#f8f9fa; }
-        .vehicle-photo-button { display:flex; width:100%; height:180px; align-items:center; justify-content:center; overflow:hidden; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
+        .vehicle-photo-button { display:flex; width:100%; height:190px; align-items:center; justify-content:center; overflow:hidden; padding:0; border:0; border-radius:8px; background:#fff; cursor:zoom-in; }
         .vehicle-photo-button:focus-visible { outline:3px solid rgba(183,28,28,.25); outline-offset:3px; }
         .vehicle-photo-button .vehicle-card-image { display:block; flex:0 0 100%; width:100% !important; max-width:100%; height:100% !important; object-fit:contain; }
         .vehicle-photo-modal-image { display:block; max-width:100%; max-height:78vh; margin:auto; object-fit:contain; }

@@ -49,7 +49,7 @@
         .vehicle-card { width: 100%; max-width: 480px; margin-inline: auto; border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: white; position: relative; height: 100%; transition: 0.25s; }
         .vehicle-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
         .vehicle-photo-wrap { margin: 14px 16px 0; padding: 10px; text-align: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; }
-        .vehicle-photo-button { display: flex; width: 100%; height: 180px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 8px; background: #fff; cursor: zoom-in; }
+        .vehicle-photo-button { display: flex; width: 100%; height: 190px; align-items: center; justify-content: center; overflow: hidden; padding: 0; border: 0; border-radius: 8px; background: #fff; cursor: zoom-in; }
         .vehicle-photo-button:focus-visible { outline: 3px solid rgba(220,53,69,.35); outline-offset: 3px; }
         .vehicle-photo-wrap img { display: block; flex: 0 0 100%; width: 100% !important; max-width: 100%; height: 100% !important; object-fit: contain; }
         .vehicle-card-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
