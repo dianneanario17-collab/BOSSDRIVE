@@ -93,7 +93,11 @@
         #verifyModal .modal-header { padding: 1rem 1.25rem !important; }
         #verifyModal .modal-body { padding: 1.25rem !important; }
         #verifyModal #reviewProfilePanel { display: block; width: 100%; }
-        #verifyModal #reviewProfilePanel > .row { width: 100%; }
+        #verifyModal .review-info-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem 1.25rem; }
+        #verifyModal .review-info-item { min-width: 0; }
+        #verifyModal .review-info-item .info-value { font-size: .92rem; line-height: 1.4; margin: .2rem 0 0; overflow-wrap: anywhere; }
+        #verifyModal .review-info-item .info-label { font-size: .65rem; }
+        #verifyModal #verificationDocumentsPanel .row { row-gap: 1rem !important; }
         #verifyModal .driver-assign-box { margin-top: 1rem; padding-top: 1rem; }
         #verifyModal .row > [class*="col-"] { min-width: 0; }
         .doc-preview { display: block; width: 100% !important; max-width: 100%; height: 110px !important; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; cursor: zoom-in; }
@@ -254,6 +258,10 @@
             #verifyModal .modal-dialog { width: calc(100vw - 1rem); margin: .5rem auto; }
             #verifyModal .modal-body { padding: 1rem !important; }
             #verifyModal .border-end { border-right: 0 !important; border-bottom: 1px solid #dee2e6; padding-bottom: 1rem; margin-bottom: 1rem; }
+            #verifyModal .review-info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+        }
+        @media (max-width: 575.98px) {
+            #verifyModal .review-info-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -372,44 +380,38 @@
                 <div class="modal-body p-4">
                     <section id="reviewProfilePanel" class="pb-3 mb-4 border-bottom">
                         <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-user-circle me-2"></i>Profile & Logistics</h6>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="info-label">Full Name & Age</label><span class="info-value" id="mName"></span>
-                                <label class="info-label">Contact Number</label><span class="info-value text-danger" id="mPhone"></span>
-                                <label class="info-label">Registered Home Address</label><span class="info-value mb-0" id="mHome"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="info-label">Service & Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span>
-                                <label class="info-label">Unit Target Address</label><span class="info-value text-primary" id="mTarget"></span>
-                                <label class="info-label">Delivery Notes</label><span class="info-value mb-0" id="mDeliveryNotes"></span>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="info-label">Pickup Schedule</label><span class="info-value" id="mPickupSchedule"></span>
-                                <label class="info-label">Return Schedule</label><span class="info-value" id="mReturnSchedule"></span>
-                                <label class="info-label">Assigned Vehicle Unit</label><span class="info-value" id="mVehicleUnit"></span>
-                                <label class="info-label">Vehicle Details</label><span class="info-value mb-0" id="mVehicleSpecs"></span>
-                            </div>
+                        <div class="review-info-grid">
+                            <div class="review-info-item"><label class="info-label">Full Name & Age</label><span class="info-value" id="mName"></span></div>
+                            <div class="review-info-item"><label class="info-label">Contact Number</label><span class="info-value text-danger" id="mPhone"></span></div>
+                            <div class="review-info-item"><label class="info-label">Registered Home Address</label><span class="info-value" id="mHome"></span></div>
+                            <div class="review-info-item"><label class="info-label">Service & Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span></div>
+                            <div class="review-info-item"><label class="info-label">Unit Target Address</label><span class="info-value text-primary" id="mTarget"></span></div>
+                            <div class="review-info-item"><label class="info-label">Delivery Notes</label><span class="info-value" id="mDeliveryNotes"></span></div>
+                            <div class="review-info-item"><label class="info-label">Pickup Schedule</label><span class="info-value" id="mPickupSchedule"></span></div>
+                            <div class="review-info-item"><label class="info-label">Return Schedule</label><span class="info-value" id="mReturnSchedule"></span></div>
+                            <div class="review-info-item"><label class="info-label">Assigned Vehicle Unit</label><span class="info-value" id="mVehicleUnit"></span></div>
+                            <div class="review-info-item"><label class="info-label">Vehicle Details</label><span class="info-value" id="mVehicleSpecs"></span></div>
                         </div>
                     </section>
                     <div class="row g-4">
                         <div class="col-md-8" id="verificationDocumentsPanel">
                             <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-file-alt me-2"></i>Verification Documents</h6>
-                            <div class="row g-2">
-                                <div class="col-md-4">
+                            <div class="row g-2 justify-content-center">
+                                <div class="col-6">
                                     <small class="fw-bold text-muted d-block mb-1">Driver's License</small>
                                     <a id="mDriverLicenseLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                         <img id="mDriverLicense" src="" alt="Driver's License" class="doc-preview" loading="eager">
                                     </a>
                                     <span id="mDriverLicenseMissing" class="small text-muted d-none">File is missing. Ask the customer to upload it again.</span>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-6">
                                     <small class="fw-bold text-muted d-block mb-1">Gov ID</small>
                                     <a id="mValidIdLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                         <img id="mValidId" src="" alt="Government ID" class="doc-preview" loading="eager">
                                     </a>
                                     <span id="mValidIdMissing" class="small text-muted d-none">File is missing. Ask the customer to upload it again.</span>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-6 offset-3">
                                     <small class="fw-bold text-muted d-block mb-1">Proof of Billing</small>
                                     <a id="mProofOfBillingLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                         <img id="mProofOfBilling" src="" alt="Proof of Billing" class="doc-preview" loading="eager">
