@@ -419,7 +419,7 @@
                                     </a>
                                     <span id="mValidIdMissing" class="small text-muted d-none">File is missing. Ask the customer to upload it again.</span>
                                 </div>
-                                <div class="col-6 offset-3">
+                                <div class="col-6">
                                     <small class="fw-bold text-muted d-block mb-1">Proof of Billing</small>
                                     <a id="mProofOfBillingLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                         <img id="mProofOfBilling" src="" alt="Proof of Billing" class="doc-preview" loading="eager">

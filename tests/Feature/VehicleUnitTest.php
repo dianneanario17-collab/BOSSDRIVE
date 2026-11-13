@@ -823,6 +823,8 @@ class VehicleUnitTest extends TestCase
         $this->assertLessThan($paymentPosition, $documentsPosition);
         $this->assertStringContainsString('class="col-md-8" id="verificationDocumentsPanel"', $adminContent);
         $this->assertStringContainsString('class="col-md-4" id="reviewPaymentPanel"', $adminContent);
+        $this->assertStringNotContainsString('class="col-6 offset-3"', $adminContent);
+        $this->assertStringContainsString('class="row g-2 justify-content-center"', $adminContent);
 
         $staffPage = $this->withSession(['is_staff' => true])->get(route('staff.reservations'))->assertOk();
         $this->assertStringContainsString('id="mVehicleSpecs"', $staffPage->getContent());
