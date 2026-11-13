@@ -450,14 +450,18 @@ class PaymentCenterTest extends TestCase
             ->assertOk()
             ->assertSee('Billing Review Customer')
             ->assertSee('STAFF-REVIEW-REF')
-            ->assertSee('1250');
+            ->assertSee('1250')
+            ->assertSee('id="qrUploadModal"', false)
+            ->assertSee('Click or drag a new QR image here');
 
         $this->withSession(['is_staff' => true])
             ->get(route('staff.billing'))
             ->assertOk()
             ->assertSee('Billing Review Customer')
             ->assertSee('STAFF-REVIEW-REF')
-            ->assertSee('1250');
+            ->assertSee('1250')
+            ->assertDontSee('id="qrUploadModal"', false)
+            ->assertDontSee('Click or drag a new QR image here');
     }
 
     public function test_pending_extension_payment_is_excluded_from_paid_bookings_and_counted_for_admin_and_staff(): void

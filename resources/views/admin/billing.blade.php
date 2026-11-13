@@ -263,7 +263,6 @@
                         <h5 class="fw-bold mb-0">UPDATE GCASH QR CODE</h5>
                         <small class="text-danger fw-bold">Used across User & Staff checkout screens</small>
                     </div>
-                    @endif
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -299,6 +298,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="modal fade" id="paymentHistoryModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
