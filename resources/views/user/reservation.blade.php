@@ -98,7 +98,9 @@
         .vehicle-photo-button:focus-visible { outline:3px solid rgba(183,28,28,.25); outline-offset:3px; }
         .vehicle-photo-button .vehicle-card-image { display:block; flex:0 0 100%; width:100% !important; max-width:100%; height:100% !important; object-fit:contain; }
         .vehicle-photo-modal-image { display:block; max-width:100%; max-height:78vh; margin:auto; object-fit:contain; }
-        .user-vehicle-card { width:100%; max-width:480px; min-height:100%; margin-inline:auto; border-radius:18px !important; box-shadow:0 4px 16px rgba(0,0,0,.08) !important; transition:transform .25s, box-shadow .25s; }
+        #userVehicleGrid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap:1.25rem; margin:0; --bs-gutter-x:0; --bs-gutter-y:0; }
+        #userVehicleGrid > [class*="col-"] { width:auto; max-width:none; padding:0; }
+        .user-vehicle-card { width:100%; min-height:100%; margin:0; border-radius:18px !important; box-shadow:0 4px 16px rgba(0,0,0,.08) !important; transition:transform .25s, box-shadow .25s; }
         .user-vehicle-card:hover { transform:translateY(-4px); box-shadow:0 10px 24px rgba(0,0,0,.12) !important; }
         .catalog-vehicle-identity { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px; }
         .catalog-vehicle-identity h5 { font-size:1.05rem; }

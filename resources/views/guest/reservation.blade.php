@@ -48,8 +48,8 @@
         .catalog-vehicle-model { font-size:.76rem; }
         .catalog-times-rented { font-size:.72rem; }
         .catalog-plate { font-family:'Courier New',Courier,monospace; background:#eee; padding:2px 8px; border:1px solid #ccc; border-radius:4px; font-size:.8rem; font-weight:700; }
-        .guest-vehicle-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 480px), 480px)); gap:1.5rem; }
-        .guest-vehicle-grid-item { width:100%; max-width:480px; min-width:0; }
+        .guest-vehicle-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap:1.25rem; }
+        .guest-vehicle-grid-item { width:100%; min-width:0; }
         .guest-vehicle-card { width:100%; min-height:100%; border-radius:18px !important; box-shadow:0 4px 16px rgba(0,0,0,.08) !important; transition:transform .25s, box-shadow .25s; }
         .guest-vehicle-card:hover { transform:translateY(-4px); box-shadow:0 10px 24px rgba(0,0,0,.12) !important; }
         @media (max-width: 991.98px) {

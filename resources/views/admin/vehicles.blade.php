@@ -46,7 +46,9 @@
         }
 
         /* ===== Vehicle Cards - styled after the User Reservation catalogue ===== */
-        .vehicle-card { width: 100%; max-width: 480px; margin-inline: auto; border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: white; position: relative; height: 100%; transition: 0.25s; }
+        .row#fleetGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 1.25rem; margin: 0; --bs-gutter-x: 0; --bs-gutter-y: 0; }
+        .row#fleetGrid > [class*="col-"] { width: auto; max-width: none; padding: 0; }
+        .vehicle-card { width: 100%; margin: 0; border: none; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); background: white; position: relative; height: 100%; transition: 0.25s; }
         .vehicle-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
         .vehicle-photo-wrap { margin: 14px 16px 0; padding: 10px; text-align: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; }
         .vehicle-photo-button { display: flex; width: 100%; height: 190px; align-items: center; justify-content: center; overflow: hidden; padding: 0; border: 0; border-radius: 8px; background: #fff; cursor: zoom-in; }

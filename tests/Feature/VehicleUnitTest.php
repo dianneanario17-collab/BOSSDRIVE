@@ -508,7 +508,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('aria-label="Search vehicles"', $adminPage->getContent());
         $this->assertStringContainsString('vehicle.brand_name', $adminPage->getContent());
         $this->assertStringContainsString('height: 190px', $adminPage->getContent());
-        $this->assertStringContainsString('max-width: 480px', $adminPage->getContent());
+        $this->assertStringContainsString('grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr))', $adminPage->getContent());
         $this->assertStringContainsString('id="vehiclePhotoModal"', $adminPage->getContent());
         $this->assertStringContainsString('function openVehiclePhoto(vehicleId)', $adminPage->getContent());
         $this->assertStringContainsString('v.timesRented + \' Times Rented</small>\'', $adminPage->getContent());
@@ -753,8 +753,7 @@ class VehicleUnitTest extends TestCase
         $guestPage = $this->get(route('reservations'))->assertOk();
         $guestContent = $guestPage->getContent();
         $this->assertStringContainsString('class="guest-vehicle-grid"', $guestContent);
-        $this->assertStringContainsString('repeat(auto-fill, minmax(min(100%, 480px), 480px))', $guestContent);
-        $this->assertStringContainsString('max-width:480px', $guestContent);
+        $this->assertStringContainsString('repeat(auto-fit, minmax(min(100%, 340px), 1fr))', $guestContent);
         $this->assertStringContainsString('width:100% !important; max-width:100%; height:100% !important; object-fit:contain;', $guestContent);
         $this->assertStringContainsString('class="guest-vehicle-grid-item"', $guestContent);
         $this->assertStringContainsString('height:190px', $guestContent);
@@ -787,7 +786,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('id="userVehiclePhotoModal"', $userPage->getContent());
         $this->assertStringContainsString('function openUserVehiclePhoto(vehicleId)', $userPage->getContent());
         $this->assertStringContainsString('height:190px', $userPage->getContent());
-        $this->assertStringContainsString('max-width:480px', $userPage->getContent());
+        $this->assertStringContainsString('repeat(auto-fit, minmax(min(100%, 340px), 1fr))', $userPage->getContent());
         $this->assertStringContainsString('class="card user-vehicle-card', $userPage->getContent());
         $this->assertStringContainsString('class="catalog-vehicle-identity"', $userPage->getContent());
         $this->assertSame(1, substr_count($userPage->getContent(), 'id="vehicleSpecificationsModal"'));
