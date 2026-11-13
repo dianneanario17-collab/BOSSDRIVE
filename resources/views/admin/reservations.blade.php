@@ -86,6 +86,12 @@
         #reservationTable td:nth-child(4) { white-space: normal; min-width: 95px; }
         #reservationTable td:nth-child(5) { width: 125px; }
         #reservationTable .pay-tag { max-width: 118px; overflow: hidden; text-overflow: ellipsis; }
+        .reservation-action-group { display: grid; align-items: center; justify-content: center; gap: .375rem; }
+        .admin-reservation-action-group { grid-template-columns: 82px 100px 32px; }
+        .reservation-action-group > .reservation-action-review { grid-column: 1; }
+        .reservation-action-group > .reservation-action-status { grid-column: 2; }
+        .reservation-action-group > .reservation-action-delete { grid-column: 3; }
+        .reservation-action-group > button { width: 100%; min-width: 0; white-space: nowrap; padding-left: .35rem !important; padding-right: .35rem !important; }
 
         #verifyModal .modal-dialog { width: calc(100vw - 4rem); max-width: 1100px; margin: 1rem auto; }
         #verifyModal .modal-content { max-width: 100%; overflow: hidden; }
@@ -580,7 +586,7 @@
                     '<td id="logi-' + reservation.id + '"><span class="badge bg-' + (reservation.service === 'Delivery' ? 'primary' : 'secondary') + ' rounded-pill px-3">' + reservation.service + '</span></td>' +
                     '<td><span class="pay-tag ' + paymentClass + '">' + escapeHtml(paymentLabel) + '</span></td>' +
                     '<td class="text-center"><span id="status-' + reservation.id + '" class="status-pill ' + statusClassFor(status) + ' text-uppercase">' + escapeHtml(statusLabel) + '</span>' + (reservation.documentsNeedReview ? '<small class="d-block text-warning fw-bold">Updated ID needs review</small>' : '') + '</td>' +
-                    '<td class="text-center"><div class="d-flex justify-content-center gap-2"><button class="btn btn-sm btn-outline-danger fw-bold px-3 rounded-pill" onclick="openServerReservation(' + reservation.id + ')">Review</button><button id="btn-' + reservation.id + '" class="btn btn-sm ' + (status === 'completed' ? 'btn-outline-secondary' : 'btn-dark') + ' fw-bold px-3 rounded-pill" onclick="' + actionHandler + '(' + reservation.id + ')" style="' + showButton + '" title="' + escapeHtml(buttonLabel) + '">' + buttonLabel + '</button><button class="btn btn-sm btn-outline-secondary fw-bold rounded-pill" onclick="deleteReservation(' + reservation.id + ')" title="Delete reservation"><i class="fas fa-trash"></i></button></div></td>' +
+                    '<td class="text-center"><div class="reservation-action-group admin-reservation-action-group"><button class="btn btn-sm btn-outline-danger fw-bold rounded-pill reservation-action-review" onclick="openServerReservation(' + reservation.id + ')">Review</button><button id="btn-' + reservation.id + '" class="btn btn-sm ' + (status === 'completed' ? 'btn-outline-secondary' : 'btn-dark') + ' fw-bold rounded-pill reservation-action-status" onclick="' + actionHandler + '(' + reservation.id + ')" style="' + showButton + '" title="' + escapeHtml(buttonLabel) + '">' + buttonLabel + '</button><button class="btn btn-sm btn-outline-secondary fw-bold rounded-pill reservation-action-delete" onclick="deleteReservation(' + reservation.id + ')" title="Delete reservation"><i class="fas fa-trash"></i></button></div></td>' +
                     '</tr>';
             }).join('');
         }

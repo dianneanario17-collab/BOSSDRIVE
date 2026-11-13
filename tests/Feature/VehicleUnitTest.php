@@ -809,6 +809,9 @@ class VehicleUnitTest extends TestCase
 
         $adminPage = $this->withSession(['is_admin' => true])->get(route('admin.reservations'))->assertOk();
         $adminContent = $adminPage->getContent();
+        $this->assertStringContainsString('admin-reservation-action-group { grid-template-columns: 82px 100px 32px; }', $adminContent);
+        $this->assertStringContainsString('reservation-action-delete { grid-column: 3; }', $adminContent);
+        $this->assertStringContainsString('admin-reservation-action-group', $adminContent);
         $this->assertStringContainsString('id="mVehicleSpecs"', $adminContent);
         $this->assertStringContainsString('"vehicleTransmission":"Automatic"', $adminContent);
         $this->assertStringContainsString('"vehicleFuel":"Diesel"', $adminContent);
@@ -827,6 +830,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('"vehicleFuel":"Diesel"', $staffPage->getContent());
         $this->assertStringContainsString('"vehicleCapacity":"4 Seater"', $staffPage->getContent());
         $this->assertStringContainsString('data-reservation-action="review"', $staffPage->getContent());
+        $this->assertStringContainsString('staff-reservation-action-group { grid-template-columns: 82px 100px; }', $staffPage->getContent());
+        $this->assertStringContainsString('reservation-action-status { grid-column: 2; }', $staffPage->getContent());
         $this->assertStringContainsString("button[data-reservation-action]", $staffPage->getContent());
         $this->assertStringNotContainsString('onclick="viewDetailsById(', $staffPage->getContent());
     }
