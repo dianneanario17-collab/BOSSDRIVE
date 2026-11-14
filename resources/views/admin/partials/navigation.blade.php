@@ -4,7 +4,7 @@
     .admin-sidebar .nav-link { color:#fff; padding:15px 20px; margin:5px 15px; border-radius:8px; font-size:.9rem; font-weight:600; transition:.3s; text-decoration:none; display:block; }
     .admin-sidebar .nav-link:hover { background:rgba(255,255,255,.1); color:#fff; }
     .admin-sidebar .nav-link.active { background:#dc3545; box-shadow:0 4px 10px rgba(220,53,69,.3); color:#fff; }
-    .admin-top-nav { margin-left:250px; width:calc(100% - 250px); min-height:68px; background:#fff; padding:15px 30px; box-shadow:0 2px 10px rgba(0,0,0,.05); display:flex; justify-content:space-between; align-items:center; gap:16px; }
+    .admin-top-nav { margin-left:250px; width:calc(100% - 250px); min-height:68px; background:#fff; padding:15px 30px; box-shadow:0 2px 10px rgba(0,0,0,.05); display:flex; justify-content:space-between; align-items:center; gap:16px; position:sticky; top:0; z-index:998; }
     .admin-top-nav h5 { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .admin-top-nav > div { flex-shrink:0; }
     .admin-sidebar-toggle { display:none; }

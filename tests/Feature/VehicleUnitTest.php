@@ -527,6 +527,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('.admin-sidebar { width:250px;', $adminPage->getContent());
         $this->assertStringContainsString('.main-content { margin-left:250px;', $adminPage->getContent());
         $this->assertStringContainsString('.admin-top-nav { margin-left:250px; width:calc(100% - 250px);', $adminPage->getContent());
+        $this->assertStringContainsString('position:sticky; top:0; z-index:998;', $adminPage->getContent());
         $this->assertStringContainsString('syncFleetAvailability', $adminPage->getContent());
         $this->assertStringContainsString('/vehicles/availability', $adminPage->getContent());
         $this->assertStringContainsString('car-loader-icon', $adminPage->getContent());
@@ -575,6 +576,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('.staff-sidebar { width:250px;', $staffPage->getContent());
         $this->assertStringContainsString('.staff-main-content { margin-left:250px;', $staffPage->getContent());
         $this->assertStringContainsString('.staff-top-nav { margin-left:250px; width:calc(100% - 250px);', $staffPage->getContent());
+        $this->assertStringContainsString('position:sticky; top:0; z-index:998;', $staffPage->getContent());
         $this->assertStringContainsString('syncFleetAvailability', $staffPage->getContent());
         $this->assertStringContainsString('car-loader-icon', $staffPage->getContent());
         $this->assertSame(1, substr_count($staffPage->getContent(), 'id="vehicleSpecificationsModal"'));
