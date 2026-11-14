@@ -214,12 +214,21 @@ class VehicleUnitTest extends TestCase
             ->assertOk()
             ->assertSee('rentalProcessTracker')
             ->assertSee('tracker-status">Confirmed', false)
-            ->assertSee('tracker-status">In progress', false)
+            ->assertSee('tracker-status">In delivery', false)
             ->assertDontSee('tracker-status">PROCESSING', false)
+            ->assertSee("updateRentalTracker(reservation.status, reservation.control_number, reservation.service_option);", false)
             ->assertSee('step-tooltip"', false)
             ->assertSee('syncDashboard')
             ->assertSee('car-loader-icon')
             ->assertSee('dashboardTripContent');
+
+        Reservation::where('control_number', 'PRIVATE-TRACKER-0003')
+            ->update(['status' => 'processing']);
+        $this->actingAs($otherUser)
+            ->get(route('user.dashboard'))
+            ->assertOk()
+            ->assertSee('tracker-status">In progress', false)
+            ->assertDontSee('tracker-status">In delivery', false);
     }
 
     public function test_verified_user_can_update_documents_and_admin_can_review_the_latest_upload(): void

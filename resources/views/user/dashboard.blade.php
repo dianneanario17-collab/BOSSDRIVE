@@ -140,12 +140,15 @@
         'completed' => 5,
         default => 1,
     };
+    $activeStepDescription = $status === 'processing' && $reservation?->service_option === 'delivery'
+        ? 'In delivery'
+        : 'In progress';
     $trackerStepStatuses = array_map(
         fn (int $index): string => in_array($status, ['cancelled', 'void'], true)
             ? 'Not continued'
             : ($index < $activeStep - 1
                 ? 'Confirmed'
-                : ($index === $activeStep - 1 ? 'In progress' : 'Not yet reached')),
+                : ($index === $activeStep - 1 ? $activeStepDescription : 'Not yet reached')),
         array_keys($steps)
     );
     $statusBadgeClass = in_array($status, ['cancelled', 'void'], true) ? 'rejected' : '';
@@ -334,7 +337,7 @@ function selectReservation(id) {
     const statusIcon = document.getElementById('dashStatusIcon');
     if (statusIcon) statusIcon.className = 'fas ' + (['CANCELLED', 'VOID'].includes(reservation.status) ? 'fa-times-circle' : 'fa-clock') + ' me-1';
     if (payment) payment.innerText = `Payment: ${reservation.payment_mode}`;
-    updateRentalTracker(reservation.status, reservation.control_number);
+    updateRentalTracker(reservation.status, reservation.control_number, reservation.service_option);
     dashboardControlNumber = reservation.control_number;
     const tracker = document.getElementById('rentalProcessTracker');
     if (tracker) tracker.dataset.reservationId = String(reservation.id);
@@ -385,9 +388,12 @@ function formatDashboardTime(value) {
     const minute = parts[1] || '00';
     return ((hour % 12) || 12) + ':' + minute + ' ' + (hour >= 12 ? 'PM' : 'AM');
 }
-function updateRentalTracker(rawStatus, controlNumber) {
+function updateRentalTracker(rawStatus, controlNumber, serviceOption) {
     const status = String(rawStatus || 'pending').toLowerCase();
     const activeStep = { pending: 1, verified: 2, processing: 3, released: 4, completed: 5 }[status] || 0;
+    const activeStepDescription = status === 'processing' && String(serviceOption || '').toLowerCase() === 'delivery'
+        ? 'In delivery'
+        : 'In progress';
     const tracker = document.getElementById('rentalProcessTracker');
     if (!tracker) return;
 
@@ -401,7 +407,7 @@ function updateRentalTracker(rawStatus, controlNumber) {
             ? 'Not continued'
             : (index < activeStep - 1
                 ? 'Confirmed'
-                : (index === activeStep - 1 ? 'In progress' : 'Not yet reached'));
+                : (index === activeStep - 1 ? activeStepDescription : 'Not yet reached'));
         if (description) {
             description.innerText = stepStatus;
         }
