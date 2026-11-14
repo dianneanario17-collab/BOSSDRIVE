@@ -339,6 +339,7 @@ class WalkInDriverAssignmentTest extends TestCase
                 ->get(route($pageRoute))
                 ->assertOk()
                 ->assertSee('b-delivery-province')
+                ->assertSee('Delivery is available only in CALABARZON.')
                 ->assertSee('b-delivery-city')
                 ->assertSee('b-delivery-barangay')
                 ->assertSee('b-delivery-street')
@@ -361,6 +362,14 @@ class WalkInDriverAssignmentTest extends TestCase
             ]);
 
             $reservationCount = Reservation::count();
+            $outsideCalabarzon = $booking;
+            $outsideCalabarzon['delivery_province'] = 'Metro Manila';
+            $this->withSession([$sessionKey => true])
+                ->postJson(route($storeRoute), $outsideCalabarzon)
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('delivery_province');
+            $this->assertDatabaseCount('reservations', $reservationCount);
+
             $missingDropOffPoint = $booking;
             unset($missingDropOffPoint['delivery_street']);
             $this->withSession([$sessionKey => true])

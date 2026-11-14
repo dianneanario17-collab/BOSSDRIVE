@@ -1060,6 +1060,7 @@ class VehicleUnitTest extends TestCase
             ->get(route('user.reservations'))
             ->assertOk()
             ->assertSee('id="deliveryProvince"', false)
+            ->assertSee('Delivery is available only in CALABARZON.')
             ->assertSee('id="deliveryCity"', false)
             ->assertSee('id="deliveryBarangay"', false)
             ->assertSee('Select Barangay')
@@ -1092,6 +1093,13 @@ class VehicleUnitTest extends TestCase
             'final_agreement' => '1',
             'payment_mode' => 'walkin',
         ];
+
+        $outsideCalabarzon = $bookingData;
+        $outsideCalabarzon['delivery_province'] = 'Metro Manila';
+        $this->from(route('user.reservations'))
+            ->post(route('user.reservations.store'), $outsideCalabarzon)
+            ->assertSessionHasErrors('delivery_province');
+        $this->assertDatabaseCount('reservations', 0);
 
         $missingDropOffPoint = $bookingData;
         unset($missingDropOffPoint['delivery_street']);

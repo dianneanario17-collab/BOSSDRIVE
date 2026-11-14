@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use RuntimeException;
@@ -220,7 +221,13 @@ class ReservationController extends Controller
             'rate_type' => ['required', 'string', 'in:city,province,long_distance'],
             'service_option' => ['required', 'string', 'in:pickup,delivery'],
             'driver_option' => ['required', 'string', 'in:self_drive,with_driver'],
-            'delivery_province' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:255'],
+            'delivery_province' => [
+                'exclude_unless:service_option,delivery',
+                'required',
+                'string',
+                'max:255',
+                Rule::in(config('delivery.calabarzon_provinces')),
+            ],
             'delivery_city' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:255'],
             'delivery_barangay' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:255'],
             'delivery_street' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:1000'],
@@ -239,6 +246,8 @@ class ReservationController extends Controller
             'payment_mode' => ['required', 'string', 'in:full,deposit,walkin'],
             'gcash_screenshot' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
             'gcash_reference' => ['nullable', 'string', 'digits_between:13,17'],
+        ], [
+            'delivery_province.in' => 'Delivery is available only within CALABARZON (Batangas, Cavite, Laguna, Quezon, and Rizal).',
         ]);
 
         $vehicle = Vehicle::findOrFail($data['vehicle_id']);
