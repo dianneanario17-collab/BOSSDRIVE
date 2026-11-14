@@ -50,10 +50,17 @@
         .reservation-action-group > .reservation-action-review { grid-column: 1; }
         .reservation-action-group > .reservation-action-status { grid-column: 2; }
         .reservation-action-group > button { width: 100%; min-width: 0; white-space: nowrap; padding-left: .35rem !important; padding-right: .35rem !important; }
-        #verifyModal .modal-dialog { width: calc(100vw - 2rem); max-width: 900px; margin: 1rem auto; }
+        #verifyModal .modal-dialog { width: calc(100vw - 4rem); max-width: 1100px; margin: 1rem auto; }
         #verifyModal .modal-content { max-width: 100%; overflow: hidden; }
         #verifyModal .modal-body { overflow-x: hidden; padding: 1.25rem !important; }
-        #verifyModal .row > [class*="col-"] { min-width: 0; }
+        #verifyModal .staff-review-info-grid,
+        #verifyModal .staff-review-payment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .55rem; }
+        #verifyModal .staff-review-info-item,
+        #verifyModal .staff-review-payment-item { min-width: 0; border: 1px solid #e9ecef; border-radius: .65rem; padding: .6rem .75rem; background: #f8f9fa; }
+        #verifyModal .staff-review-info-item .info-value,
+        #verifyModal .staff-review-payment-item .info-value { margin: .15rem 0 0; font-size: .88rem; line-height: 1.3; overflow-wrap: anywhere; }
+        #verifyModal .staff-review-info-item .info-label,
+        #verifyModal .staff-review-payment-item .info-label { font-size: .65rem; }
         .doc-preview { display: block; width: 100% !important; max-width: 100%; height: 110px !important; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; cursor: zoom-in; }
         #staffPaymentProof { height: 120px !important; max-width: 100%; object-fit: contain; }
         #mPaymentProof { height: 120px !important; max-width: 100%; object-fit: contain; }
@@ -317,39 +324,41 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="row">
-                        <div class="col-md-6 border-end">
-                            <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-info-circle me-2"></i>Booking Summary</h6>
-                            <label class="info-label">Customer Name</label><span class="info-value" id="mName"></span>
-                            <div id="staffBookedByPanel" class="d-none"><label class="info-label">Booked By</label><span class="info-value" id="mBookedBy"></span></div>
-                            <label class="info-label">Contact</label><span class="info-value" id="mPhone"></span>
-                            <label class="info-label">Email</label><span class="info-value" id="mEmail"></span>
-                            <label class="info-label">Service / Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span>
-                            <label class="info-label">Destination/Address</label><span class="info-value text-primary" id="mTarget"></span>
-                            <label class="info-label">Delivery Notes</label><span class="info-value" id="mDeliveryNotes"></span>
-                            <label class="info-label">Assigned Vehicle Unit</label><span class="info-value" id="mVehicleUnit"></span>
-                            <label class="info-label">Vehicle Details</label><span class="info-value" id="mVehicleSpecs"></span>
-                            <label class="info-label">Pickup Schedule</label><span class="info-value" id="mPickupSchedule"></span>
-                            <label class="info-label">Return Schedule</label><span class="info-value" id="mReturnSchedule"></span>
-                            <div id="adminClearanceStatus" class="admin-check-box"></div>
+                    <section class="mb-3 pb-3 border-bottom">
+                        <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-info-circle me-2"></i>Booking Summary</h6>
+                        <div class="staff-review-info-grid">
+                            <div class="staff-review-info-item"><label class="info-label">Customer Name & Age</label><span class="info-value" id="mName"></span></div>
+                            <div id="staffBookedByPanel" class="staff-review-info-item d-none"><label class="info-label">Booked By</label><span class="info-value" id="mBookedBy"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Contact</label><span class="info-value" id="mPhone"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Email</label><span class="info-value" id="mEmail"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Service / Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Destination / Address</label><span class="info-value text-primary" id="mTarget"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Delivery Notes</label><span class="info-value" id="mDeliveryNotes"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Assigned Vehicle Unit</label><span class="info-value" id="mVehicleUnit"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Vehicle Details</label><span class="info-value" id="mVehicleSpecs"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Pickup Schedule</label><span class="info-value" id="mPickupSchedule"></span></div>
+                            <div class="staff-review-info-item"><label class="info-label">Return Schedule</label><span class="info-value" id="mReturnSchedule"></span></div>
                         </div>
+                        <div id="adminClearanceStatus" class="admin-check-box"></div>
+                    </section>
 
-                        <div class="col-md-6">
-                            <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-wallet me-2"></i>Payment Verification</h6>
-                            <label class="info-label">Initial Mode</label><span class="info-value" id="mPayMethod"></span>
-                            <label class="info-label">Amount Already Paid</label><span class="info-value text-success" id="mPaid"></span>
-                            <label class="info-label">Remaining Balance</label><span class="info-value text-danger" id="mBalance"></span>
-                            <label class="info-label">Total Rental Payment</label><span class="info-value fw-bold" id="mTotal"></span>
-                            <label class="info-label">Transaction Ref</label><span class="info-value" id="mRef"></span>
-                            <div id="staffPaymentProofPanel" class="text-center mt-3">
-                                <small class="fw-bold d-block mb-1 text-muted">Payment Screenshot</small>
-                                <a id="staffPaymentProofLink" href="#" target="_blank" rel="noopener" class="d-none">
-                                    <img id="staffPaymentProof" class="doc-preview" alt="Payment receipt" loading="lazy">
-                                </a>
-                                <span id="staffPaymentProofMissing" class="small text-muted">No payment screenshot is available.</span>
-                            </div>
+                    <section>
+                        <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-wallet me-2"></i>Payment Verification</h6>
+                        <div class="staff-review-payment-grid">
+                            <div class="staff-review-payment-item"><label class="info-label">Initial Mode</label><span class="info-value" id="mPayMethod"></span></div>
+                            <div class="staff-review-payment-item"><label class="info-label">Amount Already Paid</label><span class="info-value text-success" id="mPaid"></span></div>
+                            <div class="staff-review-payment-item"><label class="info-label">Remaining Balance</label><span class="info-value text-danger" id="mBalance"></span></div>
+                            <div class="staff-review-payment-item"><label class="info-label">Total Rental Payment</label><span class="info-value fw-bold" id="mTotal"></span></div>
+                            <div class="staff-review-payment-item"><label class="info-label">Transaction Ref</label><span class="info-value" id="mRef"></span></div>
                         </div>
-                    </div>
+                        <div id="staffPaymentProofPanel" class="text-center mt-3">
+                            <small class="fw-bold d-block mb-1 text-muted">Payment Screenshot</small>
+                            <a id="staffPaymentProofLink" href="#" target="_blank" rel="noopener" class="d-none">
+                                <img id="staffPaymentProof" class="doc-preview" alt="Payment receipt" loading="lazy">
+                            </a>
+                            <span id="staffPaymentProofMissing" class="small text-muted">No payment screenshot is available.</span>
+                        </div>
+                    </section>
 
                     <div id="driverInfoBox" class="driver-assign-box d-none">
                         <h6 class="fw-bold text-danger mb-2 text-uppercase small"><i class="fas fa-id-badge me-2"></i>Assigned Driver</h6>

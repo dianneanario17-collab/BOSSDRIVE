@@ -305,13 +305,20 @@ class WalkInDriverAssignmentTest extends TestCase
             $this->assertSame($scenario['role'], $reservation->walk_in_created_by_role);
             $this->assertSame($creatorName, $reservation->walk_in_created_by_name);
 
-            $this->withSession($scenario['session'])
+            $reviewPage = $this->withSession($scenario['session'])
                 ->get(route($scenario['pageRoute']))
-                ->assertOk()
+                ->assertOk();
+            $reviewPage
                 ->assertSee('"bookedByRole":"'.$scenario['role'].'"', false)
                 ->assertSee('"bookedByName":"'.$creatorName.'"', false)
                 ->assertSee('Booked By')
                 ->assertSee('id="mBookedBy"', false);
+            if ($scenario['role'] === 'staff') {
+                $reviewPage
+                    ->assertSee('staff-review-info-grid')
+                    ->assertSee('staff-review-payment-grid')
+                    ->assertSee('staffPaymentProofPanel');
+            }
 
             $liveResponse = $this->withSession($scenario['session'])
                 ->getJson(route($scenario['liveRoute'], ['walkin' => 1]))
