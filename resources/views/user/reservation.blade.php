@@ -1052,9 +1052,7 @@
     function vehicleNameById(id) {
         const v = vehicleById(id);
         if (!v) return 'Unknown Vehicle';
-        const unitNumber = fleet.filter(function (unit) { return unit.name === v.name; })
-            .findIndex(function (unit) { return unit.id === v.id; }) + 1;
-        return v.name + ' Unit #' + unitNumber;
+        return v.name + ' Car No: ' + (v.plate || 'Not assigned');
     }
 
     function renderStars(rating) {

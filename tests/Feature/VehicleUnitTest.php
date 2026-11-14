@@ -904,6 +904,9 @@ class VehicleUnitTest extends TestCase
         $this->assertSame(1, substr_count($content, '"vehicle":"Calendar Test Sedan"'));
         $this->assertStringContainsString('"unitNumber":2', $content);
         $this->assertStringContainsString('guestCalendarVehicleLabel(entry)', $content);
+        $this->assertStringContainsString("return entry.vehicle + ' Car No: ' + (entry.plate || 'Not assigned');", $content);
+        $this->assertStringContainsString('"plate":"CAL 4001"', $content);
+        $this->assertStringContainsString('"plate":"CAL 7001"', $content);
         $this->assertStringContainsString('"vehicle":"Filtered Out Maintenance Van"', $content);
         $this->assertStringContainsString('aria-label="Previous month"', $content);
         $this->assertStringContainsString('aria-label="Next month"', $content);
@@ -918,7 +921,10 @@ class VehicleUnitTest extends TestCase
             ->assertSee('onclick="changeMonth(1)"', false)
             ->assertSee('class="modal fade calendar-details-modal" id="calendarDetailsModal"', false)
             ->assertSee('.calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto;', false)
-            ->assertSee('Unit #', false);
+            ->assertSee("return v.name + ' Car No: ' + (v.plate || 'Not assigned');", false);
+
+        $adminPage = $this->withSession(['is_admin' => true])->get(route('admin.vehicles'))->assertOk();
+        $this->assertStringContainsString("return v.name + ' Car No: ' + (v.plate || 'Not assigned');", $adminPage->getContent());
     }
 
     public function test_guest_cannot_book_a_model_when_its_only_unit_is_reserved(): void

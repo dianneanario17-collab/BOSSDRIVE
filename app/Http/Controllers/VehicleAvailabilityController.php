@@ -168,6 +168,7 @@ class VehicleAvailabilityController extends Controller
                 ->map(fn (array $entry): array => [
                     'vehicleId' => $vehicle['id'],
                     'vehicle' => $vehicle['name'],
+                    'plate' => $vehicle['plate'],
                     'status' => 'Maintenance',
                     'start' => $entry['start'] ?? null,
                     'end' => $entry['end'] ?? null,

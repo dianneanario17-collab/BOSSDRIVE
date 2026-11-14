@@ -612,7 +612,7 @@
         }
 
         function guestCalendarVehicleLabel(entry) {
-            return entry.vehicle + (entry.unitNumber ? ' Unit #' + entry.unitNumber : '');
+            return entry.vehicle + ' Car No: ' + (entry.plate || 'Not assigned');
         }
 
         function renderCalendar() {

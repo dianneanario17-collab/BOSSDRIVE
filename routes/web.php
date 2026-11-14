@@ -171,6 +171,7 @@ Route::get('/reservations', function (Request $request) {
                 'vehicle' => $vehicle->name,
                 'vehicleId' => $vehicle->id,
                 'unitNumber' => $unitNumberById->get($vehicle->id),
+                'plate' => $vehicle->plate,
                 'status' => 'Maintenance',
                 'start' => $entry['start'] ?? null,
                 'end' => $entry['end'] ?? null,

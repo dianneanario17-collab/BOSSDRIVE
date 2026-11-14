@@ -3003,9 +3003,7 @@
         function vehicleNameById(id) {
             const v = fleet.find(function(x){ return x.id === id; });
             if (!v) return 'Unknown Vehicle';
-            const unitNumber = fleet.filter(function (vehicle) { return vehicle.name === v.name; })
-                .findIndex(function (vehicle) { return vehicle.id === v.id; }) + 1;
-            return v.name + ' Unit #' + unitNumber;
+            return v.name + ' Car No: ' + (v.plate || 'Not assigned');
         }
 
         function populateScheduleVehicleSelect(selectedId) {
