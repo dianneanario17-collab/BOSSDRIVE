@@ -788,6 +788,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('car-loader-icon', $guestContent);
 
         $userPage = $this->actingAs($user)->get(route('user.reservations'))->assertOk();
+        $this->assertStringContainsString('class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white reservation-search-card"', $userPage->getContent());
+        $this->assertStringContainsString('.reservation-search-card { position: sticky; top: 72px; z-index: 20; }', $userPage->getContent());
         $this->assertStringContainsString('Choose at least 1 full day, up to 7 days within the open booking window.', $userPage->getContent());
         $this->assertStringContainsString('Choose at least 2 full days, up to 7 days within the open booking window.', $userPage->getContent());
         $this->assertStringNotContainsString('Selected Vehicle Details', $userPage->getContent());

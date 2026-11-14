@@ -40,6 +40,7 @@
         .text-boss-red { color: var(--boss-red); font-weight: 800; }
 
         .content-container { padding: 30px; }
+        .reservation-search-card { position: sticky; top: 72px; z-index: 20; }
 
         .option-card { border: 2px solid #eee; border-radius: 12px; padding: 15px; cursor: pointer; text-align: center; transition: 0.3s; }
         .option-card.active { border-color: var(--boss-red); background: #fff5f5; border-width: 2.5px; }
@@ -145,12 +146,14 @@
             .main-content { margin-left:0; }
             .top-nav { padding:12px 16px 12px 60px; }
             .content-container { padding:20px 16px 90px; }
+            .reservation-search-card { top:64px; }
         }
         @media (max-width: 575.98px) {
             .top-nav { gap:8px; padding:10px 10px 10px 56px; }
             .top-nav h4 { min-width:0; font-size:1rem; }
             .content-container { padding:14px 10px 90px; }
             .content-container > .card { padding:14px !important; }
+            .reservation-search-card { top:52px; }
             .btn-float { width:48px; height:48px; right:16px; bottom:16px; }
             .btn-float-price { width:48px; height:48px; right:16px; bottom:74px; }
             .modal-dialog { margin:.5rem; }
@@ -186,7 +189,7 @@
                     </ul>
                 </div>
             @endif
-            <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-white reservation-search-card">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
                         <label class="small fw-bold mb-1">Search Car</label>
