@@ -275,6 +275,54 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertJsonPath('message', 'This vehicle can only be booked within its currently open 7-day window.');
     }
 
+    public function test_walk_in_bookings_record_and_show_the_admin_or_staff_creator(): void
+    {
+        foreach ([
+            [
+                'role' => 'admin',
+                'session' => ['is_admin' => true, 'admin_name' => 'Admin Pat'],
+                'storeRoute' => 'admin.reservations.store',
+                'pageRoute' => 'admin.walk-in-bookings',
+                'liveRoute' => 'admin.reservations.live',
+                'plate' => 'CREATOR 1001',
+            ],
+            [
+                'role' => 'staff',
+                'session' => ['is_staff' => true, 'staff_name' => 'Staff Mia'],
+                'storeRoute' => 'staff.reservations.store',
+                'pageRoute' => 'staff.walk-in-bookings',
+                'liveRoute' => 'staff.reservations.live',
+                'plate' => 'CREATOR 1002',
+            ],
+        ] as $scenario) {
+            $vehicle = $this->createVehicle($scenario['plate']);
+            $creatorName = $scenario['session'][$scenario['role'].'_name'];
+            $response = $this->withSession($scenario['session'])
+                ->postJson(route($scenario['storeRoute']), $this->bookingData($vehicle))
+                ->assertCreated();
+            $reservation = Reservation::findOrFail($response->json('reservation_id'));
+
+            $this->assertSame($scenario['role'], $reservation->walk_in_created_by_role);
+            $this->assertSame($creatorName, $reservation->walk_in_created_by_name);
+
+            $this->withSession($scenario['session'])
+                ->get(route($scenario['pageRoute']))
+                ->assertOk()
+                ->assertSee('"bookedByRole":"'.$scenario['role'].'"', false)
+                ->assertSee('"bookedByName":"'.$creatorName.'"', false)
+                ->assertSee('Booked By')
+                ->assertSee('id="mBookedBy"', false);
+
+            $liveResponse = $this->withSession($scenario['session'])
+                ->getJson(route($scenario['liveRoute'], ['walkin' => 1]))
+                ->assertOk();
+            $liveReservation = collect($liveResponse->json())->firstWhere('id', $reservation->id);
+            $this->assertNotNull($liveReservation);
+            $this->assertSame($scenario['role'], $liveReservation['bookedByRole']);
+            $this->assertSame($creatorName, $liveReservation['bookedByName']);
+        }
+    }
+
     public function test_admin_and_staff_vehicle_pages_provide_the_booking_window_to_walk_in_date_pickers(): void
     {
         foreach ([

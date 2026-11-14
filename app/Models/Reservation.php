@@ -16,6 +16,8 @@ class Reservation extends Model
         'user_id',
         'vehicle_id',
         'booking_source',
+        'walk_in_created_by_role',
+        'walk_in_created_by_name',
         'customer_name',
         'customer_phone',
         'customer_age',

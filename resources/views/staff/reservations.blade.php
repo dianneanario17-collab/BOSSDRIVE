@@ -321,6 +321,7 @@
                         <div class="col-md-6 border-end">
                             <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-info-circle me-2"></i>Booking Summary</h6>
                             <label class="info-label">Customer Name</label><span class="info-value" id="mName"></span>
+                            <div id="staffBookedByPanel" class="d-none"><label class="info-label">Booked By</label><span class="info-value" id="mBookedBy"></span></div>
                             <label class="info-label">Contact</label><span class="info-value" id="mPhone"></span>
                             <label class="info-label">Email</label><span class="info-value" id="mEmail"></span>
                             <label class="info-label">Service / Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span>
@@ -340,7 +341,7 @@
                             <label class="info-label">Remaining Balance</label><span class="info-value text-danger" id="mBalance"></span>
                             <label class="info-label">Total Rental Payment</label><span class="info-value fw-bold" id="mTotal"></span>
                             <label class="info-label">Transaction Ref</label><span class="info-value" id="mRef"></span>
-                            <div class="text-center mt-3">
+                            <div id="staffPaymentProofPanel" class="text-center mt-3">
                                 <small class="fw-bold d-block mb-1 text-muted">Payment Screenshot</small>
                                 <a id="staffPaymentProofLink" href="#" target="_blank" rel="noopener" class="d-none">
                                     <img id="staffPaymentProof" class="doc-preview" alt="Payment receipt" loading="lazy">
@@ -486,6 +487,8 @@
                         'role' => $reservation->return_condition_checked_by_role,
                     ],
                     'isWalkIn' => $isWalkIn,
+                    'bookedByRole' => $reservation->walk_in_created_by_role,
+                    'bookedByName' => $reservation->walk_in_created_by_name,
                     'controlNumber' => $reservation->control_number,
                 ];
             })->all();
@@ -602,6 +605,8 @@
                 pickupConditionReport: reservation.pickupConditionReport,
                 returnCondition: reservation.returnCondition,
                 isWalkIn: reservation.isWalkIn,
+                bookedByRole: reservation.bookedByRole,
+                bookedByName: reservation.bookedByName,
                 controlNumber: reservation.control
             };
         }
@@ -660,7 +665,8 @@
                 reservation.home, reservation.service, reservation.logistics, reservation.target,
                 reservation.payMethod, reservation.paid, reservation.balance, reservation.total, reservation.ref, reservation.documentsVerified,
                 reservation.controlNumber, reservation.isWalkIn, reservation.email,
-                reservation.assignedDriverName, reservation.assignedDriverContact
+                reservation.assignedDriverName, reservation.assignedDriverContact,
+                reservation.bookedByRole, reservation.bookedByName
             );
             document.getElementById('mDeliveryNotes').innerText = reservation.deliveryNotes || 'None';
             document.getElementById('mPickupSchedule').innerText = [reservation.pickupDate, reservation.pickupTime].filter(Boolean).join(' at ') || 'Not provided';
@@ -713,7 +719,7 @@
             customConfirmModal.hide();
         });
 
-        function viewDetails(id, name, phone, age, home, service, logistics, target, payMethod, paid, balance, total, ref, isAdminVerified, controlNumber, isWalkIn, email, assignedDriverName, assignedDriverContact) {
+        function viewDetails(id, name, phone, age, home, service, logistics, target, payMethod, paid, balance, total, ref, isAdminVerified, controlNumber, isWalkIn, email, assignedDriverName, assignedDriverContact, bookedByRole, bookedByName) {
             document.getElementById('currentResId').value = id;
             document.getElementById('mHeader').innerText = name;
             document.getElementById('mControlNumber').innerText = controlNumber;
@@ -729,6 +735,13 @@
             document.getElementById('mTotal').innerText = total;
             document.getElementById('mRef').innerText = ref;
             document.getElementById('mReviewType').innerText = isWalkIn ? 'Walk-in Booking Review' : 'Review Details';
+            document.getElementById('staffBookedByPanel').classList.toggle('d-none', !isWalkIn);
+            const roleLabels = {admin: 'Admin', staff: 'Staff'};
+            const bookedByLabel = roleLabels[String(bookedByRole || '').toLowerCase()];
+            document.getElementById('mBookedBy').innerText = bookedByLabel && bookedByName
+                ? bookedByLabel + ' · ' + bookedByName
+                : 'Not recorded';
+            document.getElementById('staffPaymentProofPanel').classList.toggle('d-none', isWalkIn);
 
             const clearanceBox = document.getElementById('adminClearanceStatus');
             if (isWalkIn) {

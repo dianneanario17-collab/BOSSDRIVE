@@ -106,6 +106,9 @@
         #verifyModal .review-info-item .info-value { font-size: .88rem; line-height: 1.3; margin: .1rem 0 0; overflow-wrap: anywhere; }
         #verifyModal .review-info-item .info-label { font-size: .65rem; }
         #verifyModal #verificationDocumentsPanel .row { row-gap: .55rem !important; }
+        #verifyModal .review-payment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .55rem; }
+        #verifyModal .review-payment-item { min-width: 0; border: 1px solid #e9ecef; border-radius: .65rem; padding: .6rem .75rem; background: #f8f9fa; }
+        #verifyModal .review-payment-item .info-value { margin: .15rem 0 0; font-size: .9rem; overflow-wrap: anywhere; }
         #verifyModal .driver-assign-box { margin-top: 1rem; padding-top: 1rem; }
         #verifyModal .row > [class*="col-"] { min-width: 0; }
         .doc-preview { display: block; width: 100% !important; max-width: 100%; height: 92px !important; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; cursor: zoom-in; }
@@ -390,6 +393,7 @@
                         <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-user-circle me-2"></i>Profile & Logistics</h6>
                         <div class="review-info-grid">
                             <div class="review-info-item"><label class="info-label">Full Name & Age</label><span class="info-value" id="mName"></span></div>
+                            <div class="review-info-item d-none" id="mBookedByItem"><label class="info-label">Booked By</label><span class="info-value" id="mBookedBy"></span></div>
                             <div class="review-info-item"><label class="info-label">Contact Number</label><span class="info-value text-danger" id="mPhone"></span></div>
                             <div class="review-info-item"><label class="info-label">Registered Home Address</label><span class="info-value" id="mHome"></span></div>
                             <div class="review-info-item"><label class="info-label">Service & Logistics</label><span class="info-value"><span id="mService"></span> | <span id="mLogistics"></span></span></div>
@@ -401,7 +405,7 @@
                             <div class="review-info-item"><label class="info-label">Vehicle Details</label><span class="info-value" id="mVehicleSpecs"></span></div>
                         </div>
                     </section>
-                    <div class="row g-4">
+                    <div class="row g-3">
                         <div class="col-md-8" id="verificationDocumentsPanel">
                             <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-file-alt me-2"></i>Verification Documents</h6>
                             <div class="row g-2 justify-content-center">
@@ -431,12 +435,14 @@
                         </div>
                         <div class="col-md-4" id="reviewPaymentPanel">
                             <h6 class="fw-bold text-danger mb-3 text-uppercase small"><i class="fas fa-wallet me-2"></i>Payment Status</h6>
-                            <label class="info-label">Current Mode</label><span class="info-value" id="mPayMethod"></span>
-                            <label class="info-label">Amount Paid for Rental</label><span class="info-value text-success" id="mPaid"></span>
-                            <label class="info-label">Remaining Balance</label><span class="info-value text-danger" id="mBalance"></span>
-                            <label class="info-label">Ref No.</label><span class="info-value fw-bold" id="mRef"></span>
-                            
-                            <div class="text-center mt-3">
+                            <div class="review-payment-grid">
+                                <div class="review-payment-item"><label class="info-label">Current Mode</label><span class="info-value" id="mPayMethod"></span></div>
+                                <div class="review-payment-item"><label class="info-label">Amount Paid for Rental</label><span class="info-value text-success" id="mPaid"></span></div>
+                                <div class="review-payment-item"><label class="info-label">Remaining Balance</label><span class="info-value text-danger" id="mBalance"></span></div>
+                                <div class="review-payment-item"><label class="info-label">Ref No.</label><span class="info-value fw-bold" id="mRef"></span></div>
+                            </div>
+
+                            <div id="reviewPaymentProof" class="text-center mt-3">
                                 <small class="fw-bold d-block mb-1 text-muted small">Receipt Screenshot</small>
                                 <a id="mPaymentProofLink" href="" rel="noopener" data-no-page-loader onclick="return openImagePreviewFromLink(event, this);">
                                     <img id="mPaymentProof" src="" alt="Payment receipt" class="doc-preview" loading="eager" style="height: 120px; width: auto;">
@@ -617,7 +623,7 @@
                 showToast('This booking was already cancelled and cannot be confirmed.', 'error');
                 return;
             }
-            viewDetails(id, reservation.name, reservation.phone, reservation.age ?? 'N/A', reservation.address, reservation.driver, reservation.service + ' / ' + reservation.rate, reservation.target, reservation.payment, reservation.paidAmount, reservation.balance, reservation.reference, reservation.control, reservation.bookingSource === 'admin_staff');
+            viewDetails(id, reservation.name, reservation.phone, reservation.age ?? 'N/A', reservation.address, reservation.driver, reservation.service + ' / ' + reservation.rate, reservation.target, reservation.payment, reservation.paidAmount, reservation.balance, reservation.reference, reservation.control, reservation.bookingSource === 'admin_staff', reservation.bookedByRole, reservation.bookedByName);
             document.getElementById('mDeliveryNotes').innerText = reservation.deliveryNotes || 'None';
             document.getElementById('mPickupSchedule').innerText = [reservation.pickupDate, reservation.pickupTime].filter(Boolean).join(' at ') || 'Not provided';
             document.getElementById('mReturnSchedule').innerText = [reservation.returnDate, reservation.returnTime].filter(Boolean).join(' at ') || 'Not provided';
@@ -930,7 +936,7 @@
             if (bdConfirmResolve) { bdConfirmResolve(false); bdConfirmResolve = null; }
         });
 
-        function viewDetails(id, name, phone, age, home, service, logistics, target, payMethod, paid, balance, ref, controlNumber, isWalkIn = false) {
+        function viewDetails(id, name, phone, age, home, service, logistics, target, payMethod, paid, balance, ref, controlNumber, isWalkIn = false, bookedByRole = null, bookedByName = null) {
             document.getElementById('currentResId').value = id;
             document.getElementById('mHeader').innerText = name;
             document.getElementById('mControlNumber').innerText = controlNumber;
@@ -945,11 +951,17 @@
             document.getElementById('mBalance').innerText = '₱' + Number(balance || 0).toLocaleString('en-PH', {minimumFractionDigits: 2});
             document.getElementById('mRef').innerText = ref;
             document.getElementById('verificationDocumentsPanel').classList.toggle('d-none', isWalkIn);
+            document.getElementById('reviewPaymentProof').classList.toggle('d-none', isWalkIn);
+            document.getElementById('mBookedByItem').classList.toggle('d-none', !isWalkIn);
+            const roleLabels = {admin: 'Admin', staff: 'Staff'};
+            const bookedByLabel = roleLabels[String(bookedByRole || '').toLowerCase()];
+            document.getElementById('mBookedBy').innerText = bookedByLabel && bookedByName
+                ? bookedByLabel + ' · ' + bookedByName
+                : 'Not recorded';
             document.getElementById('mReviewType').innerText = isWalkIn ? 'Walk-in Booking Review' : 'Verification';
-            document.getElementById('reviewProfilePanel').classList.toggle('col-md-4', !isWalkIn);
-            document.getElementById('reviewProfilePanel').classList.toggle('col-md-6', isWalkIn);
-            document.getElementById('reviewPaymentPanel').classList.toggle('col-md-3', !isWalkIn);
-            document.getElementById('reviewPaymentPanel').classList.toggle('col-md-6', isWalkIn);
+            const paymentPanel = document.getElementById('reviewPaymentPanel');
+            paymentPanel.classList.remove('col-md-3', 'col-md-4', 'col-md-6', 'col-md-12', 'col-12');
+            paymentPanel.classList.add(isWalkIn ? 'col-12' : 'col-md-4');
 
             // Show the driver-assignment panel only for "With Driver" bookings
             const driverBox = document.getElementById('driverAssignBox');

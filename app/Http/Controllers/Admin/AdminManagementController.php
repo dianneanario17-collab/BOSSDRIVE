@@ -102,6 +102,8 @@ class AdminManagementController extends Controller
                     'reference' => $reservation->payment_reference_id ?: 'No reference',
                     'control' => $reservation->control_number,
                     'bookingSource' => $reservation->booking_source,
+                    'bookedByRole' => $reservation->walk_in_created_by_role,
+                    'bookedByName' => $reservation->walk_in_created_by_name,
                     'status' => $reservation->status,
                     'documentsNeedReview' => $this->documentsNeedReview($reservation),
                     'pickupDate' => $reservation->pickup_date?->format('F j, Y'),
@@ -210,6 +212,8 @@ class AdminManagementController extends Controller
                 'documentsVerified' => (bool) $documentsVerified,
                 'isWalkIn' => $reservation->booking_source === 'admin_staff',
                 'bookingSource' => $reservation->booking_source,
+                'bookedByRole' => $reservation->walk_in_created_by_role,
+                'bookedByName' => $reservation->walk_in_created_by_name,
                 'status' => $reservation->status,
                 'documentsNeedReview' => $this->documentsNeedReview($reservation),
                 'pickupDate' => $reservation->pickup_date?->format('F j, Y'),
@@ -272,7 +276,13 @@ class AdminManagementController extends Controller
             'gcash_reference' => ['nullable', 'string', 'digits_between:13,17'],
         ]);
 
-        return DB::transaction(function () use ($data): JsonResponse {
+        $creatorRole = $request->routeIs('staff.*') ? 'staff' : 'admin';
+        $creatorName = trim((string) $request->session()->get($creatorRole.'_name', ''));
+        if ($creatorName === '') {
+            $creatorName = $creatorRole === 'staff' ? 'Staff User' : 'Admin';
+        }
+
+        return DB::transaction(function () use ($data, $creatorRole, $creatorName): JsonResponse {
             $vehicle = Vehicle::lockForUpdate()->findOrFail($data['vehicle_id']);
             if (in_array(strtolower((string) $vehicle->status), ['maintenance', 'unavailable'], true)) {
                 return response()->json(['message' => 'This vehicle is currently unavailable.'], 422);
@@ -348,6 +358,8 @@ class AdminManagementController extends Controller
                 'user_id' => null,
                 'vehicle_id' => $vehicle->id,
                 'booking_source' => 'admin_staff',
+                'walk_in_created_by_role' => $creatorRole,
+                'walk_in_created_by_name' => $creatorName,
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
                 'customer_age' => $data['customer_age'],
