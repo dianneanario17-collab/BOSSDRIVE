@@ -483,6 +483,7 @@
                     </div>
                     <div id="pickup-info" class="p-3 bg-light border rounded"><label class="small fw-bold">Garage Address:</label><p class="mb-0 small">Big Boss Garage, GMA, Cavite</p></div>
                     <div id="delivery-info" style="display: none;">
+                        <div class="alert alert-warning py-2 px-3 mb-2 small" role="note"><i class="fas fa-info-circle me-1"></i>Note: Vehicle delivery is available only within CALABARZON.</div>
                         <label class="small fw-bold mb-2 text-danger">Delivery Address</label>
                         <div class="row g-2">
                             <div class="col-12 col-md-6">

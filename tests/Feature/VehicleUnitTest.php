@@ -1060,6 +1060,7 @@ class VehicleUnitTest extends TestCase
             ->get(route('user.reservations'))
             ->assertOk()
             ->assertSee('id="deliveryProvince"', false)
+            ->assertSee('Note: Vehicle delivery is available only within CALABARZON.')
             ->assertSee('const calabarzonProvinces = ["Batangas","Cavite","Laguna","Quezon","Rizal"];', false)
             ->assertSee('return calabarzonProvinces.includes(item.name);', false)
             ->assertSee("province.innerHTML = '<option value=\"\">Select Province</option>';", false)
