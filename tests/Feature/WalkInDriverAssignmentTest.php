@@ -267,6 +267,24 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertJsonPath('message', 'This vehicle can only be booked within its currently open 7-day window.');
     }
 
+    public function test_admin_and_staff_vehicle_pages_provide_the_booking_window_to_walk_in_date_pickers(): void
+    {
+        foreach ([
+            ['admin.vehicles', 'is_admin', 'WINDOW 1001'],
+            ['staff.vehicles', 'is_staff', 'WINDOW 1002'],
+        ] as [$pageRoute, $sessionKey, $plate]) {
+            $vehicle = $this->createVehicle($plate);
+            $window = $vehicle->bookingWindow();
+
+            $this->withSession([$sessionKey => true])
+                ->get(route($pageRoute))
+                ->assertOk()
+                ->assertSee('"bookingWindow":{"start":"'.$window['start'].'","end":"'.$window['end'].'","locked":false}', false)
+                ->assertSee('start.max = getBookDateAfter(currentBookWindow.end, -getBookMinimumRentalDays());', false)
+                ->assertSee('end.max = durationMax < currentBookWindow.end ? durationMax : currentBookWindow.end;', false);
+        }
+    }
+
     public function test_walk_in_with_driver_rejects_missing_unavailable_or_date_conflicted_driver(): void
     {
         $vehicle = $this->createVehicle();

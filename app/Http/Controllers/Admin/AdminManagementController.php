@@ -1054,9 +1054,20 @@ class AdminManagementController extends Controller
             ->get()
             ->unique('vehicle_id')
             ->keyBy('vehicle_id');
+        $activeVehicleIds = $activeReservations->keys()
+            ->map(fn ($id): int => (int) $id)
+            ->all();
         $calendarReservations = Reservation::whereNotIn('status', ['cancelled', 'void', 'completed'])
             ->get()
             ->keyBy('id');
+        $lastReturnedAtByVehicle = Reservation::query()
+            ->where('status', 'completed')
+            ->whereNotNull('vehicle_id')
+            ->select('vehicle_id')
+            ->selectRaw('MAX(COALESCE(return_condition_checked_at, return_date)) as last_returned_at')
+            ->groupBy('vehicle_id')
+            ->get()
+            ->pluck('last_returned_at', 'vehicle_id');
         $conditionReports = PickupConditionReport::with(['user', 'reservation'])
             ->latest()
             ->get();
@@ -1071,7 +1082,7 @@ class AdminManagementController extends Controller
             'returnConditionReports' => $returnConditionReports,
             'vehicles' => $vehicles,
             'driverCatalog' => $this->driverCatalog(),
-            'vehicleRows' => $vehicles->map(function ($vehicle) use ($calendarReservations, $activeReservations) {
+            'vehicleRows' => $vehicles->map(function ($vehicle) use ($calendarReservations, $activeReservations, $activeVehicleIds, $lastReturnedAtByVehicle) {
                 $schedule = collect($vehicle->schedule ?? [])
                     ->filter(fn (array $entry): bool => ($entry['type'] ?? null) === 'Maintenance'
                     || isset($entry['reservationId'], $calendarReservations[$entry['reservationId']]))
@@ -1117,6 +1128,10 @@ class AdminManagementController extends Controller
                     'feedbacks' => $vehicle->feedbacks ?? [],
                     'damageLog' => $vehicle->damage_log ?? [],
                     'schedule' => $schedule,
+                    'bookingWindow' => $vehicle->bookingWindow(
+                        in_array((int) $vehicle->id, $activeVehicleIds, true),
+                        $lastReturnedAtByVehicle->get($vehicle->id)
+                    ),
                     'currentReservation' => $activeReservations->has($vehicle->id) ? [
                         'pickup_date' => $activeReservations[$vehicle->id]->pickup_date->toDateString(),
                         'return_date' => $activeReservations[$vehicle->id]->return_date->toDateString(),

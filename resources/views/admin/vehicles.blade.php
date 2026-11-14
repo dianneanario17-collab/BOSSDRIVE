@@ -1975,8 +1975,8 @@
         let bookPayMode = 'full';
         let bookRateType = 'city';
         let currentBookVehicleId = null;
+        let currentBookWindow = null;
         let bookStep = 1;
-        const bookingToday = new Date().toISOString().slice(0, 10);
         const bookingBirthDateMax = new Date();
         bookingBirthDateMax.setFullYear(bookingBirthDateMax.getFullYear() - 18);
         function escapeHtml(value) {
@@ -2061,8 +2061,15 @@
         function openBookModal(id) {
             const v = fleet.find(function(x){ return x.id === id; });
             if (!v) return;
+            if (!v.bookingWindow || v.bookingWindow.locked) {
+                showToast(v.bookingWindow && v.bookingWindow.locked
+                    ? 'This vehicle is already booked and is not available for a new reservation.'
+                    : 'Booking dates could not be loaded. Refresh the page and try again.', 'error');
+                return;
+            }
 
             currentBookVehicleId = id;
+            currentBookWindow = v.bookingWindow;
             document.getElementById('book-vehicle-id').value = id;
             document.getElementById('bookCarName').innerText = v.name + ' (' + v.plate + ')';
 
@@ -2071,8 +2078,6 @@
             document.getElementById('b-age').value = '';
             document.getElementById('b-birth-date').value = '';
             document.getElementById('b-birth-date').max = bookingBirthDateMax.toISOString().slice(0, 10);
-            document.getElementById('b-start').min = bookingToday;
-            document.getElementById('b-end').min = bookingToday;
             loadBookProvinces();
             document.getElementById('b-email').value = '';
             document.getElementById('b-gcash-reference').value = '';
@@ -2083,6 +2088,7 @@
             document.getElementById('b-delivery-barangay').disabled = true;
             document.getElementById('b-start').value = '';
             document.getElementById('b-end').value = '';
+            updateBookDateLimits();
             document.getElementById('b-start-time').value = '09:00';
             document.getElementById('b-end-time').value = '09:00';
             document.getElementById('b-driver-id').value = '';
@@ -2316,6 +2322,36 @@
             return bookRateType === 'long_distance' ? 2 * 86400 : 86400;
         }
 
+        function getBookMinimumRentalDays() {
+            return bookRateType === 'long_distance' ? 2 : 1;
+        }
+
+        function updateBookDateLimits() {
+            if (!currentBookWindow) return;
+
+            const start = document.getElementById('b-start');
+            const end = document.getElementById('b-end');
+            start.min = currentBookWindow.start;
+            start.max = getBookDateAfter(currentBookWindow.end, -getBookMinimumRentalDays());
+
+            if (start.value && (start.value < start.min || start.value > start.max)) {
+                start.value = '';
+                end.value = '';
+            }
+
+            end.min = start.value
+                ? getBookDateAfter(start.value, getBookMinimumRentalDays())
+                : currentBookWindow.start;
+            const durationMax = start.value
+                ? getBookDateAfter(start.value, getBookMaximumDays())
+                : currentBookWindow.end;
+            end.max = durationMax < currentBookWindow.end ? durationMax : currentBookWindow.end;
+
+            if (end.value && (end.value < end.min || end.value > end.max)) {
+                end.value = start.value && end.min <= end.max ? end.min : '';
+            }
+        }
+
         function getBookDurationSeconds() {
             const start = document.getElementById('b-start').value;
             const end = document.getElementById('b-end').value;
@@ -2339,8 +2375,15 @@
 
         function syncBookReturnDateFromPickup() {
             const pickupDate = document.getElementById('b-start').value;
+            if (!pickupDate) {
+                updateBookDateLimits();
+                updateBookCompute();
+                return;
+            }
+
             const returnDate = document.getElementById('b-end');
-            const minimumReturnDate = getBookDateAfter(pickupDate, 1);
+            const minimumReturnDate = getBookDateAfter(pickupDate, getBookMinimumRentalDays());
+            updateBookDateLimits();
             if (!returnDate.value || returnDate.value < minimumReturnDate) {
                 returnDate.value = minimumReturnDate;
             }
@@ -2354,19 +2397,13 @@
 
         function setBookRateType(type) {
             bookRateType = type;
-            const start = document.getElementById('b-start');
-            const end = document.getElementById('b-end');
             const hint = document.getElementById('b-date-limit-hint');
             const labels = {city: 'City Driving', province: 'Province', long_distance: 'Long Distance'};
-            const maxDays = getBookMaximumDays();
             hint.innerHTML = '<strong>' + (type === 'long_distance'
                 ? labels[type] + ': Choose at least 2 full days, up to 7 days within the open booking window.'
                 : labels[type] + ': Choose at least 1 full day, up to 7 days within the open booking window.') + '</strong>' +
                 '<div class="fw-normal mt-1"><i class="fas fa-info-circle me-1"></i>You may request an extension if you need to rent the vehicle longer.</div>';
-            end.min = start.value || new Date().toISOString().slice(0, 10);
-            if (start.value) {
-                end.max = getBookDateAfter(start.value, maxDays);
-            }
+            updateBookDateLimits();
             updateBookCompute();
         }
 
@@ -2380,15 +2417,11 @@
                 : (bookRateType === 'long_distance' ? basePrice + 1500 : basePrice);
             const depositRow = document.getElementById('b-security-deposit-row');
 
+            updateBookDateLimits();
             const startVal = document.getElementById('b-start').value;
             const endVal = document.getElementById('b-end').value;
             const startTime = document.getElementById('b-start-time');
             const endTime = document.getElementById('b-end-time');
-            if (startVal) {
-                const end = document.getElementById('b-end');
-                end.min = getBookDateAfter(startVal, 1);
-                end.max = getBookDateAfter(startVal, getBookMaximumDays());
-            }
             if (startVal && endVal === startVal) {
                 endTime.min = startTime.value || '00:00';
             } else {
