@@ -261,13 +261,7 @@ class AdminManagementController extends Controller
             'service_option' => ['required', 'string', 'in:pickup,delivery'],
             'driver_option' => ['required', 'string', 'in:self_drive,with_driver'],
             'driver_id' => ['nullable', 'required_if:driver_option,with_driver', 'exclude_unless:driver_option,with_driver', 'integer', 'exists:on_call_drivers,id'],
-            'delivery_province' => [
-                'exclude_unless:service_option,delivery',
-                'required',
-                'string',
-                'max:255',
-                Rule::in(config('delivery.calabarzon_provinces')),
-            ],
+            'delivery_province' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:255'],
             'delivery_city' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:255'],
             'delivery_barangay' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:255'],
             'delivery_street' => ['required_if:service_option,delivery', 'nullable', 'string', 'max:1000'],
@@ -276,8 +270,6 @@ class AdminManagementController extends Controller
             'delivery_longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'payment_mode' => ['required', 'string', 'in:full,deposit,walkin'],
             'gcash_reference' => ['nullable', 'string', 'digits_between:13,17'],
-        ], [
-            'delivery_province.in' => 'Delivery is available only within CALABARZON (Batangas, Cavite, Laguna, Quezon, and Rizal).',
         ]);
 
         return DB::transaction(function () use ($data): JsonResponse {

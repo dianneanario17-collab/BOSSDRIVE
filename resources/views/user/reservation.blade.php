@@ -488,7 +488,6 @@
                             <div class="col-12 col-md-6">
                                 <label class="small fw-bold" for="deliveryProvince">Province</label>
                                 <select class="form-select" id="deliveryProvince" name="delivery_province"><option value="">Select Province</option></select>
-                                <small class="form-text text-muted">Delivery is available only in CALABARZON.</small>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="small fw-bold" for="deliveryCity">City / Municipality</label>
@@ -1483,7 +1482,12 @@
 
     async function loadDeliveryProvinces() {
         const province = document.getElementById('deliveryProvince');
-        if (!province || province.options.length > 1) return;
+        if (!province) return;
+        const existingOptions = Array.from(province.options).slice(1);
+        if (existingOptions.length && existingOptions.every(function (option) {
+            return calabarzonProvinces.includes(option.value);
+        })) return;
+        province.innerHTML = '<option value="">Select Province</option>';
         try {
             const response = await fetch('https://psgc.gitlab.io/api/provinces/');
             if (!response.ok) throw new Error('Unable to load provinces.');
