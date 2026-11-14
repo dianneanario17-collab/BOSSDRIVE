@@ -452,6 +452,7 @@ class PaymentCenterTest extends TestCase
             ->assertSee('STAFF-REVIEW-REF')
             ->assertSee('1250')
             ->assertSee('id="qrUploadModal"', false)
+            ->assertSee('class="management-sticky-overview"', false)
             ->assertSee('Click or drag a new QR image here');
 
         $this->withSession(['is_staff' => true])
@@ -460,6 +461,7 @@ class PaymentCenterTest extends TestCase
             ->assertSee('Billing Review Customer')
             ->assertSee('STAFF-REVIEW-REF')
             ->assertSee('1250')
+            ->assertSee('class="management-sticky-overview"', false)
             ->assertDontSee('id="qrUploadModal"', false)
             ->assertDontSee('Click or drag a new QR image here');
     }

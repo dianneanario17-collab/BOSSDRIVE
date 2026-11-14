@@ -155,6 +155,7 @@
     <div class="main-content">
         <div class="content-container">
             
+            <div class="management-sticky-overview">
             <div class="row g-4 mb-4 text-center">
                 <div class="col-md-3">
                     <div class="card stat-card p-4 border-bottom border-success border-5" data-filter="paid">
@@ -180,6 +181,7 @@
                         <h2 class="fw-bold text-danger mb-0 mt-2" id="statPending">0</h2>
                     </div>
                 </div>
+            </div>
             </div>
 
             @if(!$isStaffMode)

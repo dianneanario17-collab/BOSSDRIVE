@@ -18,7 +18,7 @@
         .sidebar .nav-link:hover { background: rgba(255,255,255,0.1); }
         .sidebar .nav-link.active { background-color: #dc3545; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3); }
 
-        .main-content { margin-left: 250px; min-height: 100vh; width: calc(100% - 250px); overflow-x: hidden; }
+        .main-content { margin-left: 250px; min-height: 100vh; width: calc(100% - 250px); overflow-x: clip; }
         .top-nav { background: white; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 
         /* Tracking Cards */
@@ -120,6 +120,7 @@
     <div class="main-content">
         <div class="container-fluid p-4">
             <!-- Functional Stat Cards -->
+            <div class="management-sticky-overview">
             <div class="row g-4 mb-4 text-center">
                 <div class="col-md-4">
                     <div class="card stat-card p-4 shadow-sm" data-filter="all">
@@ -142,6 +143,7 @@
                         <h2 class="fw-bold mb-0 text-danger" id="statOverdue">{{ $overdueCount }}</h2>
                     </div>
                 </div>
+            </div>
             </div>
 
             <div class="table-container shadow-sm border-0">

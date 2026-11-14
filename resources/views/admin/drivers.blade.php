@@ -29,6 +29,7 @@
     @endif
     <div class="main-content">
         <main class="content-container">
+            <div class="management-sticky-overview">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-1">Drivers</h4>
@@ -42,6 +43,7 @@
                         <i class="fas fa-car me-1"></i> Vehicle Management
                     </a>
                 </div>
+            </div>
             </div>
 
             @php

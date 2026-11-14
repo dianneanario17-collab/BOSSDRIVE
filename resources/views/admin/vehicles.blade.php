@@ -197,6 +197,7 @@
 
     <div class="main-content">
         <div class="content-container">
+            <div class="management-sticky-overview">
             <div class="row g-4 mb-4 text-center">
                 <div class="col-md-3">
                     <div class="card stat-card p-4 border-bottom border-primary border-5" data-filter="all">
@@ -237,6 +238,7 @@
                         <i class="fas fa-plus me-2"></i> ADD NEW VEHICLE
                     </button>
                 </div>
+            </div>
             </div>
 
             <div class="input-group mb-3">

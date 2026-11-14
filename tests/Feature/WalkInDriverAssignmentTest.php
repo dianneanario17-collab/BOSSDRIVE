@@ -93,6 +93,23 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertJsonPath('0.documents.proof_of_billing', asset('storage/'.$documentPaths['proof_of_billing']));
     }
 
+    public function test_admin_and_staff_active_rental_and_driver_overviews_render_sticky_sections(): void
+    {
+        foreach ([
+            ['admin.active-rentals', 'is_admin'],
+            ['staff.active-rentals', 'is_staff'],
+            ['admin.drivers', 'is_admin'],
+            ['staff.drivers', 'is_staff'],
+        ] as [$routeName, $sessionRole]) {
+            $response = $this->withSession([
+                'is_admin' => $sessionRole === 'is_admin',
+                'is_staff' => $sessionRole === 'is_staff',
+            ])->get(route($routeName))->assertOk();
+
+            $this->assertStringContainsString('class="management-sticky-overview"', $response->getContent());
+        }
+    }
+
     public function test_missing_uploaded_documents_are_not_rendered_as_broken_admin_or_staff_image_links(): void
     {
         Storage::fake('public');

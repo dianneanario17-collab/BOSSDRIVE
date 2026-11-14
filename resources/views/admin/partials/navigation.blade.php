@@ -5,6 +5,7 @@
     .admin-sidebar .nav-link:hover { background:rgba(255,255,255,.1); color:#fff; }
     .admin-sidebar .nav-link.active { background:#dc3545; box-shadow:0 4px 10px rgba(220,53,69,.3); color:#fff; }
     .admin-top-nav { margin-left:250px; width:calc(100% - 250px); min-height:68px; background:#fff; padding:15px 30px; box-shadow:0 2px 10px rgba(0,0,0,.05); display:flex; justify-content:space-between; align-items:center; gap:16px; position:sticky; top:0; z-index:998; }
+    .management-sticky-overview { position:sticky; top:68px; z-index:20; background:var(--boss-grey, #f8f9fa); }
     .admin-top-nav h5 { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .admin-top-nav > div { flex-shrink:0; }
     .admin-sidebar-toggle { display:none; }
@@ -46,6 +47,7 @@
     }
     @media (max-width:575.98px) {
         .admin-top-nav { min-height:60px; }
+        .management-sticky-overview { top:60px; }
         .admin-top-nav h5 { font-size:.85rem; }
         .admin-top-nav .text-end { margin-right:0 !important; }
         .admin-top-nav .text-end span:first-child { max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
