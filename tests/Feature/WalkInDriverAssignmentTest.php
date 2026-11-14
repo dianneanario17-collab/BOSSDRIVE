@@ -55,6 +55,8 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertSee('customer-license.jpg')
             ->assertSee('customer-id.png')
             ->assertSee('customer-billing.webp');
+        $this->assertStringContainsString('class="reservation-overview-sticky"', $adminPage->getContent());
+        $this->assertStringContainsString('position:sticky; top:68px; z-index:20;', $adminPage->getContent());
 
         $staffPage = $this->withSession(['is_staff' => true])
             ->get(route('staff.reservations'))
@@ -67,6 +69,8 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertDontSee('customer-billing.webp')
             ->assertSee('staffPaymentProof')
             ->assertSee('customer-payment.png');
+        $this->assertStringContainsString('class="reservation-overview-sticky"', $staffPage->getContent());
+        $this->assertStringContainsString('position:sticky; top:68px; z-index:20;', $staffPage->getContent());
 
         $this->assertStringContainsString('"bookingSource":"user"', $adminPage->getContent());
         $this->assertStringNotContainsString('customer-license.jpg', $staffPage->getContent());

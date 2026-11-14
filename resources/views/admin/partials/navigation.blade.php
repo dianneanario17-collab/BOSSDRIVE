@@ -1,5 +1,5 @@
 <style>
-    .main-content { margin-left:250px; min-height:100vh; width:calc(100% - 250px); overflow-x:hidden; }
+    .main-content { margin-left:250px; min-height:100vh; width:calc(100% - 250px); overflow-x:clip; }
     .admin-sidebar { width:250px; height:100vh; background:#212529; position:fixed; inset:0 auto 0 0; border-right:5px solid #dc3545; z-index:1000; overflow-y:auto; }
     .admin-sidebar .nav-link { color:#fff; padding:15px 20px; margin:5px 15px; border-radius:8px; font-size:.9rem; font-weight:600; transition:.3s; text-decoration:none; display:block; }
     .admin-sidebar .nav-link:hover { background:rgba(255,255,255,.1); color:#fff; }

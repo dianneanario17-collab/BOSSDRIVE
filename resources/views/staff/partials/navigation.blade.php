@@ -53,7 +53,7 @@
         .staff-sidebar-toggle { width:32px; height:32px; padding:5px; line-height:1; }
         .staff-sidebar-toggle i { font-size:.9rem; }
         .staff-main-content,
-        .staff-sidebar ~ .main-content { width:100%; min-width:0; overflow-x:hidden; }
+        .staff-sidebar ~ .main-content { width:100%; min-width:0; overflow-x:clip; }
         .staff-main-content .container-fluid,
         .staff-main-content .content-container,
         .staff-sidebar ~ .main-content .container-fluid,

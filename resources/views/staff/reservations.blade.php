@@ -18,6 +18,10 @@
         .sidebar .nav-link.active { background-color: #dc3545; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3); }
 
         .main-content { margin-left: 250px; min-height: 100vh; }
+        .reservation-overview-sticky { position:sticky; top:68px; z-index:20; background:var(--boss-grey); }
+        @media (max-width: 575.98px) {
+            .reservation-overview-sticky { top:56px; }
+        }
         .top-nav { background: white; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
 
         .stat-card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.25s ease; background: white; }
@@ -150,6 +154,7 @@
     <div class="main-content">
 
         <div class="p-4">
+            <div class="reservation-overview-sticky">
             <div class="row g-4 mb-4 text-center reservation-stat-row">
                 <div class="col-md-3">
                     <div class="card stat-card p-4 border-bottom border-primary border-5" data-filter="all">
@@ -199,6 +204,7 @@
                         <i class="fas fa-walking me-1"></i>Walk-in Bookings
                     </a>
                 </div>
+            </div>
             </div>
 
             <div class="res-card">
