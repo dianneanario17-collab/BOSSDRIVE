@@ -911,6 +911,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('"unitNumber":2', $content);
         $this->assertStringContainsString('"type":"Special"', $content);
         $this->assertStringContainsString('event-delivery', $content);
+        $this->assertStringContainsString('.event-delivery { background: #198754; color: #fff; }', $content);
         $this->assertStringContainsString('Delivery · ', $content);
         $this->assertStringContainsString('guestCalendarVehicleLabel(entry)', $content);
         $this->assertStringContainsString("return entry.vehicle + ' Car No: ' + (entry.plate || 'Not assigned');", $content);
@@ -935,6 +936,7 @@ class VehicleUnitTest extends TestCase
             ->assertSee('.calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto;', false)
             ->assertSee("return v.name + ' Car No: ' + (v.plate || 'Not assigned');", false)
             ->assertSee("'Special': 'event-delivery'", false)
+            ->assertSee('.event-delivery { background: #198754; color: #fff; }', false)
             ->assertSee('userCalendarEventLabel(ev)', false);
         $this->assertStringContainsString('"type":"Special"', $userPage->getContent());
 

@@ -32,7 +32,7 @@
         .event-maintenance { background: #ffc107; color: #000; }
         .event-rented { background: #dc3545; }
         .event-reserved { background: #0d6efd; }
-        .event-delivery { background: #0dcaf0; color: #212529; }
+        .event-delivery { background: #198754; color: #fff; }
         .cal-more { display: block; width: 100%; border: 0; background: transparent; color: #495057; font-size: .68rem; font-weight: 700; text-align: left; padding: 2px 5px; }
         .cal-more:hover { color: var(--boss-red); text-decoration: underline; }
         .calendar-details-modal .modal-dialog { width: min(500px, calc(100vw - 1rem)); max-width: none; }
@@ -387,7 +387,7 @@
                         <h4 class="fw-bold mb-0" id="calendarMonthYear"></h4>
                         <button class="btn btn-outline-dark btn-sm" onclick="changeMonth(1)" aria-label="Next month"><i class="fas fa-chevron-right"></i></button>
                     </div>
-                    <div class="d-flex flex-wrap justify-content-end gap-2"><span class="badge bg-danger">Ongoing</span><span class="badge bg-primary">Reserved</span><span class="badge bg-info text-dark">Delivery</span><span class="badge bg-warning text-dark">Maintenance</span></div>
+                    <div class="d-flex flex-wrap justify-content-end gap-2"><span class="badge bg-danger">Ongoing</span><span class="badge bg-primary">Reserved</span><span class="badge bg-warning text-dark">Maintenance</span><span class="badge bg-success">Delivery</span></div>
                 </div>
                 <div class="table-responsive"><table class="table table-bordered bg-white calendar-table"><thead><tr><th>SUN</th><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th></tr></thead><tbody id="calendarBody"></tbody></table></div>
             </div>
@@ -681,7 +681,7 @@
                     ? 'bg-warning text-dark'
                     : (entry.type === 'Rented'
                         ? 'bg-danger'
-                        : (entry.type === 'Delivery' ? 'bg-info text-dark' : 'bg-primary')));
+                        : (entry.type === 'Delivery' ? 'bg-success' : 'bg-primary')));
                 status.textContent = entry.type === 'Rented' ? 'Ongoing' : entry.type;
                 row.append(description, status);
                 body.appendChild(row);

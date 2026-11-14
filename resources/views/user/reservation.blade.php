@@ -80,7 +80,7 @@
         .event-maintenance { background: #ffc107; color: #000; }
         .event-rented { background: #dc3545; }
         .event-reserved { background: #0d6efd; }
-        .event-delivery { background: #0dcaf0; color: #212529; }
+        .event-delivery { background: #198754; color: #fff; }
         .cal-more { display: block; width: 100%; border: 0; background: transparent; color: #495057; font-size: .68rem; font-weight: 700; text-align: left; padding: 2px 5px; }
         .cal-more:hover { color: var(--boss-red); text-decoration: underline; }
         .calendar-details-modal .modal-dialog { width: min(500px, calc(100vw - 1rem)); max-width: none; }
@@ -262,8 +262,8 @@
                         <div class="d-flex flex-wrap justify-content-end gap-2">
                             <span class="badge bg-danger">Ongoing</span>
                             <span class="badge bg-primary">Reserved</span>
-                            <span class="badge bg-info text-dark">Delivery</span>
                             <span class="badge bg-warning text-dark">Maintenance</span>
+                            <span class="badge bg-success">Delivery</span>
                         </div>
                     </div>
                     <div class="table-responsive">
