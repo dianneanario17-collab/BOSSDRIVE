@@ -232,6 +232,11 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertSee('id="bookError" role="alert" aria-live="polite"', false)
             ->assertSee('Choose at least 1 full day, up to 7 days within the open booking window.')
             ->assertSee('Choose at least 2 full days, up to 7 days within the open booking window.')
+            ->assertSee('id="b-security-deposit-row" class="d-flex justify-content-between"', false)
+            ->assertSee('Back to Customer Information')
+            ->assertSee('Back to Rental Details')
+            ->assertSee('id="bookStepDescription"', false)
+            ->assertDontSee('hideDeposit')
             ->assertSee('Test Driver')
             ->assertSee((string) $driver->id);
 
@@ -240,6 +245,9 @@ class WalkInDriverAssignmentTest extends TestCase
             ->assertOk()
             ->assertSee('b-driver-id')
             ->assertSee('id="bookError" role="alert" aria-live="polite"', false)
+            ->assertSee('id="b-security-deposit-row" class="d-flex justify-content-between"', false)
+            ->assertSee('Back to Customer Information')
+            ->assertSee('Back to Rental Details')
             ->assertSee('Test Driver')
             ->assertSee((string) $driver->id);
     }

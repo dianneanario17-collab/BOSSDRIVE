@@ -497,7 +497,7 @@
                     <div id="bookFormArea">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="small fw-bold text-danger" id="bookStepLabel">STEP 1 OF 3</span>
-                            <span class="small text-muted">Customer Information</span>
+                            <span class="small text-muted" id="bookStepDescription">Customer Information</span>
                         </div>
                         <div id="bookError" role="alert" aria-live="polite"></div>
                         <div id="bookStep1">
@@ -560,7 +560,7 @@
                         </div>
 
                         <div id="bookStep2" class="d-none">
-                        <div class="d-flex justify-content-between mb-3"><button type="button" class="btn btn-link p-0" onclick="setBookStep(1)">← BACK</button><span class="small fw-bold text-danger">STEP 2 OF 3</span></div>
+                        <div class="mb-3"><button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 book-back-button" onclick="setBookStep(1)"><i class="fas fa-arrow-left me-2" aria-hidden="true"></i>Back to Customer Information</button></div>
                         <label class="small fw-bold mb-2">Rental Location / Rate</label>
                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold mb-2" onclick="toggleBookGuide(event)" aria-expanded="false"><i class="fas fa-map-marked-alt me-1"></i>VIEW GUIDE</button>
                         <div id="bookGuide" class="alert alert-light border border-danger rounded-4 mb-3 d-none">
@@ -605,7 +605,7 @@
                         </div>
 
                         <div id="bookStep3" class="d-none">
-                        <div class="d-flex justify-content-between mb-3"><button type="button" class="btn btn-link p-0" onclick="setBookStep(2)">← BACK</button><span class="small fw-bold text-danger">STEP 3 OF 3</span></div>
+                        <div class="mb-3"><button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 book-back-button" onclick="setBookStep(2)"><i class="fas fa-arrow-left me-2" aria-hidden="true"></i>Back to Rental Details</button></div>
                         <div class="row g-2 mb-3">
                             <div class="col-4"><div class="option-card active" id="b-pay-full" onclick="setBookPay('full')">Full Payment</div></div>
                             <div class="col-4"><div class="option-card" id="b-pay-dep" onclick="setBookPay('dep')">Deposit (₱1,000)</div></div>
@@ -2123,6 +2123,13 @@
                 document.getElementById('bookStep' + number).classList.toggle('d-none', number !== step);
             });
             document.getElementById('bookStepLabel').textContent = 'STEP ' + step + ' OF 3';
+            document.getElementById('bookStepDescription').textContent = [
+                'Customer Information',
+                'Rental Details',
+                'Payment & Review'
+            ][step - 1];
+            document.getElementById('bookReviewPanel').classList.add('d-none');
+            document.getElementById('bookReviewButton').classList.remove('d-none');
             document.getElementById('confirmAdminBookingButton').classList.add('d-none');
         }
 
@@ -2415,8 +2422,6 @@
             const price = bookRateType === 'province'
                 ? basePrice + provinceSurcharge
                 : (bookRateType === 'long_distance' ? basePrice + 1500 : basePrice);
-            const depositRow = document.getElementById('b-security-deposit-row');
-
             updateBookDateLimits();
             const startVal = document.getElementById('b-start').value;
             const endVal = document.getElementById('b-end').value;
@@ -2441,12 +2446,6 @@
             document.getElementById('b-days').innerText = days;
             document.getElementById('b-rec-rent').innerText = '₱' + rentTotal.toLocaleString();
             document.getElementById('b-rec-driver').innerText = '₱' + driverTotal.toLocaleString();
-
-            if (depositRow) {
-                const hideDeposit = (bookPayMode === 'cash');
-                depositRow.style.display = hideDeposit ? 'none' : 'flex';
-                depositRow.classList.toggle('d-none', hideDeposit);
-            }
 
             let payNow;
             if (bookPayMode === 'dep') payNow = deposit;
