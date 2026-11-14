@@ -32,6 +32,7 @@
         .event-maintenance { background: #ffc107; color: #000; }
         .event-rented { background: #dc3545; }
         .event-reserved { background: #0d6efd; }
+        .event-delivery { background: #0dcaf0; color: #212529; }
         .cal-more { display: block; width: 100%; border: 0; background: transparent; color: #495057; font-size: .68rem; font-weight: 700; text-align: left; padding: 2px 5px; }
         .cal-more:hover { color: var(--boss-red); text-decoration: underline; }
         .calendar-details-modal .modal-dialog { width: min(500px, calc(100vw - 1rem)); max-width: none; }
@@ -386,7 +387,7 @@
                         <h4 class="fw-bold mb-0" id="calendarMonthYear"></h4>
                         <button class="btn btn-outline-dark btn-sm" onclick="changeMonth(1)" aria-label="Next month"><i class="fas fa-chevron-right"></i></button>
                     </div>
-                    <div class="d-flex gap-2"><span class="badge bg-danger">Ongoing</span><span class="badge bg-primary">Reserved</span><span class="badge bg-warning text-dark">Maintenance</span></div>
+                    <div class="d-flex flex-wrap justify-content-end gap-2"><span class="badge bg-danger">Ongoing</span><span class="badge bg-primary">Reserved</span><span class="badge bg-info text-dark">Delivery</span><span class="badge bg-warning text-dark">Maintenance</span></div>
                 </div>
                 <div class="table-responsive"><table class="table table-bordered bg-white calendar-table"><thead><tr><th>SUN</th><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th></tr></thead><tbody id="calendarBody"></tbody></table></div>
             </div>
@@ -602,7 +603,9 @@
                 .filter(function (entry) { return iso >= entry.start && iso <= entry.end; })
                 .map(function (entry) {
                     return Object.assign({}, entry, {
-                        type: entry.status === 'Ongoing' ? 'Rented' : 'Reserved'
+                        type: entry.type === 'Special'
+                            ? 'Delivery'
+                            : (entry.status === 'Ongoing' || entry.type === 'Rented' ? 'Rented' : 'Reserved')
                     });
                 });
             const maintenance = calendarMaintenance
@@ -613,6 +616,10 @@
 
         function guestCalendarVehicleLabel(entry) {
             return entry.vehicle + ' Car No: ' + (entry.plate || 'Not assigned');
+        }
+
+        function guestCalendarEventLabel(entry) {
+            return (entry.type === 'Delivery' ? 'Delivery · ' : '') + guestCalendarVehicleLabel(entry);
         }
 
         function renderCalendar() {
@@ -639,10 +646,13 @@
                         events.slice(0, 3).forEach(function (entry) {
                             const eventClass = entry.type === 'Maintenance'
                                 ? 'event-maintenance'
-                                : (entry.type === 'Rented' ? 'event-rented' : 'event-reserved');
+                                : (entry.type === 'Rented'
+                                    ? 'event-rented'
+                                    : (entry.type === 'Delivery' ? 'event-delivery' : 'event-reserved'));
+                            const eventLabel = guestCalendarEventLabel(entry);
                             cellHtml += '<div class="cal-event ' + eventClass + '" title="' +
-                                escapeGuestHtml(guestCalendarVehicleLabel(entry) + ' — ' + entry.type) + '">' +
-                                escapeGuestHtml(guestCalendarVehicleLabel(entry)) + '</div>';
+                                escapeGuestHtml(eventLabel + ' — ' + entry.type) + '">' +
+                                escapeGuestHtml(eventLabel) + '</div>';
                         });
                         if (events.length > 3) {
                             cellHtml += '<button type="button" class="cal-more" onclick="openGuestCalendarDetails(\'' + iso + '\')">+' + (events.length - 3) + ' more</button>';
@@ -665,11 +675,13 @@
                 const row = document.createElement('div');
                 row.className = 'd-flex align-items-center justify-content-between gap-2 border rounded-3 p-2 mb-2 small fw-bold';
                 const description = document.createElement('span');
-                description.textContent = guestCalendarVehicleLabel(entry) + (entry.plate ? ' (' + entry.plate + ')' : '');
+                description.textContent = guestCalendarEventLabel(entry) + (entry.plate ? ' (' + entry.plate + ')' : '');
                 const status = document.createElement('span');
                 status.className = 'badge ' + (entry.type === 'Maintenance'
                     ? 'bg-warning text-dark'
-                    : (entry.type === 'Rented' ? 'bg-danger' : 'bg-primary'));
+                    : (entry.type === 'Rented'
+                        ? 'bg-danger'
+                        : (entry.type === 'Delivery' ? 'bg-info text-dark' : 'bg-primary')));
                 status.textContent = entry.type === 'Rented' ? 'Ongoing' : entry.type;
                 row.append(description, status);
                 body.appendChild(row);

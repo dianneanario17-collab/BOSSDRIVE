@@ -160,6 +160,9 @@ Route::get('/reservations', function (Request $request) {
             'unitNumber' => $unitNumberById->get($reservation->vehicle_id),
             'plate' => $reservation->vehicleUnit?->plate,
             'status' => $reservation->status === 'released' ? 'Ongoing' : 'Reserved',
+            'type' => $reservation->status === 'released'
+                ? 'Rented'
+                : ($reservation->service_option === 'delivery' ? 'Special' : 'Reserved'),
             'start' => $reservation->pickup_date->toDateString(),
             'end' => $reservation->return_date->toDateString(),
         ])

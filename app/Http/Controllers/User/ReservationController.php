@@ -154,9 +154,16 @@ class ReservationController extends Controller
                                 return $entry;
                             }
                             $reservation = $calendarReservations[$entry['reservationId']];
-                            $entry['type'] = $reservation->status === 'released' ? 'Rented' : 'Reserved';
+                            $isUpcomingDelivery = $reservation->service_option === 'delivery'
+                                && $reservation->status !== 'released';
+                            $entry['type'] = $isUpcomingDelivery
+                                ? 'Special'
+                                : ($reservation->status === 'released' ? 'Rented' : 'Reserved');
                             $entry['start'] = $reservation->pickup_date->toDateString();
                             $entry['end'] = $reservation->return_date->toDateString();
+                            if ($isUpcomingDelivery) {
+                                $entry['deliveryDate'] = $reservation->pickup_date->format('F j, Y');
+                            }
 
                             return $entry;
                         })

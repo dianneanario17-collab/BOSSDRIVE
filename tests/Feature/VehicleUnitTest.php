@@ -874,7 +874,7 @@ class VehicleUnitTest extends TestCase
             'user_id' => $user->id,
             'vehicle_id' => $rentedUnit->id,
             'vehicle' => $rentedUnit->name,
-            'service_option' => 'pickup',
+            'service_option' => 'delivery',
             'driver_option' => 'self_drive',
             'pickup_date' => now()->addDays(5)->toDateString(),
             'return_date' => now()->addDays(7)->toDateString(),
@@ -909,6 +909,9 @@ class VehicleUnitTest extends TestCase
         $content = $response->getContent();
         $this->assertSame(1, substr_count($content, '"vehicle":"Calendar Test Sedan"'));
         $this->assertStringContainsString('"unitNumber":2', $content);
+        $this->assertStringContainsString('"type":"Special"', $content);
+        $this->assertStringContainsString('event-delivery', $content);
+        $this->assertStringContainsString('Delivery · ', $content);
         $this->assertStringContainsString('guestCalendarVehicleLabel(entry)', $content);
         $this->assertStringContainsString("return entry.vehicle + ' Car No: ' + (entry.plate || 'Not assigned');", $content);
         $this->assertStringContainsString('"plate":"CAL 4001"', $content);
@@ -919,15 +922,21 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('event-maintenance', $content);
         $this->assertStringContainsString('class="modal fade calendar-details-modal" id="calendarDetailsModal"', $content);
         $this->assertStringContainsString('.calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto;', $content);
+        $this->getJson(route('vehicles.availability'))
+            ->assertOk()
+            ->assertJsonPath('reservations.0.type', 'Special');
 
-        $this->actingAs($user)
+        $userPage = $this->actingAs($user)
             ->get(route('user.reservations'))
             ->assertOk()
             ->assertSee('onclick="changeMonth(-1)"', false)
             ->assertSee('onclick="changeMonth(1)"', false)
             ->assertSee('class="modal fade calendar-details-modal" id="calendarDetailsModal"', false)
             ->assertSee('.calendar-details-modal .modal-body { max-height: min(15rem, calc(100vh - 8rem)); overflow-y: auto;', false)
-            ->assertSee("return v.name + ' Car No: ' + (v.plate || 'Not assigned');", false);
+            ->assertSee("return v.name + ' Car No: ' + (v.plate || 'Not assigned');", false)
+            ->assertSee("'Special': 'event-delivery'", false)
+            ->assertSee('userCalendarEventLabel(ev)', false);
+        $this->assertStringContainsString('"type":"Special"', $userPage->getContent());
 
         $adminPage = $this->withSession(['is_admin' => true])->get(route('admin.vehicles'))->assertOk();
         $this->assertStringContainsString("return v.name + ' Car No: ' + (v.plate || 'Not assigned');", $adminPage->getContent());

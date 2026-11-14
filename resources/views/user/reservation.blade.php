@@ -80,6 +80,7 @@
         .event-maintenance { background: #ffc107; color: #000; }
         .event-rented { background: #dc3545; }
         .event-reserved { background: #0d6efd; }
+        .event-delivery { background: #0dcaf0; color: #212529; }
         .cal-more { display: block; width: 100%; border: 0; background: transparent; color: #495057; font-size: .68rem; font-weight: 700; text-align: left; padding: 2px 5px; }
         .cal-more:hover { color: var(--boss-red); text-decoration: underline; }
         .calendar-details-modal .modal-dialog { width: min(500px, calc(100vw - 1rem)); max-width: none; }
@@ -258,9 +259,10 @@
                             <h4 class="fw-bold mb-0" id="calendarMonthYear">April 2026</h4>
                             <button class="btn btn-outline-dark btn-sm" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex flex-wrap justify-content-end gap-2">
                             <span class="badge bg-danger">Ongoing</span>
                             <span class="badge bg-primary">Reserved</span>
+                            <span class="badge bg-info text-dark">Delivery</span>
                             <span class="badge bg-warning text-dark">Maintenance</span>
                         </div>
                     </div>
@@ -913,6 +915,7 @@
                 type: ev.type || 'Reserved',
                 start: ev.start || ev.start_date,
                 end: ev.end || ev.end_date,
+                deliveryDate: ev.deliveryDate,
                 notes: ev.notes || ''
             };
         });
@@ -927,13 +930,14 @@
                     type: ev.type || 'Reserved',
                     start: ev.start,
                     end: ev.end,
+                    deliveryDate: ev.deliveryDate,
                     notes: ev.notes || ''
                 };
             }));
         }, []);
     }
     scheduleEvents = Array.from(scheduleEvents.filter(function (entry) {
-        return entry.type === 'Maintenance' || (entry.reservationId && ['Reserved', 'Rented'].includes(entry.type));
+        return entry.type === 'Maintenance' || (entry.reservationId && ['Reserved', 'Rented', 'Special'].includes(entry.type));
     }).reduce(function (entries, entry) {
         const key = entry.reservationId
             ? 'reservation:' + entry.reservationId
@@ -988,7 +992,6 @@
                 vehicle.bookingWindow = live.bookingWindow || vehicle.bookingWindow;
                 vehicle.schedule = (live.schedule || []).map(function (entry) {
                     return Object.assign({}, entry, {
-                        type: entry.type === 'Special' ? 'Reserved' : entry.type,
                         vehicleId: Number(entry.vehicleId || vehicle.id)
                     });
                 });
@@ -998,7 +1001,7 @@
                     return Object.assign({}, entry, {vehicleId: Number(entry.vehicleId || vehicle.id)});
                 }));
             }, []).filter(function (entry) {
-                return entry.type === 'Maintenance' || (entry.reservationId && ['Reserved', 'Rented'].includes(entry.type));
+                return entry.type === 'Maintenance' || (entry.reservationId && ['Reserved', 'Rented', 'Special'].includes(entry.type));
             });
             renderUserFleet();
             renderCalendar();
@@ -1029,7 +1032,8 @@
     const scheduleTypeClass = {
         'Maintenance': 'event-maintenance',
         'Rented': 'event-rented',
-        'Reserved': 'event-reserved'
+        'Reserved': 'event-reserved',
+        'Special': 'event-delivery'
     };
 
     // ================= HELPERS =================
@@ -1056,6 +1060,10 @@
         const v = vehicleById(id);
         if (!v) return 'Unknown Vehicle';
         return v.name + ' Car No: ' + (v.plate || 'Not assigned');
+    }
+
+    function userCalendarEventLabel(ev) {
+        return (ev.type === 'Special' ? 'Delivery · ' : '') + vehicleNameById(ev.vehicleId);
     }
 
     function renderStars(rating) {
@@ -1365,8 +1373,9 @@
                     });
                     dayEvents.slice(0, 3).forEach(function (ev) {
                         const cls = scheduleTypeClass[ev.type] || 'event-reserved';
-                        cellHTML += '<div class="cal-event ' + cls + '" title="' + escapeHtml(vehicleNameById(ev.vehicleId)) + ' — ' + escapeHtml(ev.type) + '">' +
-                                        escapeHtml(vehicleNameById(ev.vehicleId)) +
+                        const eventLabel = userCalendarEventLabel(ev);
+                        cellHTML += '<div class="cal-event ' + cls + '" title="' + escapeHtml(eventLabel) + '">' +
+                                        escapeHtml(eventLabel) +
                                     '</div>';
                     });
                     if (dayEvents.length > 3) {
@@ -1394,7 +1403,9 @@
     events.forEach(function(ev) {
         const row = document.createElement('div');
         row.className = 'border rounded-3 p-2 mb-2 small fw-bold';
-        row.textContent = vehicleNameById(ev.vehicleId) + ' - ' + (ev.type === 'Rented' ? 'Ongoing' : ev.type);
+        row.textContent = ev.type === 'Special'
+            ? userCalendarEventLabel(ev)
+            : vehicleNameById(ev.vehicleId) + ' - ' + (ev.type === 'Rented' ? 'Ongoing' : ev.type);
         body.appendChild(row);
     });
     bootstrap.Modal.getOrCreateInstance(document.getElementById('calendarDetailsModal')).show();
