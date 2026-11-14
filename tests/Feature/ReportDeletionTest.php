@@ -33,9 +33,25 @@ class ReportDeletionTest extends TestCase
         $this->withSession(['is_admin' => true])
             ->get(route('admin.reports'))
             ->assertOk()
+            ->assertSee('class="management-sticky-overview"', false)
             ->assertSee("deleteRow(this, 'Cancelled Booking', '".route('admin.reservations.destroy', $cancelled), false)
             ->assertSee("deleteRow(this, 'Voided Booking', '".route('admin.reservations.destroy', $voided), false)
             ->assertSee("deleteRow(this, 'Pickup Condition Report', '".route('admin.reports.pickup.destroy', $pickupReport), false);
+    }
+
+    public function test_admin_and_staff_report_categories_render_in_sticky_overviews(): void
+    {
+        foreach ([
+            ['admin.reports', 'is_admin'],
+            ['staff.reports', 'is_staff'],
+        ] as [$routeName, $sessionRole]) {
+            $response = $this->withSession([
+                'is_admin' => $sessionRole === 'is_admin',
+                'is_staff' => $sessionRole === 'is_staff',
+            ])->get(route($routeName))->assertOk();
+
+            $this->assertStringContainsString('class="management-sticky-overview"', $response->getContent());
+        }
     }
 
     public function test_admin_can_delete_cancelled_and_voided_reservations_and_pickup_report_records(): void

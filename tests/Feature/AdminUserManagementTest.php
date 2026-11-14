@@ -38,6 +38,7 @@ class AdminUserManagementTest extends TestCase
         $this->withSession(['is_admin' => true])
             ->get(route('admin.users'))
             ->assertOk()
+            ->assertSee('class="management-sticky-overview account-list-overview"', false)
             ->assertSee('<option value="staff">Staff</option>', false)
             ->assertSee("'Staff'", false);
     }

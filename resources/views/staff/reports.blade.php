@@ -49,9 +49,11 @@
 @include('staff.partials.navigation', ['staffPageTitle' => 'Management', 'staffPageAccent' => 'Reports & Logs'])
 <div class="main-content">
     <div class="container-fluid p-4">
+        <div class="management-sticky-overview">
         <div class="row g-3 mb-4 row-cols-2 row-cols-lg-5">
             <div class="col"><button class="report-tab-btn active d-flex align-items-center gap-3" onclick="showReportPanel('inquiries', this)"><div class="tab-icon"><i class="fas fa-envelope-open-text"></i></div><div><span class="tab-title d-block">Customer Inquiries</span><span class="tab-count" id="inquiriesCountBtn">{{ $inquiries->count() }}</span></div></button></div>
             <div class="col"><button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('pickup', this)"><div class="tab-icon"><i class="fas fa-clipboard-check"></i></div><div><span class="tab-title d-block">Pickup Condition Reports</span><span class="tab-count" id="pickupCountBtn">{{ $pickupReports->count() }}</span></div></button></div>
+        </div>
         </div>
 
         <div class="report-panel active" id="panel-inquiries">

@@ -117,6 +117,7 @@
         <div class="container-fluid p-4">
 
             <!-- Report Category Buttons -->
+            <div class="management-sticky-overview">
             <div class="row g-3 mb-4 row-cols-2 row-cols-lg-5">
                 <div class="col">
                     <button class="report-tab-btn active d-flex align-items-center gap-3" onclick="showReportPanel('cancelled', this)">
@@ -163,6 +164,7 @@
                         </div>
                     </button>
                 </div>
+            </div>
             </div>
 
             <!-- Panel: Cancelled Bookings -->

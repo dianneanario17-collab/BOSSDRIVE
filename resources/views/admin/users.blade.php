@@ -28,6 +28,7 @@
         .sidebar .nav-link.active { background-color: #dc3545; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3); color: white; }
 
         .main-content { margin-left: 250px; }
+        .management-sticky-overview.account-list-overview { background: #fff; }
         .top-nav { 
             background: white; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex; justify-content: space-between; align-items: center;
@@ -68,6 +69,7 @@
 
         <div class="content-container">
             <div class="dashboard-card">
+                <div class="management-sticky-overview account-list-overview">
                 <div class="row mb-4 align-items-center">
                     <div class="col-md-4">
                         <h6 class="fw-bold m-0 text-uppercase small">Account List</h6>
@@ -81,6 +83,7 @@
                             <i class="fas fa-plus me-2"></i> NEW USER
                         </button>
                     </div>
+                </div>
                 </div>
 
                 <div class="table-responsive">
