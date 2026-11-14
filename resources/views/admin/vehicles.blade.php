@@ -239,12 +239,12 @@
                     </button>
                 </div>
             </div>
-            </div>
 
             <div class="input-group mb-3">
                 <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
                 <input type="search" id="vehicleSearchInput" class="form-control" placeholder="Search by vehicle, brand, car number, category, or status..." aria-label="Search vehicles">
                 <button type="button" class="btn btn-outline-secondary d-none" id="clearVehicleSearch" aria-label="Clear vehicle search"><i class="fas fa-times"></i></button>
+            </div>
             </div>
 
             <div id="filterBanner" class="alert alert-danger py-2 px-3 filter-active-banner d-none d-flex justify-content-between align-items-center">
