@@ -109,8 +109,16 @@
             <label class="form-label" for="barangay">Barangay</label>
             <select id="barangay" name="barangay" class="form-select @error('barangay') is-invalid @enderror" required disabled><option value="">Select city / municipality first</option></select>
             @error('barangay')<span class="field-error">{{ $message }}</span>@enderror
-            <label class="form-label" for="address">Block &amp; Lot / Street</label>
-            <input id="address" name="address" class="form-control @error('address') is-invalid @enderror" value="{{ old('address') }}" required>
+            <label class="form-label" for="address_type">Address Type</label>
+            <select id="address_type" name="address_type" class="form-select @error('address_type') is-invalid @enderror" required>
+                <option value="">Select Address Type</option>
+                @foreach(['Street', 'Subdivision', 'Purok / Sitio', 'Block & Lot', 'Other'] as $addressType)
+                    <option value="{{ $addressType }}" {{ old('address_type') === $addressType ? 'selected' : '' }}>{{ $addressType }}</option>
+                @endforeach
+            </select>
+            @error('address_type')<span class="field-error">{{ $message }}</span>@enderror
+            <label class="form-label" for="address">Block &amp; Lot / Street Details</label>
+            <input id="address" name="address" maxlength="240" class="form-control @error('address') is-invalid @enderror" value="{{ old('address') }}" placeholder="Enter your house number, block/lot, street, or other details" required>
             @error('address')<span class="field-error">{{ $message }}</span>@enderror
             <button type="submit" class="btn-signup shadow-sm">FINISH REGISTRATION</button>
         </form>
