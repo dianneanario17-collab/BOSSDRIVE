@@ -534,7 +534,8 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('car-loader-icon', $adminPage->getContent());
         $this->assertSame(2, substr_count($adminPage->getContent(), '>Pick-up / Expanded</option>'));
         $this->assertSame(2, substr_count($adminPage->getContent(), '>Expanded</option>'));
-        $this->assertSame(2, substr_count($adminPage->getContent(), '<option value="SUV">SUV</option>'));
+        $this->assertSame(0, substr_count($adminPage->getContent(), '<option value="SUV">SUV</option>'));
+        $this->assertStringContainsString("if (normalized === 'suv') return '__custom__';", $adminPage->getContent());
         $this->assertStringContainsString('Enter custom category', $adminPage->getContent());
         $this->assertStringContainsString('Enter custom capacity', $adminPage->getContent());
         $this->assertStringNotContainsString('(matches the Price Guide)', $adminPage->getContent());
@@ -571,6 +572,7 @@ class VehicleUnitTest extends TestCase
         $this->assertStringContainsString('ADM 1003', $staffPage->getContent());
         $this->assertStringContainsString('id="vehicleSearchInput"', $staffPage->getContent());
         $this->assertStringContainsString('aria-label="Search vehicles"', $staffPage->getContent());
+        $this->assertSame(0, substr_count($staffPage->getContent(), '<option value="SUV">SUV</option>'));
         $this->assertStringContainsString('id="vehiclePhotoModal"', $staffPage->getContent());
         $this->assertStringContainsString('function openVehiclePhoto(vehicleId)', $staffPage->getContent());
         $this->assertStringContainsString("Stock: ' + units.length", $staffPage->getContent());

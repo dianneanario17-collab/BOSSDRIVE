@@ -298,7 +298,6 @@
                                 <option value="Sedan">Sedan</option>
                                 <option value="Pick-up / Expanded (7-Seater) (2 Days) — Gas">Pick-up / Expanded</option>
                                 <option value="Expanded — Diesel">Expanded</option>
-                                <option value="SUV">SUV</option>
                                 <option value="__custom__">Custom</option>
                             </select>
                             <input type="text" id="addCustomCategory" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom category" maxlength="255" oninput="syncVehicleCategoryPrice('add')">
@@ -417,7 +416,6 @@
                                 <option value="Sedan">Sedan</option>
                                 <option value="Pick-up / Expanded (7-Seater) (2 Days) — Gas">Pick-up / Expanded</option>
                                 <option value="Expanded — Diesel">Expanded</option>
-                                <option value="SUV">SUV</option>
                                 <option value="__custom__">Custom</option>
                             </select>
                             <input type="text" id="editCustomCategory" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom category" maxlength="255" oninput="syncVehicleCategoryPrice('edit')">
@@ -1626,7 +1624,7 @@
                 return 'Pick-up / Expanded (7-Seater) (2 Days) — Gas';
             }
             if (normalized === 'sedan') return 'Sedan';
-            if (normalized === 'suv') return 'SUV';
+            if (normalized === 'suv') return '__custom__';
             return '__custom__';
         }
 
