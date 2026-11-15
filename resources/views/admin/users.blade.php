@@ -169,7 +169,7 @@
                     </div>
                 </div>
                 <div class="modal-body p-4">
-                    <form id="userAccountForm">
+                    <form id="userAccountForm" data-no-page-loader>
                         <div class="row g-4">
                             <div class="col-md-6 border-end">
                                 <p class="section-title-custom"><i class="fas fa-user-circle me-2"></i> Personal Information</p>

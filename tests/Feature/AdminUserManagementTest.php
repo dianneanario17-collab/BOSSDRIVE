@@ -39,6 +39,7 @@ class AdminUserManagementTest extends TestCase
             ->get(route('admin.users'))
             ->assertOk()
             ->assertSee('class="management-sticky-overview account-list-overview"', false)
+            ->assertSee('id="userAccountForm" data-no-page-loader', false)
             ->assertSee('<option value="staff">Staff</option>', false)
             ->assertSee("'Staff'", false);
     }
