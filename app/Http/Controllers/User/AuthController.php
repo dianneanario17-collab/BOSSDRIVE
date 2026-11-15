@@ -160,8 +160,7 @@ class AuthController extends Controller
             'province' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'barangay' => ['required', 'string', 'max:100'],
-            'address_type' => ['required', 'string', 'in:Street,Subdivision,Purok / Sitio,Block & Lot,Other'],
-            'address' => ['required', 'string', 'max:240'],
+            'address' => ['required', 'string', 'max:255'],
         ]);
 
         $user = User::create([
@@ -175,7 +174,7 @@ class AuthController extends Controller
             'province' => $data['province'],
             'city' => $data['city'],
             'barangay' => $data['barangay'],
-            'address' => $data['address_type'].': '.$data['address'],
+            'address' => $data['address'],
         ]);
         $user->forceFill(['email_verified_at' => now()])->save();
         Auth::login($user);

@@ -214,7 +214,7 @@
                         <h6 class="fw-bold small mb-2 text-uppercase text-muted">Need Assistance?</h6>
                         <span class="d-block fw-bold text-danger">Big Boss Dispatcher</span>
                         <span class="d-block fw-bold h5 mb-0">+63 912 345 6789</span>
-                        <a href="https://m.me/BigBossCarRental" target="_blank" class="btn btn-primary w-100 rounded-pill fw-bold btn-sm mt-3">
+                        <a href="https://www.facebook.com/profile.php?id=100064277850431" target="_blank" rel="noopener noreferrer" class="btn btn-primary w-100 rounded-pill fw-bold btn-sm mt-3">
                             <i class="fab fa-facebook-messenger me-2"></i>Chat on Messenger
                         </a>
                     </div>

@@ -220,7 +220,8 @@ class VehicleUnitTest extends TestCase
             ->assertSee('step-tooltip"', false)
             ->assertSee('syncDashboard')
             ->assertSee('car-loader-icon')
-            ->assertSee('dashboardTripContent');
+            ->assertSee('dashboardTripContent')
+            ->assertSee('https://www.facebook.com/profile.php?id=100064277850431', false);
 
         Reservation::where('control_number', 'PRIVATE-TRACKER-0003')
             ->update(['status' => 'processing']);

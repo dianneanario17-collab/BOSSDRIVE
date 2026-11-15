@@ -6,22 +6,21 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
-class UserRegistrationAddressTest extends TestCase
+class UserRegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_address_step_shows_address_type_dropdown(): void
+    public function test_registration_address_step_uses_the_original_address_field(): void
     {
-        $this->withSession(['register_step' => 3])
+        $response = $this->withSession(['register_step' => 3])
             ->get(route('register'))
             ->assertOk()
-            ->assertSee('name="address_type"', false)
-            ->assertSee('Select Address Type')
-            ->assertSee('Other')
+            ->assertSee('Block & Lot / Street')
             ->assertSee('name="address"', false);
+        $this->assertStringNotContainsString('name="address_type"', $response->getContent());
     }
 
-    public function test_registration_saves_address_type_with_address_details(): void
+    public function test_registration_saves_address_without_an_address_type_prefix(): void
     {
         $this->withSession([
             'register_step' => 3,
@@ -38,13 +37,12 @@ class UserRegistrationAddressTest extends TestCase
             'province' => 'Cavite',
             'city' => 'General Mariano Alvarez',
             'barangay' => 'Barangay 4 Poblacion',
-            'address_type' => 'Block & Lot',
             'address' => 'Block 2 Lot 5, Sample Street',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
             'email' => 'renter@example.com',
-            'address' => 'Block & Lot: Block 2 Lot 5, Sample Street',
+            'address' => 'Block 2 Lot 5, Sample Street',
         ]);
     }
 }
