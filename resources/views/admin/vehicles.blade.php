@@ -608,7 +608,7 @@
                         <div class="mb-3"><button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 book-back-button" onclick="setBookStep(2)"><i class="fas fa-arrow-left me-2" aria-hidden="true"></i>Back to Rental Details</button></div>
                         <div class="row g-2 mb-3">
                             <div class="col-4"><div class="option-card active" id="b-pay-full" onclick="setBookPay('full')">Full Payment</div></div>
-                            <div class="col-4"><div class="option-card" id="b-pay-dep" onclick="setBookPay('dep')">Deposit (₱1,000)</div></div>
+                            <div class="col-4"><div class="option-card" id="b-pay-dep" onclick="setBookPay('dep')">Deposit (₱{{ number_format((float) $systemSettings->security_deposit, 0) }})</div></div>
                             <div class="col-4"><div class="option-card" id="b-pay-cash" onclick="setBookPay('cash')">Walk-in / Cash</div></div>
                         </div>
                         <div id="b-gcash-fields" class="mb-3">
@@ -619,7 +619,7 @@
                         <div class="receipt-box small">
                             <div class="d-flex justify-content-between"><span>Rent Fee (<span id="b-days">1</span> day/s):</span><span id="b-rec-rent">₱0</span></div>
                             <div class="d-flex justify-content-between"><span>Driver Fee:</span><span id="b-rec-driver">₱0</span></div>
-                            <div id="b-security-deposit-row" class="d-flex justify-content-between"><span>Security Deposit:</span><span>₱1,000</span></div>
+                            <div id="b-security-deposit-row" class="d-flex justify-content-between"><span>Security Deposit:</span><span>₱{{ number_format((float) $systemSettings->security_deposit, 0) }}</span></div>
                             <hr>
                             <div class="d-flex justify-content-between fw-bold text-danger"><span>PAY NOW:</span><span id="b-rec-now">₱0</span></div>
                         </div>
@@ -1553,6 +1553,7 @@
             setPhotoPreview(prefix, '');
         }
 
+        const bookingPolicies = @json($bookingPolicies);
         const cityDrivingPrices = @json($priceGuides->mapWithKeys(fn ($guide) => [$guide->category => (float) $guide->city_driving]));
 
         function cityDrivingPrice(category) {
@@ -2322,15 +2323,17 @@
         }
 
         function getBookMaximumDays() {
-            return 7;
+            return bookingPolicies.max_rental_days;
         }
 
         function getBookMinimumDurationSeconds() {
-            return bookRateType === 'long_distance' ? 2 * 86400 : 86400;
+            return getBookMinimumRentalDays() * 86400;
         }
 
         function getBookMinimumRentalDays() {
-            return bookRateType === 'long_distance' ? 2 : 1;
+            return bookRateType === 'long_distance'
+                ? bookingPolicies.min_long_distance_days
+                : (bookRateType === 'province' ? bookingPolicies.min_province_days : bookingPolicies.min_city_days);
         }
 
         function updateBookDateLimits() {
@@ -2406,9 +2409,7 @@
             bookRateType = type;
             const hint = document.getElementById('b-date-limit-hint');
             const labels = {city: 'City Driving', province: 'Province', long_distance: 'Long Distance'};
-            hint.innerHTML = '<strong>' + (type === 'long_distance'
-                ? labels[type] + ': Choose at least 2 full days, up to 7 days within the open booking window.'
-                : labels[type] + ': Choose at least 1 full day, up to 7 days within the open booking window.') + '</strong>' +
+            hint.innerHTML = '<strong>' + labels[type] + ': Choose at least ' + getBookMinimumRentalDays() + ' full day(s), up to ' + getBookMaximumDays() + ' days within the open booking window.</strong>' +
                 '<div class="fw-normal mt-1"><i class="fas fa-info-circle me-1"></i>You may request an extension if you need to rent the vehicle longer.</div>';
             updateBookDateLimits();
             updateBookCompute();
@@ -2434,13 +2435,11 @@
             }
             if (bookDriverFee > 0) updateBookDriverOptions();
             const durationSeconds = getBookDurationSeconds();
-            const days = bookRateType === 'long_distance' && durationSeconds > 0
-                ? Math.max(2, getBookRentalDays())
-                : Math.max(1, getBookRentalDays());
+            const days = Math.max(getBookMinimumRentalDays(), getBookRentalDays());
 
             const rentTotal = price * days;
             const driverTotal = bookDriverFee * days;
-            const deposit = 1000;
+            const deposit = bookingPolicies.security_deposit;
             const total = rentTotal + driverTotal;
 
             document.getElementById('b-days').innerText = days;

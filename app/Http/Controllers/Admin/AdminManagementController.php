@@ -12,6 +12,7 @@ use App\Models\PickupConditionReport;
 use App\Models\PriceGuide;
 use App\Models\RentalExtension;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\JsonResponse;
@@ -282,13 +283,15 @@ class AdminManagementController extends Controller
             $creatorName = $creatorRole === 'staff' ? 'Staff User' : 'Admin';
         }
 
-        return DB::transaction(function () use ($data, $creatorRole, $creatorName): JsonResponse {
+        $systemSettings = SystemSetting::current();
+
+        return DB::transaction(function () use ($data, $creatorRole, $creatorName, $systemSettings): JsonResponse {
             $vehicle = Vehicle::lockForUpdate()->findOrFail($data['vehicle_id']);
             if (in_array(strtolower((string) $vehicle->status), ['maintenance', 'unavailable'], true)) {
                 return response()->json(['message' => 'This vehicle is currently unavailable.'], 422);
             }
             if (! $vehicle->canBookDates($data['start_date'], $data['end_date'])) {
-                return response()->json(['message' => 'This vehicle can only be booked within its currently open 7-day window.'], 422);
+                return response()->json(['message' => 'This vehicle can only be booked within its currently open '.$systemSettings->booking_window_days.'-day window.'], 422);
             }
             if ($vehicle->hasAvailabilityConflict($data['start_date'], $data['end_date'])) {
                 return response()->json(['message' => 'This vehicle unit is already reserved for the selected dates.'], 422);
@@ -301,8 +304,13 @@ class AdminManagementController extends Controller
             }
             $rentalDurationSeconds = $returnDateTime->getTimestamp() - $pickupDateTime->getTimestamp();
             $days = max(1, (int) ceil($rentalDurationSeconds / 86400));
-            if ($data['rate_type'] === 'long_distance' && $rentalDurationSeconds < 2 * 86400) {
-                return response()->json(['message' => 'Long Distance bookings require a minimum rental period of 2 full days.'], 422);
+            $minimumDays = match ($data['rate_type']) {
+                'long_distance' => $systemSettings->min_long_distance_days,
+                'province' => $systemSettings->min_province_days,
+                default => $systemSettings->min_city_days,
+            };
+            if ($data['rate_type'] === 'long_distance' && $rentalDurationSeconds < $minimumDays * 86400) {
+                return response()->json(['message' => 'Long Distance bookings require a minimum rental period of '.$minimumDays.' full day(s).'], 422);
             }
 
             $driver = null;
@@ -333,16 +341,19 @@ class AdminManagementController extends Controller
                 }
             }
 
-            $minimumDurationSeconds = $data['rate_type'] === 'long_distance' ? 2 * 86400 : 86400;
+            $minimumDurationSeconds = $minimumDays * 86400;
             if ($rentalDurationSeconds < $minimumDurationSeconds) {
-                $message = $data['rate_type'] === 'long_distance'
-                    ? 'Long Distance bookings require a minimum rental period of 2 full days.'
-                    : sprintf('%s bookings require a minimum rental period of 1 full day.', ucfirst(str_replace('_', ' ', $data['rate_type'])));
+                $rateName = match ($data['rate_type']) {
+                    'long_distance' => 'Long Distance',
+                    'province' => 'Province',
+                    default => 'City Driving',
+                };
+                $message = $rateName.' bookings require a minimum rental period of '.$minimumDays.' full day(s).';
 
                 return response()->json(['message' => $message], 422);
             }
-            if ($days > 7) {
-                return response()->json(['message' => 'Bookings are limited to 7 days within the open booking window.'], 422);
+            if ($days > $systemSettings->max_rental_days) {
+                return response()->json(['message' => 'Bookings are limited to '.$systemSettings->max_rental_days.' days within the open booking window.'], 422);
             }
             $rate = match ($data['rate_type']) {
                 'province' => (float) $vehicle->price + (str_contains(strtolower((string) $vehicle->category), 'diesel') ? 500 : 1000),
@@ -352,7 +363,7 @@ class AdminManagementController extends Controller
             $driverFee = $data['driver_option'] === 'with_driver' ? 1000 * $days : 0;
             $totalAmount = ($rate * $days) + $driverFee;
             $paymentMode = $data['payment_mode'];
-            $paidAmount = $paymentMode === 'full' ? $totalAmount : ($paymentMode === 'deposit' ? 1000 : 0);
+            $paidAmount = $paymentMode === 'full' ? $totalAmount : ($paymentMode === 'deposit' ? (float) $systemSettings->security_deposit : 0);
 
             $reservation = Reservation::create([
                 'user_id' => null,
@@ -1088,13 +1099,26 @@ class AdminManagementController extends Controller
             ->latest('return_condition_checked_at')
             ->get();
 
+        $systemSettings = SystemSetting::current();
+        $bookingPolicies = $systemSettings->only([
+            'booking_window_days',
+            'max_rental_days',
+            'min_city_days',
+            'min_province_days',
+            'min_long_distance_days',
+            'security_deposit',
+        ]);
+        $bookingPolicies['security_deposit'] = (float) $systemSettings->security_deposit;
+
         return view('admin.vehicles', [
             'priceGuides' => PriceGuide::current(),
+            'systemSettings' => $systemSettings,
+            'bookingPolicies' => $bookingPolicies,
             'conditionReports' => $conditionReports,
             'returnConditionReports' => $returnConditionReports,
             'vehicles' => $vehicles,
             'driverCatalog' => $this->driverCatalog(),
-            'vehicleRows' => $vehicles->map(function ($vehicle) use ($calendarReservations, $activeReservations, $activeVehicleIds, $lastReturnedAtByVehicle) {
+            'vehicleRows' => $vehicles->map(function ($vehicle) use ($calendarReservations, $activeReservations, $activeVehicleIds, $lastReturnedAtByVehicle, $systemSettings) {
                 $schedule = collect($vehicle->schedule ?? [])
                     ->filter(fn (array $entry): bool => ($entry['type'] ?? null) === 'Maintenance'
                     || isset($entry['reservationId'], $calendarReservations[$entry['reservationId']]))
@@ -1142,7 +1166,8 @@ class AdminManagementController extends Controller
                     'schedule' => $schedule,
                     'bookingWindow' => $vehicle->bookingWindow(
                         in_array((int) $vehicle->id, $activeVehicleIds, true),
-                        $lastReturnedAtByVehicle->get($vehicle->id)
+                        $lastReturnedAtByVehicle->get($vehicle->id),
+                        $systemSettings->booking_window_days
                     ),
                     'currentReservation' => $activeReservations->has($vehicle->id) ? [
                         'pickup_date' => $activeReservations[$vehicle->id]->pickup_date->toDateString(),

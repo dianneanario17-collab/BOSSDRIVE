@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminManagementController;
+use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Staff\StaffAuthController;
 use App\Http\Controllers\Staff\StaffBillingController;
 use App\Http\Controllers\Staff\StaffProfileController;
@@ -20,6 +21,7 @@ use App\Models\ContactInquiry;
 use App\Models\PriceGuide;
 use App\Models\RentalExtension;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -255,6 +257,7 @@ Route::get('/user/dashboard', function () {
         'reservations' => $reservations,
         'latestReservation' => $reservations->first(),
         'approvedDocuments' => $reservations->first()?->document_paths ?? [],
+        'systemSettings' => SystemSetting::current(),
     ]);
 })->middleware('auth')->name('user.dashboard');
 
@@ -420,6 +423,8 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard/live', [AdminDashboardController::class, 'liveOverview'])->name('dashboard.live');
     Route::get('/profile', [AdminAuthController::class, 'profile'])->name('profile');
     Route::put('/profile', [AdminAuthController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/settings', [AdminSettingsController::class, 'index'])->name('settings');
+    Route::put('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
     Route::post('/reservations', [AdminManagementController::class, 'storeReservation'])->name('reservations.store');
     Route::get('/reservations', [AdminManagementController::class, 'reservations'])->name('reservations');
     Route::get('/walk-in-bookings', [AdminManagementController::class, 'walkInReservations'])->name('walk-in-bookings');

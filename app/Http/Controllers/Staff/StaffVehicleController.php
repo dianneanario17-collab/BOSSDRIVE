@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\Vehicle;
 use App\Models\PriceGuide;
 use App\Models\PickupConditionReport;
@@ -17,6 +18,16 @@ class StaffVehicleController extends Controller
     public function index(): View
     {
         app(UserReservationController::class)->synchronizeVehicleStatuses();
+        $systemSettings = SystemSetting::current();
+        $bookingPolicies = $systemSettings->only([
+            'booking_window_days',
+            'max_rental_days',
+            'min_city_days',
+            'min_province_days',
+            'min_long_distance_days',
+            'security_deposit',
+        ]);
+        $bookingPolicies['security_deposit'] = (float) $systemSettings->security_deposit;
 
         $vehicles = Vehicle::withCount('reservations')->orderBy('name')->orderBy('id')->get();
         $activeReservations = Reservation::whereNotIn('status', ['cancelled', 'void', 'completed'])
@@ -49,7 +60,7 @@ class StaffVehicleController extends Controller
             ->get();
         $driverCatalog = $this->driverCatalog();
 
-        $vehicleRows = $vehicles->map(function (Vehicle $vehicle) use ($activeReservations, $calendarReservations, $activeVehicleIds, $lastReturnedAtByVehicle): array {
+        $vehicleRows = $vehicles->map(function (Vehicle $vehicle) use ($activeReservations, $calendarReservations, $activeVehicleIds, $lastReturnedAtByVehicle, $systemSettings): array {
             $activeReservation = $activeReservations->get($vehicle->id);
             $schedule = collect($vehicle->schedule ?? [])
                 ->filter(fn (array $entry): bool => ($entry['type'] ?? null) === 'Maintenance'
@@ -99,7 +110,8 @@ class StaffVehicleController extends Controller
                 'schedule' => $schedule,
                 'bookingWindow' => $vehicle->bookingWindow(
                     in_array((int) $vehicle->id, $activeVehicleIds, true),
-                    $lastReturnedAtByVehicle->get($vehicle->id)
+                    $lastReturnedAtByVehicle->get($vehicle->id),
+                    $systemSettings->booking_window_days
                 ),
                 'currentReservation' => $activeReservation ? [
                     'pickup_date' => $activeReservation->pickup_date->toDateString(),
@@ -111,6 +123,8 @@ class StaffVehicleController extends Controller
 
         return view('admin.vehicles', [
             'priceGuides' => PriceGuide::current(),
+            'systemSettings' => $systemSettings,
+            'bookingPolicies' => $bookingPolicies,
             'conditionReports' => $conditionReports,
             'returnConditionReports' => $returnConditionReports,
             'vehicles' => $vehicles,

@@ -458,16 +458,11 @@
                 <div id="step0" class="step-content active">
                     <h6 class="fw-bold mt-3 mb-3 text-danger"><i class="fas fa-file-contract"></i> Rental Agreement & Rules</h6>
                     <div class="bg-light p-3 border rounded mb-3 shadow-sm agreement-box" style="font-size: 0.85rem; height: 280px; overflow-y: scroll; line-height: 1.6;">
-                        <p class="fw-bold text-dark">Please read carefully before proceeding:</p>
-                        <ol class="ps-3">
-                            <li class="mb-2"><strong>Document Requirements:</strong> Renter must provide <b>two (2) valid Government IDs</b> and a <b>Proof of Billing</b> (Electric/Water bill) under their name or immediate family.</li>
-                            <li class="mb-2"><strong>Accidents & Damages:</strong> Any damage to the vehicle during the rental period is the <b>sole responsibility of the renter</b>. The renter shall pay for all repair costs and a "Loss of Use" fee equivalent to the daily rate while the vehicle is in the shop.</li>
-                            <li class="mb-2"><strong>Liability:</strong> The Renter shall be held liable for any loss or damage to the Vehicle's parts, body, tools, or accessories, as well as any personal belongings of the Owner left inside the Vehicle, sustained during the rental period. The Renter shall likewise be liable for any traffic violations incurred while the Vehicle is in their possession; <b>Big Boss Car Rental</b> reserves the right to collect the equivalent penalty from the Renter even after the rental period has ended. Use of the Vehicle for illegal purposes, towing, or driving instruction/training is <b>strictly PROHIBITED</b>. Should the Renter travel outside the agreed place or province, or exceed the agreed rental time, without prior arrangement with the Owner, additional charges equivalent to the extra mileage and/or time used shall apply.</li>
-                            <li class="mb-2"><strong>Payment Policy:</strong> We strictly implement a <b>"Pay Before Drive"</b> policy. A ₱1,000 security deposit is required for reservation. Online payments are accepted via <b>GCash only</b>.</li>
-                            <li class="mb-2"><strong>Late Returns:</strong> Overtime returns will be charged an additional hourly rate. If the delay exceeds 5 hours, a full day's rate will be applied.</li>
-                            <li class="mb-2"><strong>Carnapping Policy:</strong> Failure to return the vehicle or contact the management within 24 hours of the deadline will be reported to the <b>PNP-HPG as a Carnapping/Theft case</b>.</li>
-                            <li class="mb-2"><strong>Maintenance:</strong> The renter must ensure the vehicle has enough oil and coolant. Negligence leading to engine failure will be charged to the renter.</li>
-                        </ol>
+                        {!! nl2br(e(str_replace(
+                            ['{deposit_amount}', '{business_name}'],
+                            [number_format((float) $systemSettings->security_deposit, 2), $systemSettings->business_name],
+                            $systemSettings->agreement_text
+                        ))) !!}
                     </div>
                     <div id="step0-error-area"></div> <div class="form-check mb-4">
                         <input class="form-check-input" type="checkbox" id="mainAgree">
@@ -486,7 +481,7 @@
                         <div class="col-6"><div class="option-card active" id="opt-pickup" onclick="setService('pickup')">Pickup at Garage</div></div>
                         <div class="col-6"><div class="option-card" id="opt-deliver" onclick="setService('delivery')">Deliver to Me</div></div>
                     </div>
-                    <div id="pickup-info" class="p-3 bg-light border rounded"><label class="small fw-bold">Garage Address:</label><p class="mb-0 small">Big Boss Garage, GMA, Cavite</p></div>
+                    <div id="pickup-info" class="p-3 bg-light border rounded"><label class="small fw-bold">Garage Address:</label><p class="mb-0 small">{{ $systemSettings->pickup_location }}</p></div>
                     <div id="delivery-info" style="display: none;">
                         <div class="alert alert-warning py-2 px-3 mb-2 small" role="note"><i class="fas fa-info-circle me-1"></i>Note: Vehicle delivery is available only within CALABARZON.</div>
                         <label class="small fw-bold mb-2 text-danger">Delivery Address</label>
@@ -590,7 +585,7 @@
                     <div class="d-flex justify-content-between"><a href="javascript:void(0)" class="btn-back-link" onclick="changeStep(3)"><i class="fas fa-chevron-left"></i> BACK</a><span class="step-indicator">STEP 4 OF 6</span></div>
                     <h6 class="fw-bold mb-3 mt-3 text-danger"><i class="fas fa-user-shield"></i> Data Privacy Consent</h6>
                     <div class="bg-light p-3 border rounded mb-3 shadow-sm" style="font-size: 0.9rem; line-height: 1.5;">
-                        <p class="mb-2 text-dark">In compliance with the <b>Data Privacy Act of 2012</b>, I hereby give my explicit consent to <b>Big Boss Car Rental</b> to collect and store my info for verification.</p>
+                        <p class="mb-2 text-dark">In compliance with the <b>Data Privacy Act of 2012</b>, I hereby give my explicit consent to <b>{{ $systemSettings->business_name }}</b> to collect and store my info for verification.</p>
                     </div>
 
                     <div id="step4-error-area"></div> <div class="form-check mb-4"><input class="form-check-input" type="checkbox" name="privacy_consent" value="1" id="privacyAgree"><label class="form-check-label fw-bold text-dark" for="privacyAgree">I AGREE and provide my consent.</label></div>
@@ -603,14 +598,14 @@
 
                     <div class="row g-2 mb-3">
                         <div class="col-4"><div class="option-card active" id="p-full" onclick="setPay('full')">Full Payment</div></div>
-                        <div class="col-4"><div class="option-card" id="p-dep" onclick="setPay('dep')">Deposit Only (₱1,000)</div></div>
+                        <div class="col-4"><div class="option-card" id="p-dep" onclick="setPay('dep')">Deposit Only (₱{{ number_format((float) $systemSettings->security_deposit, 0) }})</div></div>
                         <div class="col-4"><div class="option-card" id="p-walk" onclick="setPay('walkin')">Walk-in / Cash</div></div>
                     </div>
 
                     <div class="receipt-box mb-3 small">
                         <div class="d-flex justify-content-between"><span>Rent Fee (<span id="rec-days">1</span> day/s):</span><span id="rec-rent">₱0</span></div>
                         <div class="d-flex justify-content-between"><span>Driver:</span><span id="rec-driver">₱0</span></div>
-                        <div id="securityDepositRow" class="d-flex justify-content-between"><span>Security Deposit:</span><span>₱1,000</span></div>
+                        <div id="securityDepositRow" class="d-flex justify-content-between"><span>Security Deposit:</span><span>₱{{ number_format((float) $systemSettings->security_deposit, 0) }}</span></div>
                         <hr><div class="d-flex justify-content-between fw-bold text-danger"><span>PAY NOW:</span><span id="rec-now">₱0</span></div>
                     </div>
 
@@ -682,7 +677,7 @@
                         <button type="button" class="btn btn-link text-danger fw-bold p-0 mt-3" onclick="hideUserBookingReview()">← Edit Details</button>
                     </div>
                     <div id="finalAgreementArea" class="d-none">
-                        <div class="alert alert-warning small mb-2">The ₱1,000 security deposit is <b>NON-REFUNDABLE</b> once confirmed.</div>
+                        <div class="alert alert-warning small mb-2">The ₱{{ number_format((float) $systemSettings->security_deposit, 0) }} security deposit is <b>NON-REFUNDABLE</b> once confirmed.</div>
                         <p class="small fw-bold mb-2 text-dark">FOR WALK-IN / CASH</p>
                         <div class="alert alert-warning small mb-3">Reservation will only be valid for <b>12 hours</b> payment.</div>
                         <div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="final_agreement" value="1" id="cancelAgree"><label class="form-check-label fw-bold text-dark" for="cancelAgree">I understand and agree.</label></div>
@@ -1009,6 +1004,8 @@
             console.error('Unable to refresh live vehicle availability.', error);
         }
     }
+
+    const bookingPolicies = @json($bookingPolicies);
 
     // ================= STATE =================
     let driverFee = 0;
@@ -1609,16 +1606,15 @@
             showStepError('step2-error-area', 'Return date and time must be later than pickup date and time.');
             return;
         }
-        const minimumRentalSeconds = document.getElementById('rate_type').value === 'long_distance' ? 2 * 86400 : 86400;
+        const minimumDays = getMinimumRentalDays();
+        const minimumRentalSeconds = minimumDays * 86400;
         if (durationSeconds < minimumRentalSeconds) {
-            showStepError('step2-error-area', document.getElementById('rate_type').value === 'long_distance'
-                ? 'Long Distance bookings require a minimum rental period of 2 full days.'
-                : getRateTypeLabel() + ' bookings require a minimum rental period of 1 full day.');
+            showStepError('step2-error-area', getRateTypeLabel() + ' bookings require a minimum rental period of ' + minimumDays + ' full day(s).');
             return;
         }
         const maximumRentalDays = getMaximumRentalDays();
         if (rentDays() > maximumRentalDays) {
-            showStepError('step2-error-area', 'Bookings are limited to 7 days within the open booking window.');
+            showStepError('step2-error-area', 'Bookings are limited to ' + maximumRentalDays + ' days within the open booking window.');
             return;
         }
 
@@ -1653,18 +1649,22 @@
     function setRateType(type) {
         document.getElementById('rate_type').value = type;
         currentPrice = rateForType(type);
-        const labels = {city: 'City Driving', province: 'Province', long_distance: 'Long Distance (2 Days minimum)'};
+        const labels = {city: 'City Driving', province: 'Province', long_distance: 'Long Distance (' + bookingPolicies.min_long_distance_days + ' Days minimum)'};
         document.getElementById('ratePreview').innerText = labels[type] + ': ₱' + currentPrice.toLocaleString() + ' / day';
-        document.querySelector('#dateLimitHint .fw-bold').textContent = type === 'long_distance'
-            ? labels[type] + ': Choose at least 2 full days, up to 7 days within the open booking window.'
-            : labels[type] + ': Choose at least 1 full day, up to 7 days within the open booking window.';
+        document.querySelector('#dateLimitHint .fw-bold').textContent = getRateTypeLabel() + ': Choose at least ' + getMinimumRentalDays() + ' full day(s), up to ' + getMaximumRentalDays() + ' days within the open booking window.';
         updateDateLimits();
         updateCompute();
     }
 
     function getMaximumRentalDays() {
+        return bookingPolicies.max_rental_days;
+    }
+
+    function getMinimumRentalDays() {
         const type = document.getElementById('rate_type').value;
-        return 7;
+        return type === 'long_distance'
+            ? bookingPolicies.min_long_distance_days
+            : (type === 'province' ? bookingPolicies.min_province_days : bookingPolicies.min_city_days);
     }
 
     function getRateTypeLabel() {
@@ -1680,7 +1680,7 @@
 
         startInput.min = currentBookingWindow ? currentBookingWindow.start : '{{ now()->toDateString() }}';
         startInput.max = currentBookingWindow ? getDateAfter(currentBookingWindow.end, -1) : '';
-        endInput.min = startInput.value ? getDateAfter(startInput.value, 1) : startInput.min;
+        endInput.min = startInput.value ? getDateAfter(startInput.value, getMinimumRentalDays()) : startInput.min;
         endInput.max = currentBookingWindow
             ? currentBookingWindow.end
             : '';
@@ -1698,9 +1698,7 @@
         }
         if (hint) {
             const rateType = document.getElementById('rate_type').value;
-            hint.querySelector('.fw-bold').textContent = rateType === 'long_distance'
-                ? getRateTypeLabel() + ': Choose at least 2 full days, up to 7 days within the open booking window.'
-                : getRateTypeLabel() + ': Choose at least 1 full day, up to 7 days within the open booking window.';
+            hint.querySelector('.fw-bold').textContent = getRateTypeLabel() + ': Choose at least ' + getMinimumRentalDays() + ' full day(s), up to ' + getMaximumRentalDays() + ' days within the open booking window.';
             hint.classList.remove('d-none');
         }
     }
@@ -1731,7 +1729,7 @@
         const pickupDate = document.getElementById('startDate').value;
         if (!pickupDate) return;
         const returnDate = document.getElementById('endDate');
-        const minimumReturnDate = getDateAfter(pickupDate, 1);
+        const minimumReturnDate = getDateAfter(pickupDate, getMinimumRentalDays());
         updateDateLimits();
         if (!returnDate.value || returnDate.value < minimumReturnDate) {
             returnDate.value = minimumReturnDate;
@@ -1754,7 +1752,7 @@
             : rentDays();
         const rentalTotal = currentPrice * days;
         const driverTotal = driverFee * days;
-        const deposit = 1000;
+        const deposit = bookingPolicies.security_deposit;
         const total = rentalTotal + driverTotal;
         const depositRow = document.getElementById('securityDepositRow');
 
@@ -1961,7 +1959,7 @@
 
         const durationSeconds = rentalDurationSeconds();
         const longDistance = document.getElementById('rate_type').value === 'long_distance';
-        const minimumRentalSeconds = longDistance ? 2 * 86400 : 86400;
+        const minimumRentalSeconds = getMinimumRentalDays() * 86400;
         if (!start || !end || durationSeconds < minimumRentalSeconds || rentDays() > getMaximumRentalDays()) {
             errorArea.innerHTML = '<div class="alert alert-danger py-2 px-3 small fw-bold">Please review the pickup and return dates first.</div>';
             return;

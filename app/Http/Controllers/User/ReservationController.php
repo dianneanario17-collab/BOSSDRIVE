@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentSetting;
 use App\Models\PriceGuide;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\Vehicle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -124,9 +125,22 @@ class ReservationController extends Controller
             ->get()
             ->pluck('last_returned_at', 'vehicle_id');
 
+        $systemSettings = SystemSetting::current();
+        $bookingPolicies = $systemSettings->only([
+            'booking_window_days',
+            'max_rental_days',
+            'min_city_days',
+            'min_province_days',
+            'min_long_distance_days',
+            'security_deposit',
+        ]);
+        $bookingPolicies['security_deposit'] = (float) $systemSettings->security_deposit;
+
         return view('user.reservation', [
             'priceGuides' => PriceGuide::current(),
-            'vehicles' => $vehicles->map(function (Vehicle $vehicle) use ($activeVehicleIds, $lastReturnedAtByVehicle, $calendarReservations): array {
+            'systemSettings' => $systemSettings,
+            'bookingPolicies' => $bookingPolicies,
+            'vehicles' => $vehicles->map(function (Vehicle $vehicle) use ($activeVehicleIds, $lastReturnedAtByVehicle, $calendarReservations, $systemSettings): array {
                 return [
                     'id' => $vehicle->id,
                     'name' => $vehicle->name,
@@ -176,7 +190,8 @@ class ReservationController extends Controller
                     ] : null,
                     'bookingWindow' => $vehicle->bookingWindow(
                         in_array($vehicle->id, $activeVehicleIds, true),
-                        $lastReturnedAtByVehicle->get($vehicle->id)
+                        $lastReturnedAtByVehicle->get($vehicle->id),
+                        $systemSettings->booking_window_days
                     ),
                 ];
             })->values()->all(),
@@ -249,12 +264,13 @@ class ReservationController extends Controller
         ]);
 
         $vehicle = Vehicle::findOrFail($data['vehicle_id']);
+        $systemSettings = SystemSetting::current();
         if ($vehicle->name !== $data['vehicle']
             || in_array(strtolower((string) $vehicle->status), ['maintenance', 'unavailable'], true)) {
             return back()->withErrors(['vehicle' => 'This vehicle unit is no longer available.'])->withInput();
         }
         if (! $vehicle->canBookDates($data['pickup_date'], $data['return_date'])) {
-            return back()->withErrors(['vehicle' => 'This vehicle can only be booked within its currently open 7-day window.'])->withInput();
+            return back()->withErrors(['vehicle' => 'This vehicle can only be booked within its currently open '.$systemSettings->booking_window_days.'-day window.'])->withInput();
         }
         if ($vehicle->hasAvailabilityConflict($data['pickup_date'], $data['return_date'])) {
             return back()->withErrors(['vehicle' => 'This vehicle unit is already reserved for the selected dates.'])->withInput();
@@ -268,16 +284,24 @@ class ReservationController extends Controller
 
         $rentalDurationSeconds = $returnDateTime->getTimestamp() - $pickupDateTime->getTimestamp();
         $rentalDays = max(1, (int) ceil($rentalDurationSeconds / 86400));
-        $minimumRentalSeconds = $data['rate_type'] === 'long_distance' ? 2 * 86400 : 86400;
+        $minimumDays = match ($data['rate_type']) {
+            'long_distance' => $systemSettings->min_long_distance_days,
+            'province' => $systemSettings->min_province_days,
+            default => $systemSettings->min_city_days,
+        };
+        $minimumRentalSeconds = $minimumDays * 86400;
         if ($rentalDurationSeconds < $minimumRentalSeconds) {
-            $message = $data['rate_type'] === 'long_distance'
-                ? 'Long Distance bookings require a minimum rental period of 2 full days.'
-                : ucfirst($data['rate_type'] === 'city' ? 'City Driving' : 'Province').' bookings require a minimum rental period of 1 full day.';
+            $rateName = match ($data['rate_type']) {
+                'long_distance' => 'Long Distance',
+                'province' => 'Province',
+                default => 'City Driving',
+            };
+            $message = $rateName.' bookings require a minimum rental period of '.$minimumDays.' full day(s).';
 
             return back()->withErrors(['return_date' => $message])->withInput();
         }
-        if ($rentalDays > 7) {
-            return back()->withErrors(['return_date' => 'Bookings are limited to 7 days within the open booking window.'])->withInput();
+        if ($rentalDays > $systemSettings->max_rental_days) {
+            return back()->withErrors(['return_date' => 'Bookings are limited to '.$systemSettings->max_rental_days.' days within the open booking window.'])->withInput();
         }
 
         if ($data['payment_mode'] !== 'walkin'
@@ -326,13 +350,13 @@ class ReservationController extends Controller
             default => (float) $vehicle->price,
         };
         if ($data['rate_type'] === 'long_distance') {
-            $days = max(2, $days);
+            $days = max($systemSettings->min_long_distance_days, $days);
         }
         $totalAmount = ($rate * $days)
             + ($data['driver_option'] === 'with_driver' ? 1000 * $days : 0);
         $paidAmount = $data['payment_mode'] === 'full'
             ? $totalAmount
-            : ($data['payment_mode'] === 'deposit' ? 1000 : 0);
+            : ($data['payment_mode'] === 'deposit' ? (float) $systemSettings->security_deposit : 0);
 
         $reservation = DB::transaction(function () use (
             $vehicle,

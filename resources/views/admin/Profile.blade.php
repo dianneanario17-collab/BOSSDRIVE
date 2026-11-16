@@ -135,9 +135,14 @@
                                     <h4 class="fw-bold mb-0">{{ $adminUser?->name ?? session('admin_name', 'Admin Patrick') }}</h4>
                                     <span class="badge bg-danger">SUPER ADMIN</span>
                                 </div>
-                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3" onclick="confirmLogout()">
-                                    <i class="fas fa-sign-out-alt me-1"></i> Logout
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('admin.settings') }}" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3">
+                                        <i class="fas fa-cog me-1"></i> Settings
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3" onclick="confirmLogout()">
+                                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                                    </button>
+                                </div>
                             </div>
 
                             <form id="adminProfileForm" method="POST" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data">

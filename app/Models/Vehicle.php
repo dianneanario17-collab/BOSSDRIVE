@@ -33,7 +33,7 @@ class Vehicle extends Model
         return $this->hasMany(Reservation::class, 'vehicle_id');
     }
 
-    public function bookingWindow(?bool $locked = null, Carbon|string|null $lastReturnedAt = null): array
+    public function bookingWindow(?bool $locked = null, Carbon|string|null $lastReturnedAt = null, ?int $windowDays = null): array
     {
         if ($locked === null) {
             $reservations = $this->reservations()->get([
@@ -65,7 +65,7 @@ class Vehicle extends Model
 
         return [
             'start' => $start->toDateString(),
-            'end' => $start->copy()->addDays(7)->toDateString(),
+            'end' => $start->copy()->addDays($windowDays ?? SystemSetting::current()->booking_window_days)->toDateString(),
             'locked' => $locked,
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\Vehicle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ class VehicleAvailabilityController extends Controller
     {
         $includeReservationDetails = (bool) $request->session()->get('is_admin')
             || (bool) $request->session()->get('is_staff');
+        $systemSettings = SystemSetting::current();
         $vehicleRevision = Vehicle::query()
             ->selectRaw('COUNT(*) as total, MAX(updated_at) as latest_update')
             ->first();
@@ -27,6 +29,7 @@ class VehicleAvailabilityController extends Controller
             $vehicleRevision->latest_update,
             $reservationRevision->total,
             $reservationRevision->latest_update,
+            $systemSettings->updated_at,
             $includeReservationDetails ? 'staff' : 'public',
         ])).'"';
         $hasUpdateThisSecond = collect([
@@ -104,7 +107,7 @@ class VehicleAvailabilityController extends Controller
                 'fuel', 'capacity', 'capacity_type', 'status', 'schedule', 'image_path',
                 'rating', 'feedbacks', 'damage_log',
             ])
-            ->map(function (Vehicle $vehicle) use ($reservationSchedules, $reservationsByVehicle, $activeVehicleIds, $lastReturnedAtByVehicle): array {
+            ->map(function (Vehicle $vehicle) use ($reservationSchedules, $reservationsByVehicle, $activeVehicleIds, $lastReturnedAtByVehicle, $systemSettings): array {
                 $maintenanceSchedules = collect($vehicle->schedule ?? [])
                     ->filter(fn (array $entry): bool => ($entry['type'] ?? null) === 'Maintenance')
                     ->map(fn (array $entry): array => [
@@ -148,7 +151,8 @@ class VehicleAvailabilityController extends Controller
                     'damageLog' => $vehicle->damage_log ?? [],
                     'bookingWindow' => $vehicle->bookingWindow(
                         in_array($vehicle->id, $activeVehicleIds, true),
-                        $lastReturnedAtByVehicle->get($vehicle->id)
+                        $lastReturnedAtByVehicle->get($vehicle->id),
+                        $systemSettings->booking_window_days
                     ),
                     'currentReservation' => $activeReservation ? [
                         'pickup_date' => $activeReservation['start'],
