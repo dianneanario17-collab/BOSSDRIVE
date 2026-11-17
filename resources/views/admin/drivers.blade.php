@@ -29,6 +29,7 @@
     @endif
     <div class="main-content">
         <main class="content-container">
+            @include('admin.partials.page-notice', ['noticeKey' => 'drivers'])
             <div class="management-sticky-overview">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
@@ -36,6 +37,9 @@
                     <p class="text-muted small mb-0">Drivers assigned to confirmed bookings with driver service.</p>
                 </div>
                 <div class="d-flex gap-2">
+                    @unless($isStaffMode)
+                        <a href="#addDriverForm" class="btn btn-danger rounded-pill fw-bold"><i class="fas fa-plus me-1"></i>Add Driver</a>
+                    @endunless
                     <button type="button" class="btn btn-outline-danger rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#driverAvailabilityModal">
                         <i class="fas fa-phone me-1"></i> Driver Availability
                     </button>
@@ -45,6 +49,21 @@
                 </div>
             </div>
             </div>
+
+            @unless($isStaffMode)
+                @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+                @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+                <section class="driver-card p-4 mb-4" id="addDriverForm">
+                    <h5 class="fw-bold mb-3"><i class="fas fa-user-plus text-danger me-2"></i>Add Driver</h5>
+                    <form method="POST" action="{{ route('admin.drivers.store') }}" class="row g-3 align-items-end">
+                        @csrf
+                        <input type="hidden" name="return_to" value="drivers">
+                        <div class="col-md-5"><label class="form-label fw-bold" for="driverName">Driver full name</label><input id="driverName" name="name" class="form-control" maxlength="255" value="{{ old('name') }}" required></div>
+                        <div class="col-md-5"><label class="form-label fw-bold" for="driverContact">Contact number</label><input id="driverContact" name="contact" class="form-control" maxlength="30" value="{{ old('contact') }}" required></div>
+                        <div class="col-md-2 d-grid"><button class="btn btn-danger fw-bold" type="submit"><i class="fas fa-plus me-1"></i>Save Driver</button></div>
+                    </form>
+                </section>
+            @endunless
 
             @php
                 $assignedGroups = $driverReservations->groupBy(fn ($reservation) => $reservation->assigned_driver_name);

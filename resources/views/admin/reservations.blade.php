@@ -287,6 +287,9 @@
 
     @include('admin.partials.navigation', ['adminPageTitle' => 'Reservations', 'adminPageAccent' => 'Logs'])
     <div class="main-content">
+        <div class="container-fluid pt-3 px-4">
+            @include('admin.partials.page-notice', ['noticeKey' => 'reservations'])
+        </div>
 
         <div class="p-4">
             <div class="reservation-overview-sticky">
@@ -855,7 +858,11 @@
             const icon = type === 'success' ? 'fa-check-circle' : (type === 'cancel' ? 'fa-times-circle' : 'fa-exclamation-circle');
             const toast = document.createElement('div');
             toast.className = 'bd-toast ' + type;
-            toast.innerHTML = '<i class="fas ' + icon + '"></i><span>' + message + '</span>';
+            const iconElement = document.createElement('i');
+            iconElement.className = 'fas ' + icon;
+            const messageElement = document.createElement('span');
+            messageElement.textContent = message;
+            toast.append(iconElement, messageElement);
             container.appendChild(toast);
 
             requestAnimationFrame(function() { toast.classList.add('show'); });
@@ -1005,8 +1012,8 @@
                     '<div class="d-flex align-items-center" style="min-width:0; overflow:hidden;">' +
                         '<img src="https://ui-avatars.com/api/?name=' + encodeURIComponent(driver.name) + '&background=212529&color=fff" class="driver-avatar-sm">' +
                         '<div style="min-width:0; overflow:hidden;">' +
-                            '<span class="fw-bold d-block small text-truncate">' + driver.name + '</span>' +
-                            '<span class="text-muted text-truncate d-block" style="font-size:0.75rem;">' + driver.contact + '</span>' +
+                            '<span class="fw-bold d-block small text-truncate">' + escapeHtml(driver.name) + '</span>' +
+                            '<span class="text-muted text-truncate d-block" style="font-size:0.75rem;">' + escapeHtml(driver.contact) + '</span>' +
                         '</div>' +
                     '</div>';
 
@@ -1071,7 +1078,7 @@
         function buildDriverTagHtml(name, dateText) {
             return '<i class="fas fa-id-badge"></i>' +
                    '<span>' +
-                       '<span class="dnt-name">' + name + '</span>' +
+                       '<span class="dnt-name">' + escapeHtml(name) + '</span>' +
                        '<span class="dnt-date">' + dateText + '</span>' +
                    '</span>';
         }
@@ -1097,22 +1104,32 @@
                 return;
             }
 
-            const newId = 'DRV-' + String(driverPool.length + 1).padStart(3, '0');
-            driverPool.push({
-                id: newId,
-                name: name,
-                contact: contact,
-                status: 'available',
-                availableThisWeek: true,
-                weeklyAvailable: true
-            });
-
-            nameInput.value = '';
-            contactInput.value = '';
-            document.getElementById('addDriverForm').classList.add('d-none');
-
-            renderDriverList();
-            showToast(name + ' has been added to the on-call driver pool!', 'success');
+            fetch(@json(route('admin.drivers.store')), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({name: name, contact: contact})
+            })
+                .then(function (response) {
+                    return response.json().then(function (data) {
+                        if (!response.ok) throw new Error(data.message || Object.values(data.errors || {}).flat()[0] || 'Unable to save this driver.');
+                        return data;
+                    });
+                })
+                .then(function (data) {
+                    driverPool.push(Object.assign({}, data.driver, {status: 'available'}));
+                    nameInput.value = '';
+                    contactInput.value = '';
+                    document.getElementById('addDriverForm').classList.add('d-none');
+                    renderDriverList();
+                    showToast(data.message, 'success');
+                })
+                .catch(function (error) {
+                    showToast(error.message || 'Unable to save this driver.', 'error');
+                });
         }
 
         async function promptAction(actionType) {

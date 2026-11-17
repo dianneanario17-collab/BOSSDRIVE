@@ -26,6 +26,11 @@ class AdminSettingsTest extends TestCase
             ->assertSee('Booking Policies')
             ->assertSee('Payment Settings')
             ->assertSee('Price Guide')
+            ->assertSee('Add Vehicle / Edit Vehicle Details')
+            ->assertSee('Driver Management')
+            ->assertSee('name="driver_daily_fee"', false)
+            ->assertSee('name="admin_page_notices[dashboard]"', false)
+            ->assertSee('name="name"', false)
             ->assertSee('name="agreement_text"', false);
     }
 
@@ -39,12 +44,21 @@ class AdminSettingsTest extends TestCase
                 'messenger_url' => 'https://www.facebook.com/example',
                 'pickup_location' => 'New Garage, Cavite',
                 'agreement_text' => "Read the rules.\nDeposit: ₱{deposit_amount}",
+                'rental_location_guide' => "City: nearby\nProvince: outside",
                 'security_deposit' => 1500,
                 'booking_window_days' => 10,
                 'max_rental_days' => 5,
                 'min_city_days' => 1,
                 'min_province_days' => 2,
                 'min_long_distance_days' => 3,
+                'driver_daily_fee' => 1250,
+                'province_gas_surcharge' => 1100,
+                'province_diesel_surcharge' => 600,
+                'long_distance_surcharge' => 1600,
+                'admin_page_notices' => [
+                    'dashboard' => 'Admin dashboard notice',
+                    'vehicles' => 'Check vehicle records before saving.',
+                ],
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -53,12 +67,18 @@ class AdminSettingsTest extends TestCase
             'id' => 1,
             'business_name' => 'BossDrive Rentals',
             'agreement_text' => "Read the rules.\nDeposit: ₱{deposit_amount}",
+            'rental_location_guide' => "City: nearby\nProvince: outside",
             'security_deposit' => 1500,
             'booking_window_days' => 10,
             'max_rental_days' => 5,
             'min_province_days' => 2,
             'min_long_distance_days' => 3,
+            'driver_daily_fee' => 1250,
+            'province_gas_surcharge' => 1100,
+            'province_diesel_surcharge' => 600,
+            'long_distance_surcharge' => 1600,
         ]);
+        $this->assertSame('Admin dashboard notice', SystemSetting::current()->admin_page_notices['dashboard']);
     }
 
     public function test_booking_window_setting_is_reflected_in_vehicle_availability(): void
@@ -85,6 +105,8 @@ class AdminSettingsTest extends TestCase
             'support_phone' => '+63 900 000 0000',
             'pickup_location' => 'New Garage, Cavite',
             'security_deposit' => 1500,
+            'driver_daily_fee' => 1250,
+            'province_gas_surcharge' => 1100,
         ]);
         $user = User::factory()->create();
 
@@ -94,6 +116,8 @@ class AdminSettingsTest extends TestCase
             ->assertSee('BossDrive Rentals')
             ->assertSee('₱1,500')
             ->assertSee('"security_deposit":1500', false)
+            ->assertSee('"driver_daily_fee":1250', false)
+            ->assertSee('With Driver (+₱1,250/day)')
             ->assertSee('New Garage, Cavite');
 
         $this->get(route('user.dashboard'))
@@ -114,15 +138,71 @@ class AdminSettingsTest extends TestCase
                 'messenger_url' => 'https://www.facebook.com/example',
                 'pickup_location' => 'Garage',
                 'agreement_text' => 'Agreement',
+                'rental_location_guide' => 'City: nearby',
                 'security_deposit' => 1000,
                 'booking_window_days' => 7,
                 'max_rental_days' => 2,
                 'min_city_days' => 1,
                 'min_province_days' => 1,
                 'min_long_distance_days' => 3,
+                'driver_daily_fee' => 1000,
+                'province_gas_surcharge' => 1000,
+                'province_diesel_surcharge' => 500,
+                'long_distance_surcharge' => 1500,
             ])
             ->assertSessionHasErrors('min_long_distance_days');
 
         $this->assertDatabaseMissing('system_settings', ['id' => 1]);
+    }
+
+    public function test_admin_can_add_a_driver_from_settings_and_driver_is_saved(): void
+    {
+        $this->withSession(['is_admin' => true])
+            ->post(route('admin.drivers.store'), [
+                'name' => 'Jordan Driver',
+                'contact' => '09123456789',
+                'return_to' => 'settings',
+            ])
+            ->assertRedirect(route('admin.settings'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('on_call_drivers', [
+            'name' => 'Jordan Driver',
+            'contact' => '09123456789',
+            'available_this_week' => true,
+        ]);
+    }
+
+    public function test_admin_page_notice_is_rendered_from_settings(): void
+    {
+        SystemSetting::current()->update([
+            'admin_page_notices' => ['dashboard' => 'Remember to review the weekly report.'],
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Remember to review the weekly report.');
+    }
+
+    public function test_location_surcharges_and_minimum_days_are_reflected_in_rate_guides(): void
+    {
+        SystemSetting::current()->update([
+            'province_gas_surcharge' => 1200,
+            'province_diesel_surcharge' => 650,
+            'long_distance_surcharge' => 1700,
+            'min_long_distance_days' => 3,
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->get(route('admin.vehicles'))
+            ->assertOk()
+            ->assertSee('₱3,700')
+            ->assertSee('₱4,200');
+
+        $this->get(route('reservations'))
+            ->assertOk()
+            ->assertSee('₱3,700')
+            ->assertSee('Long Distance (3 Days)');
     }
 }

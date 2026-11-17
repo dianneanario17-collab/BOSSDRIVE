@@ -26,8 +26,15 @@ class StaffVehicleController extends Controller
             'min_province_days',
             'min_long_distance_days',
             'security_deposit',
+            'driver_daily_fee',
+            'province_gas_surcharge',
+            'province_diesel_surcharge',
+            'long_distance_surcharge',
         ]);
         $bookingPolicies['security_deposit'] = (float) $systemSettings->security_deposit;
+        foreach (['driver_daily_fee', 'province_gas_surcharge', 'province_diesel_surcharge', 'long_distance_surcharge'] as $feeKey) {
+            $bookingPolicies[$feeKey] = (float) $systemSettings->{$feeKey};
+        }
 
         $vehicles = Vehicle::withCount('reservations')->orderBy('name')->orderBy('id')->get();
         $activeReservations = Reservation::whereNotIn('status', ['cancelled', 'void', 'completed'])

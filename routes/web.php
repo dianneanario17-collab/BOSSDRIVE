@@ -186,7 +186,10 @@ Route::get('/reservations', function (Request $request) {
         ->values();
 
     return view('guest.reservation', compact('vehicles', 'unitsByModel', 'activeReservations', 'calendarReservations', 'calendarMaintenance'))
-        ->with('priceGuides', PriceGuide::current());
+        ->with([
+            'priceGuides' => PriceGuide::current(),
+            'systemSettings' => SystemSetting::current(),
+        ]);
 })->name('reservations');
 
 Route::post('/reservations', function (Request $request) {
@@ -354,6 +357,7 @@ Route::middleware('staff')->prefix('staff')->name('staff.')->group(function () {
     Route::put('/profile', [StaffProfileController::class, 'update'])->name('profile.update');
     Route::get('/vehicles', [StaffVehicleController::class, 'index'])->name('vehicles');
     Route::get('/drivers', [StaffVehicleController::class, 'drivers'])->name('drivers');
+    Route::post('/drivers', [AdminManagementController::class, 'storeDriver'])->name('drivers.store');
     Route::patch('/drivers/{driver}/availability', [AdminManagementController::class, 'updateDriverAvailability'])->name('drivers.availability');
     Route::post('/vehicles', [AdminManagementController::class, 'storeVehicle'])->name('vehicles.store');
     Route::patch('/vehicles/{vehicle}', [AdminManagementController::class, 'updateVehicle'])->name('vehicles.update');
@@ -493,6 +497,7 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         ->name('active-rentals.extend');
     Route::get('/vehicles', [AdminManagementController::class, 'vehicles'])->name('vehicles');
     Route::get('/drivers', [AdminManagementController::class, 'drivers'])->name('drivers');
+    Route::post('/drivers', [AdminManagementController::class, 'storeDriver'])->name('drivers.store');
     Route::patch('/drivers/{driver}/availability', [AdminManagementController::class, 'updateDriverAvailability'])->name('drivers.availability');
     Route::post('/vehicles', [AdminManagementController::class, 'storeVehicle'])->name('vehicles.store');
     Route::patch('/vehicles/{vehicle}', [AdminManagementController::class, 'updateVehicle'])->name('vehicles.update');

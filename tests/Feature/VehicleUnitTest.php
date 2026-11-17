@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -984,6 +985,10 @@ class VehicleUnitTest extends TestCase
     public function test_online_booking_saves_and_reserves_only_the_selected_unit(): void
     {
         Storage::fake('public');
+        SystemSetting::current()->update([
+            'driver_daily_fee' => 1250,
+            'province_gas_surcharge' => 700,
+        ]);
         $user = User::factory()->create();
         $firstUnit = Vehicle::create([
             'name' => 'Honda Civic',
@@ -1004,9 +1009,9 @@ class VehicleUnitTest extends TestCase
             ->post(route('user.reservations.store'), [
                 'vehicle' => $firstUnit->name,
                 'vehicle_id' => $firstUnit->id,
-                'rate_type' => 'city',
+                'rate_type' => 'province',
                 'service_option' => 'pickup',
-                'driver_option' => 'self_drive',
+                'driver_option' => 'with_driver',
                 'pickup_date' => $pickupDate,
                 'return_date' => $returnDate,
                 'pickup_time' => '12:00',
@@ -1030,7 +1035,7 @@ class VehicleUnitTest extends TestCase
         Storage::disk('public')->assertExists($reservation->payment_proof_path);
         $this->assertSame($firstUnit->id, $reservation->vehicle_id);
         $this->assertSame(1, $reservation->rentalDays());
-        $this->assertEquals(1800, (float) $reservation->total_amount);
+        $this->assertEquals(3750, (float) $reservation->total_amount);
         $this->assertSame('12:00', substr($reservation->return_time, 0, 5));
         $this->assertSame('rented', $firstUnit->fresh()->status);
         $this->assertSame('available', $secondUnit->fresh()->status);

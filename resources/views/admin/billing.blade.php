@@ -154,6 +154,7 @@
 
     <div class="main-content">
         <div class="content-container">
+            @include('admin.partials.page-notice', ['noticeKey' => 'billing'])
             
             <div class="management-sticky-overview">
             <div class="row g-4 mb-4 text-center">

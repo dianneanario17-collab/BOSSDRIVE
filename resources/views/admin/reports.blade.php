@@ -113,6 +113,9 @@
 
     @include('admin.partials.navigation', ['adminPageTitle' => 'Management', 'adminPageAccent' => 'Reports & Logs'])
     <div class="main-content">
+        <div class="container-fluid pt-3 px-4">
+            @include('admin.partials.page-notice', ['noticeKey' => 'reports'])
+        </div>
 
         <div class="container-fluid p-4">
 

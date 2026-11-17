@@ -68,6 +68,7 @@
     <div class="main-content">
 
         <div class="content-container">
+            @include('admin.partials.page-notice', ['noticeKey' => 'users'])
             <div class="dashboard-card">
                 <div class="management-sticky-overview account-list-overview">
                 <div class="row mb-4 align-items-center">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\PaymentSetting;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -38,7 +39,7 @@ class StaffBillingController extends Controller
             $total = (float) $reservation->total_amount;
             if ($total <= 0) {
                 $total = ($vehicle?->price ?? 0) * $days
-                    + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
+                    + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
             }
 
             return [

@@ -13,12 +13,18 @@ class SystemSetting extends Model
         'messenger_url',
         'pickup_location',
         'agreement_text',
+        'rental_location_guide',
         'security_deposit',
         'booking_window_days',
         'max_rental_days',
         'min_city_days',
         'min_province_days',
         'min_long_distance_days',
+        'driver_daily_fee',
+        'province_gas_surcharge',
+        'province_diesel_surcharge',
+        'long_distance_surcharge',
+        'admin_page_notices',
     ];
 
     protected function casts(): array
@@ -30,6 +36,11 @@ class SystemSetting extends Model
             'min_city_days' => 'integer',
             'min_province_days' => 'integer',
             'min_long_distance_days' => 'integer',
+            'driver_daily_fee' => 'decimal:2',
+            'province_gas_surcharge' => 'decimal:2',
+            'province_diesel_surcharge' => 'decimal:2',
+            'long_distance_surcharge' => 'decimal:2',
+            'admin_page_notices' => 'array',
         ];
     }
 
@@ -51,13 +62,34 @@ class SystemSetting extends Model
                 'Carnapping Policy: Failure to return the vehicle or contact management within 24 hours of the deadline will be reported to the PNP-HPG as a Carnapping/Theft case.',
                 'Maintenance: The renter must ensure the vehicle has enough oil and coolant. Negligence leading to engine failure will be charged to the renter.',
             ]),
+            'rental_location_guide' => implode("\n", [
+                'City Driving: GMA, Carmona, Biñan, San Pedro, Dasmariñas, Silang, General Trias, Imus, Bacoor, Muntinlupa, Parañaque, Pasay, Makati, Taguig',
+                'Province: Tagaytay, Batangas, Laguna, Rizal, Cavite farther areas, Quezon',
+                'Long Distance: Baguio, La Union, Vigan, Ilocos, Nueva Ecija, Pangasinan, Bicol, Legazpi',
+            ]),
             'security_deposit' => 1000,
             'booking_window_days' => 7,
             'max_rental_days' => 7,
             'min_city_days' => 1,
             'min_province_days' => 1,
             'min_long_distance_days' => 2,
+            'driver_daily_fee' => 1000,
+            'province_gas_surcharge' => 1000,
+            'province_diesel_surcharge' => 500,
+            'long_distance_surcharge' => 1500,
+            'admin_page_notices' => [],
         ];
+    }
+
+    public function rateSurcharge(string $rateType, ?string $category = null): float
+    {
+        return match ($rateType) {
+            'province' => str_contains(strtolower((string) $category), 'diesel')
+                ? (float) $this->province_diesel_surcharge
+                : (float) $this->province_gas_surcharge,
+            'long_distance' => (float) $this->long_distance_surcharge,
+            default => 0.0,
+        };
     }
 
     public static function current(): self

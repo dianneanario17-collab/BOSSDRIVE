@@ -96,6 +96,7 @@
     <div class="main-content">
 
         <div class="content-container">
+            @include('admin.partials.page-notice', ['noticeKey' => 'dashboard'])
             <div class="row g-4 mb-4">
                 <div class="col-md-4">
                     <!-- Total System Users -> links straight to User Accounts page -->

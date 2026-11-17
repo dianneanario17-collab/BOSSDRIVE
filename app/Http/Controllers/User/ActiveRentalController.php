@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PickupConditionReport;
 use App\Models\RentalExtension;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -47,7 +48,7 @@ class ActiveRentalController extends Controller
             'vehicleDailyPrice',
             'activeVehicle',
             'activeReservations',
-        ));
+        ) + ['driverDailyFee' => (float) SystemSetting::current()->driver_daily_fee]);
     }
 
     public function verify(Request $request): RedirectResponse
@@ -127,7 +128,7 @@ class ActiveRentalController extends Controller
             'The requested extension conflicts with another reservation or maintenance schedule for this unit.'
         );
         $extensionAmount = ($vehicle?->price ?? 0) * $extensionDays
-            + ($reservation->driver_option === 'with_driver' ? 1000 * $extensionDays : 0);
+            + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $extensionDays : 0);
 
         RentalExtension::create([
             'reservation_id' => $reservation->id,

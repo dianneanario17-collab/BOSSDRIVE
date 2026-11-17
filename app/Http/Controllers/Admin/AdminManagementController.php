@@ -65,7 +65,7 @@ class AdminManagementController extends Controller
                 $totalAmount = (float) $reservation->total_amount;
                 if ($totalAmount <= 0) {
                     $totalAmount = ($vehicle?->price ?? 0) * $days
-                        + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
+                        + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
                 }
                 $paidAmount = (float) $reservation->paid_amount;
                 $customerName = $reservation->customer_name ?: ($user?->name ?? 'Walk-in Customer');
@@ -86,7 +86,7 @@ class AdminManagementController extends Controller
                     'service' => $reservation->service_option === 'delivery' ? 'Delivery' : 'Pick-up',
                     'rate' => match ($reservation->rate_type) {
                         'province' => 'Province',
-                        'long_distance' => 'Long Distance (2 Days)',
+                        'long_distance' => 'Long Distance',
                         default => 'City Driving',
                     },
                     'driver' => $reservation->driver_option === 'with_driver' ? 'With Driver' : 'Self-Drive',
@@ -168,7 +168,7 @@ class AdminManagementController extends Controller
             $totalAmount = (float) $reservation->total_amount;
             if ($totalAmount <= 0) {
                 $totalAmount = ($vehicle?->price ?? 0) * $days
-                    + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
+                    + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
             }
             $paidAmount = (float) $reservation->paid_amount;
             $customerName = $reservation->customer_name ?: ($user?->name ?? 'Walk-in Customer');
@@ -194,7 +194,7 @@ class AdminManagementController extends Controller
                 'service' => $reservation->service_option === 'delivery' ? 'Delivery' : 'Pick-up',
                 'rate' => match ($reservation->rate_type) {
                     'province' => 'Province',
-                    'long_distance' => 'Long Distance (2 Days)',
+                    'long_distance' => 'Long Distance',
                     default => 'City Driving',
                 },
                 'driver' => $reservation->driver_option === 'with_driver' ? 'With Driver' : 'Self-Drive',
@@ -355,12 +355,8 @@ class AdminManagementController extends Controller
             if ($days > $systemSettings->max_rental_days) {
                 return response()->json(['message' => 'Bookings are limited to '.$systemSettings->max_rental_days.' days within the open booking window.'], 422);
             }
-            $rate = match ($data['rate_type']) {
-                'province' => (float) $vehicle->price + (str_contains(strtolower((string) $vehicle->category), 'diesel') ? 500 : 1000),
-                'long_distance' => (float) $vehicle->price + 1500,
-                default => (float) $vehicle->price,
-            };
-            $driverFee = $data['driver_option'] === 'with_driver' ? 1000 * $days : 0;
+            $rate = (float) $vehicle->price + $systemSettings->rateSurcharge($data['rate_type'], $vehicle->category);
+            $driverFee = $data['driver_option'] === 'with_driver' ? (float) $systemSettings->driver_daily_fee * $days : 0;
             $totalAmount = ($rate * $days) + $driverFee;
             $paymentMode = $data['payment_mode'];
             $paidAmount = $paymentMode === 'full' ? $totalAmount : ($paymentMode === 'deposit' ? (float) $systemSettings->security_deposit : 0);
@@ -706,7 +702,7 @@ class AdminManagementController extends Controller
                 $total = (float) $reservation->total_amount;
                 if ($total <= 0) {
                     $total = ($vehicle?->price ?? 0) * $days
-                        + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
+                        + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
                 }
 
                 return [
@@ -805,7 +801,7 @@ class AdminManagementController extends Controller
             if ($totalAmount <= 0) {
                 $days = $booking->rentalDays();
                 $totalAmount = (float) ($booking->vehicleUnit?->price ?? 0) * $days
-                    + ($booking->driver_option === 'with_driver' ? 1000 * $days : 0);
+                    + ($booking->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
             }
             $paidAmount = (float) $booking->paid_amount;
             if ($submittedAmount > 0) {
@@ -851,7 +847,7 @@ class AdminManagementController extends Controller
             $vehicle = $reservation->vehicleUnit;
             $days = $reservation->rentalDays();
             $totalAmount = ($vehicle?->price ?? 0) * $days
-                + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
+                + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
         }
         $paid = min($totalAmount, (float) $reservation->paid_amount + (float) $data['amount']);
         $reservation->update([
@@ -986,7 +982,7 @@ class AdminManagementController extends Controller
         );
         $extensionDays = max(1, $reservation->return_date->diffInDays($newDate));
         $dailyAmount = (float) ($vehicle?->price ?? 0)
-            + ($reservation->driver_option === 'with_driver' ? 1000 : 0);
+            + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee : 0);
         $extensionAmount = $dailyAmount * $extensionDays;
 
         RentalExtension::create([
@@ -1107,8 +1103,15 @@ class AdminManagementController extends Controller
             'min_province_days',
             'min_long_distance_days',
             'security_deposit',
+            'driver_daily_fee',
+            'province_gas_surcharge',
+            'province_diesel_surcharge',
+            'long_distance_surcharge',
         ]);
         $bookingPolicies['security_deposit'] = (float) $systemSettings->security_deposit;
+        foreach (['driver_daily_fee', 'province_gas_surcharge', 'province_diesel_surcharge', 'long_distance_surcharge'] as $feeKey) {
+            $bookingPolicies[$feeKey] = (float) $systemSettings->{$feeKey};
+        }
 
         return view('admin.vehicles', [
             'priceGuides' => PriceGuide::current(),
@@ -1212,6 +1215,41 @@ class AdminManagementController extends Controller
         return back()->with('success', $driver->name.' is marked '.($driver->available_this_week ? 'Available' : 'Not Available').' this week.');
     }
 
+    public function storeDriver(Request $request): RedirectResponse|JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:on_call_drivers,name'],
+            'contact' => ['required', 'string', 'max:30'],
+            'return_to' => ['nullable', Rule::in(['settings', 'drivers'])],
+        ]);
+
+        $driver = OnCallDriver::create([
+            'name' => $data['name'],
+            'contact' => $data['contact'],
+            'available_this_week' => true,
+            'availability_week' => now()->startOfWeek()->toDateString(),
+        ]);
+        AuditLog::record('driver.created', $driver, ['name' => $driver->name]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'driver' => [
+                    'id' => $driver->id,
+                    'name' => $driver->name,
+                    'contact' => $driver->contact,
+                    'availableThisWeek' => true,
+                    'weeklyAvailable' => true,
+                    'status' => 'available',
+                    'bookings' => [],
+                ],
+                'message' => 'Driver added successfully.',
+            ], 201);
+        }
+
+        return redirect()->route(($data['return_to'] ?? 'drivers') === 'settings' ? 'admin.settings' : 'admin.drivers')
+            ->with('success', $driver->name.' was added to the driver list.');
+    }
+
     private function driverCatalog(): array
     {
         $defaults = [
@@ -1277,12 +1315,14 @@ class AdminManagementController extends Controller
             'prices.*.hourly' => ['required', 'numeric', 'min:0'],
         ]);
 
+        $systemSettings = SystemSetting::current();
         foreach ($data['prices'] as $priceData) {
             $guide = PriceGuide::findOrFail($priceData['id']);
+            $cityPrice = (float) $priceData['city_driving'];
             $guide->update([
-                'city_driving' => $priceData['city_driving'],
-                'province' => $priceData['province'],
-                'long_distance' => $priceData['long_distance'],
+                'city_driving' => $cityPrice,
+                'province' => $cityPrice + $systemSettings->rateSurcharge('province', $guide->category),
+                'long_distance' => $cityPrice + $systemSettings->rateSurcharge('long_distance', $guide->category),
                 'hourly' => $priceData['hourly'],
             ]);
             $categoryAliases = [$guide->category];

@@ -16,12 +16,18 @@ return new class extends Migration
             $table->string('messenger_url')->nullable();
             $table->string('pickup_location');
             $table->text('agreement_text');
+            $table->text('rental_location_guide');
             $table->decimal('security_deposit', 10, 2)->default(1000);
             $table->unsignedSmallInteger('booking_window_days')->default(7);
             $table->unsignedSmallInteger('max_rental_days')->default(7);
             $table->unsignedSmallInteger('min_city_days')->default(1);
             $table->unsignedSmallInteger('min_province_days')->default(1);
             $table->unsignedSmallInteger('min_long_distance_days')->default(2);
+            $table->decimal('driver_daily_fee', 10, 2)->default(1000);
+            $table->decimal('province_gas_surcharge', 10, 2)->default(1000);
+            $table->decimal('province_diesel_surcharge', 10, 2)->default(500);
+            $table->decimal('long_distance_surcharge', 10, 2)->default(1500);
+            $table->json('admin_page_notices')->nullable();
             $table->timestamps();
         });
     }

@@ -133,8 +133,15 @@ class ReservationController extends Controller
             'min_province_days',
             'min_long_distance_days',
             'security_deposit',
+            'driver_daily_fee',
+            'province_gas_surcharge',
+            'province_diesel_surcharge',
+            'long_distance_surcharge',
         ]);
         $bookingPolicies['security_deposit'] = (float) $systemSettings->security_deposit;
+        foreach (['driver_daily_fee', 'province_gas_surcharge', 'province_diesel_surcharge', 'long_distance_surcharge'] as $feeKey) {
+            $bookingPolicies[$feeKey] = (float) $systemSettings->{$feeKey};
+        }
 
         return view('user.reservation', [
             'priceGuides' => PriceGuide::current(),
@@ -344,16 +351,12 @@ class ReservationController extends Controller
             ? preg_replace('/\s+/', '', $data['gcash_reference'])
             : null;
         $days = max(1, $rentalDays);
-        $rate = match ($data['rate_type']) {
-            'province' => (float) $vehicle->price + (str_contains(strtolower((string) $vehicle->category), 'diesel') ? 500 : 1000),
-            'long_distance' => (float) $vehicle->price + 1500,
-            default => (float) $vehicle->price,
-        };
+        $rate = (float) $vehicle->price + $systemSettings->rateSurcharge($data['rate_type'], $vehicle->category);
         if ($data['rate_type'] === 'long_distance') {
             $days = max($systemSettings->min_long_distance_days, $days);
         }
         $totalAmount = ($rate * $days)
-            + ($data['driver_option'] === 'with_driver' ? 1000 * $days : 0);
+            + ($data['driver_option'] === 'with_driver' ? (float) $systemSettings->driver_daily_fee * $days : 0);
         $paidAmount = $data['payment_mode'] === 'full'
             ? $totalAmount
             : ($data['payment_mode'] === 'deposit' ? (float) $systemSettings->security_deposit : 0);

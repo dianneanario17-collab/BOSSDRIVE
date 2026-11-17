@@ -314,8 +314,8 @@
                                 <table class="table table-sm mb-0 small">
                                     <tbody>
                                         <tr><td>City Driving</td><td class="text-end fw-bold">₱{{ number_format($sedanGuide->city_driving) }}</td></tr>
-                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format($sedanGuide->province) }}</td></tr>
-                                        <tr><td>Long Distance (2 Days)</td><td class="text-end fw-bold">₱{{ number_format($sedanGuide->long_distance) }}</td></tr>
+                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format((float) $sedanGuide->city_driving + $systemSettings->rateSurcharge('province', $sedanGuide->category)) }}</td></tr>
+                                        <tr><td>Long Distance ({{ $systemSettings->min_long_distance_days }} Days)</td><td class="text-end fw-bold">₱{{ number_format((float) $sedanGuide->city_driving + $systemSettings->rateSurcharge('long_distance', $sedanGuide->category)) }}</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -326,8 +326,8 @@
                                 <table class="table table-sm mb-0 small">
                                     <tbody>
                                         <tr><td>City Driving</td><td class="text-end fw-bold">₱{{ number_format($gasGuide->city_driving) }}</td></tr>
-                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format($gasGuide->province) }}</td></tr>
-                                        <tr><td>Long Distance (2 Days)</td><td class="text-end fw-bold">₱{{ number_format($gasGuide->long_distance) }}</td></tr>
+                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format((float) $gasGuide->city_driving + $systemSettings->rateSurcharge('province', $gasGuide->category)) }}</td></tr>
+                                        <tr><td>Long Distance ({{ $systemSettings->min_long_distance_days }} Days)</td><td class="text-end fw-bold">₱{{ number_format((float) $gasGuide->city_driving + $systemSettings->rateSurcharge('long_distance', $gasGuide->category)) }}</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -338,8 +338,8 @@
                                 <table class="table table-sm mb-0 small">
                                     <tbody>
                                         <tr><td>City Driving</td><td class="text-end fw-bold">₱{{ number_format($dieselGuide->city_driving) }}</td></tr>
-                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format($dieselGuide->province) }}</td></tr>
-                                        <tr><td>Long Distance (2 Days)</td><td class="text-end fw-bold">₱{{ number_format($dieselGuide->long_distance) }}</td></tr>
+                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format((float) $dieselGuide->city_driving + $systemSettings->rateSurcharge('province', $dieselGuide->category)) }}</td></tr>
+                                        <tr><td>Long Distance ({{ $systemSettings->min_long_distance_days }} Days)</td><td class="text-end fw-bold">₱{{ number_format((float) $dieselGuide->city_driving + $systemSettings->rateSurcharge('long_distance', $dieselGuide->category)) }}</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -517,7 +517,7 @@
                     <h6 class="fw-bold mt-3 mb-3">Drive Option</h6>
                     <div class="row g-2 mb-4">
                         <div class="col-6"><div class="option-card active" id="d-self" onclick="setDriver(0)">Self Drive</div></div>
-                        <div class="col-6"><div class="option-card" id="d-with" onclick="setDriver(1000)">With Driver (+₱1,000)</div></div>
+                        <div class="col-6"><div class="option-card" id="d-with" onclick="setDriver(bookingPolicies.driver_daily_fee)">With Driver (+₱{{ number_format((float) $systemSettings->driver_daily_fee, 0) }}/day)</div></div>
                     </div>
 
                     <label class="small fw-bold mb-2" for="rateType">Rental Location / Rate</label>
@@ -527,14 +527,12 @@
                             <h6 class="fw-bold text-dark mb-0"><i class="fas fa-map-marked-alt text-danger me-1"></i>Rental Location Guide</h6>
                             <button type="button" class="btn-close" aria-label="Close" onclick="toggleRentalLocationGuide(event)"></button>
                         </div>
-                        <div class="mb-3"><h6 class="fw-bold text-danger">🚗 City Driving</h6><p class="small mb-0">GMA · Carmona · Biñan · San Pedro · Dasmariñas · Silang · General Trias · Imus · Bacoor · Muntinlupa · Parañaque · Pasay · Makati · Taguig</p></div>
-                        <div class="mb-3"><h6 class="fw-bold text-primary">🛣️ Province</h6><p class="small mb-0">Tagaytay · Batangas · Laguna · Rizal · Cavite farther areas · Quezon</p></div>
-                        <div><h6 class="fw-bold text-success">🚌 Long Distance (2 Days)</h6><p class="small mb-0">Baguio · La Union · Vigan · Ilocos · Nueva Ecija · Pangasinan · Bicol · Legazpi</p></div>
+                        <p class="small mb-0">{!! nl2br(e($systemSettings->rental_location_guide)) !!}</p>
                     </div>
                     <select id="rateType" class="form-select mb-3" onchange="setRateType(this.value)">
                         <option value="city">City Driving</option>
                         <option value="province">Province</option>
-                        <option value="long_distance">Long Distance (2 Days minimum)</option>
+                        <option value="long_distance">Long Distance ({{ $systemSettings->min_long_distance_days }} Days minimum)</option>
                     </select>
                     <div id="ratePreview" class="small text-danger fw-bold mb-3"></div>
                     <div class="row g-2 mb-3">
@@ -1640,9 +1638,11 @@
 
     function rateForType(type) {
         const category = String(vehicleById(currentVehicleId)?.category || '').toLowerCase();
-        const provinceSurcharge = category.includes('diesel') ? 500 : 1000;
+        const provinceSurcharge = category.includes('diesel')
+            ? bookingPolicies.province_diesel_surcharge
+            : bookingPolicies.province_gas_surcharge;
         if (type === 'province') return baseVehiclePrice + provinceSurcharge;
-        if (type === 'long_distance') return baseVehiclePrice + 1500;
+        if (type === 'long_distance') return baseVehiclePrice + bookingPolicies.long_distance_surcharge;
         return baseVehiclePrice;
     }
 

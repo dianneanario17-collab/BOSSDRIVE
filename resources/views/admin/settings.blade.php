@@ -42,6 +42,9 @@
                     <label class="form-label" for="agreement_text">Agreement shown before booking</label>
                     <textarea id="agreement_text" name="agreement_text" class="form-control" rows="12" maxlength="15000" required>{{ old('agreement_text', $settings->agreement_text) }}</textarea>
                     <small class="text-muted">Plain text is supported. Use a new line for each rule. Tokens <code>{business_name}</code> and <code>{deposit_amount}</code> are replaced with the current settings.</small>
+                    <label class="form-label mt-3" for="rental_location_guide">Rental location guide shown to customers and staff</label>
+                    <textarea id="rental_location_guide" name="rental_location_guide" class="form-control" rows="4" maxlength="5000" required>{{ old('rental_location_guide', $settings->rental_location_guide) }}</textarea>
+                    <small class="text-muted">Plain text; put each location/rate description on its own line.</small>
                 </section>
 
                 <section class="settings-card mb-4">
@@ -57,14 +60,61 @@
                 </section>
 
                 <section class="settings-card mb-4">
-                    <h2 class="section-title"><i class="fas fa-sliders me-2"></i>Existing Settings</h2>
-                    <p class="text-muted mb-3">Payment details and vehicle rates are managed in their existing Admin pages.</p>
+                    <h2 class="section-title"><i class="fas fa-coins me-2"></i>Rental Fees &amp; Surcharges</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="driver_daily_fee">With-driver fee per day (₱)</label><input id="driver_daily_fee" type="number" min="0" max="100000" step="0.01" name="driver_daily_fee" class="form-control" value="{{ old('driver_daily_fee', $settings->driver_daily_fee) }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="province_gas_surcharge">Province surcharge — Gas (₱/day)</label><input id="province_gas_surcharge" type="number" min="0" max="100000" step="0.01" name="province_gas_surcharge" class="form-control" value="{{ old('province_gas_surcharge', $settings->province_gas_surcharge) }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="province_diesel_surcharge">Province surcharge — Diesel (₱/day)</label><input id="province_diesel_surcharge" type="number" min="0" max="100000" step="0.01" name="province_diesel_surcharge" class="form-control" value="{{ old('province_diesel_surcharge', $settings->province_diesel_surcharge) }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="long_distance_surcharge">Long Distance surcharge (₱/day)</label><input id="long_distance_surcharge" type="number" min="0" max="100000" step="0.01" name="long_distance_surcharge" class="form-control" value="{{ old('long_distance_surcharge', $settings->long_distance_surcharge) }}" required></div>
+                    </div>
+                    <small class="text-muted d-block mt-2">These are added per rental day to the vehicle's City Driving price. Edit the base vehicle prices in Price Guide below.</small>
+                </section>
+
+                <section class="settings-card mb-4">
+                    <h2 class="section-title"><i class="fas fa-message me-2"></i>Admin Page Information</h2>
+                    <p class="small text-muted">Optional notices shown at the top of each Admin page. Leave a field blank to hide its notice. These do not change button labels or form-field names.</p>
+                    <div class="row g-3">
+                        @foreach([
+                            'dashboard' => 'Dashboard notice',
+                            'users' => 'User Management notice',
+                            'reservations' => 'Reservations notice',
+                            'billing' => 'Payments & Billing notice',
+                            'active-rentals' => 'Active Rentals notice',
+                            'vehicles' => 'Vehicle Management notice',
+                            'drivers' => 'Driver Management notice',
+                            'reports' => 'Reports notice',
+                        ] as $noticeKey => $noticeLabel)
+                            <div class="col-md-6">
+                                <label class="form-label" for="admin_notice_{{ $noticeKey }}">{{ $noticeLabel }}</label>
+                                <textarea id="admin_notice_{{ $noticeKey }}" name="admin_page_notices[{{ $noticeKey }}]" class="form-control" rows="2" maxlength="500">{{ old('admin_page_notices.'.$noticeKey, $settings->admin_page_notices[$noticeKey] ?? '') }}</textarea>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+
+                <section class="settings-card mb-4">
+                    <h2 class="section-title"><i class="fas fa-sliders me-2"></i>Manage Admin Pages</h2>
+                    <p class="text-muted mb-3">Vehicle records and their details are edited on Vehicle Management. The Price Guide controls the base vehicle rates. Add or manage drivers on Driver Management.</p>
+                    <a class="btn btn-outline-dark rounded-pill me-2 mb-2" href="{{ route('admin.vehicles') }}"><i class="fas fa-car me-1"></i>Add Vehicle / Edit Vehicle Details</a>
+                    <a class="btn btn-outline-dark rounded-pill me-2 mb-2" href="{{ route('admin.drivers') }}"><i class="fas fa-id-badge me-1"></i>Driver Management</a>
                     <a class="btn btn-outline-danger rounded-pill me-2 mb-2" href="{{ route('admin.billing') }}"><i class="fas fa-credit-card me-1"></i>Payment Settings</a>
                     <a class="btn btn-outline-danger rounded-pill mb-2" href="{{ route('admin.vehicles') }}"><i class="fas fa-tags me-1"></i>Price Guide</a>
                 </section>
 
                 <div class="text-end"><button class="btn btn-danger rounded-pill px-5 fw-bold" type="submit"><i class="fas fa-save me-2"></i>Save Settings</button></div>
             </form>
+
+            <section class="settings-card mt-4" id="add-driver">
+                <h2 class="section-title"><i class="fas fa-user-plus me-2"></i>Add Driver</h2>
+                <p class="small text-muted">New drivers are saved to Driver Management and can be selected for bookings.</p>
+                <form method="POST" action="{{ route('admin.drivers.store') }}" class="row g-3 align-items-end">
+                    @csrf
+                    <input type="hidden" name="return_to" value="settings">
+                    <div class="col-md-5"><label class="form-label" for="new_driver_name">Driver full name</label><input id="new_driver_name" name="name" class="form-control" maxlength="255" value="{{ old('name') }}" required></div>
+                    <div class="col-md-5"><label class="form-label" for="new_driver_contact">Contact number</label><input id="new_driver_contact" name="contact" class="form-control" maxlength="30" value="{{ old('contact') }}" required></div>
+                    <div class="col-md-2 d-grid"><button class="btn btn-outline-danger fw-bold" type="submit"><i class="fas fa-plus me-1"></i>Add Driver</button></div>
+                </form>
+            </section>
         </div>
     </main>
 </body>

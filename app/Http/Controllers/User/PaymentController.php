@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\PaymentSetting;
 use App\Models\RentalExtension;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -101,6 +102,7 @@ class PaymentController extends Controller
             'paymentTargets' => $paymentTargets,
             'reservationApprovals' => $reservationApprovals,
             'extensionApprovals' => $extensionApprovals,
+            'driverDailyFee' => (float) SystemSetting::current()->driver_daily_fee,
         ]);
     }
 
@@ -216,7 +218,7 @@ class PaymentController extends Controller
         $days = $reservation->rentalDays();
 
         return (float) ($reservation->vehicleUnit?->price ?? 0) * $days
-            + ($reservation->driver_option === 'with_driver' ? 1000 * $days : 0);
+            + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
     }
 
     private function actorRole(?string $role): string

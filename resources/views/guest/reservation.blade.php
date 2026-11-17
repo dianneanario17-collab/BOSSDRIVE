@@ -326,8 +326,8 @@
                                 <table class="table table-sm mb-0 small">
                                     <tbody>
                                         <tr><td>City Driving</td><td class="text-end fw-bold">₱{{ number_format($sedanGuide->city_driving) }}</td></tr>
-                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format($sedanGuide->province) }}</td></tr>
-                                        <tr><td>Long Distance (2 Days)</td><td class="text-end fw-bold">₱{{ number_format($sedanGuide->long_distance) }}</td></tr>
+                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format((float) $sedanGuide->city_driving + $systemSettings->rateSurcharge('province', $sedanGuide->category)) }}</td></tr>
+                                        <tr><td>Long Distance ({{ $systemSettings->min_long_distance_days }} Days)</td><td class="text-end fw-bold">₱{{ number_format((float) $sedanGuide->city_driving + $systemSettings->rateSurcharge('long_distance', $sedanGuide->category)) }}</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -338,8 +338,8 @@
                                 <table class="table table-sm mb-0 small">
                                     <tbody>
                                         <tr><td>City Driving</td><td class="text-end fw-bold">₱{{ number_format($gasGuide->city_driving) }}</td></tr>
-                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format($gasGuide->province) }}</td></tr>
-                                        <tr><td>Long Distance (2 Days)</td><td class="text-end fw-bold">₱{{ number_format($gasGuide->long_distance) }}</td></tr>
+                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format((float) $gasGuide->city_driving + $systemSettings->rateSurcharge('province', $gasGuide->category)) }}</td></tr>
+                                        <tr><td>Long Distance ({{ $systemSettings->min_long_distance_days }} Days)</td><td class="text-end fw-bold">₱{{ number_format((float) $gasGuide->city_driving + $systemSettings->rateSurcharge('long_distance', $gasGuide->category)) }}</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -350,8 +350,8 @@
                                 <table class="table table-sm mb-0 small">
                                     <tbody>
                                         <tr><td>City Driving</td><td class="text-end fw-bold">₱{{ number_format($dieselGuide->city_driving) }}</td></tr>
-                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format($dieselGuide->province) }}</td></tr>
-                                        <tr><td>Long Distance (2 Days)</td><td class="text-end fw-bold">₱{{ number_format($dieselGuide->long_distance) }}</td></tr>
+                                        <tr><td>Province</td><td class="text-end fw-bold">₱{{ number_format((float) $dieselGuide->city_driving + $systemSettings->rateSurcharge('province', $dieselGuide->category)) }}</td></tr>
+                                        <tr><td>Long Distance ({{ $systemSettings->min_long_distance_days }} Days)</td><td class="text-end fw-bold">₱{{ number_format((float) $dieselGuide->city_driving + $systemSettings->rateSurcharge('long_distance', $dieselGuide->category)) }}</td></tr>
                                     </tbody>
                                 </table>
                             </div>

@@ -118,6 +118,9 @@
     @endif
 
     <div class="main-content">
+        <div class="container-fluid pt-3 px-4">
+            @include('admin.partials.page-notice', ['noticeKey' => 'active-rentals'])
+        </div>
         <div class="container-fluid p-4">
             <!-- Functional Stat Cards -->
             <div class="management-sticky-overview">
