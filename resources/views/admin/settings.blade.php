@@ -71,6 +71,18 @@
                 </section>
 
                 <section class="settings-card mb-4">
+                    <h2 class="section-title"><i class="fas fa-car-side me-2"></i>Vehicle Form Options</h2>
+                    <p class="small text-muted">Add or remove one option per line. These lists are used by both Add Vehicle and Edit Vehicle. Model, Brand, and Car No. remain typed for each vehicle; status choices stay system-controlled.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="vehicle_categories">Categories</label><textarea id="vehicle_categories" name="vehicle_categories" class="form-control" rows="5" maxlength="5000">{{ old('vehicle_categories', implode("\n", $settings->vehicle_categories ?? [])) }}</textarea></div>
+                        <div class="col-md-6"><label class="form-label" for="vehicle_transmissions">Transmission types</label><textarea id="vehicle_transmissions" name="vehicle_transmissions" class="form-control" rows="5" maxlength="5000">{{ old('vehicle_transmissions', implode("\n", $settings->vehicle_transmissions ?? [])) }}</textarea></div>
+                        <div class="col-md-6"><label class="form-label" for="vehicle_fuel_types">Fuel types</label><textarea id="vehicle_fuel_types" name="vehicle_fuel_types" class="form-control" rows="4" maxlength="5000">{{ old('vehicle_fuel_types', implode("\n", $settings->vehicle_fuel_types ?? [])) }}</textarea></div>
+                        <div class="col-md-6"><label class="form-label" for="vehicle_capacities">Capacity options</label><textarea id="vehicle_capacities" name="vehicle_capacities" class="form-control" rows="4" maxlength="5000">{{ old('vehicle_capacities', implode("\n", $settings->vehicle_capacities ?? [])) }}</textarea></div>
+                    </div>
+                    <small class="text-muted d-block mt-2">If a category has no matching Price Guide rate, enter its City price manually when adding or editing a vehicle. “Custom” remains available for ad hoc category and capacity values.</small>
+                </section>
+
+                <section class="settings-card mb-4">
                     <h2 class="section-title"><i class="fas fa-message me-2"></i>Admin Page Information</h2>
                     <p class="small text-muted">Optional notices shown at the top of each Admin page. Leave a field blank to hide its notice. These do not change button labels or form-field names.</p>
                     <div class="row g-3">

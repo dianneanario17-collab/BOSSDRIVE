@@ -132,6 +132,12 @@ class StaffVehicleController extends Controller
             'priceGuides' => PriceGuide::current(),
             'systemSettings' => $systemSettings,
             'bookingPolicies' => $bookingPolicies,
+            'vehicleOptions' => [
+                'categories' => $systemSettings->vehicle_categories,
+                'transmissions' => $systemSettings->vehicle_transmissions,
+                'fuelTypes' => $systemSettings->vehicle_fuel_types,
+                'capacities' => $systemSettings->vehicle_capacities,
+            ],
             'conditionReports' => $conditionReports,
             'returnConditionReports' => $returnConditionReports,
             'vehicles' => $vehicles,

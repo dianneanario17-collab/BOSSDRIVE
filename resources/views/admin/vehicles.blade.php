@@ -296,9 +296,9 @@
                         <div class="col-12">
                             <label class="form-label small fw-bold">Category</label>
                             <select id="addCategory" class="form-select rounded-3" onchange="syncVehicleCategoryPrice('add')">
-                                <option value="Sedan">Sedan</option>
-                                <option value="Pick-up / Expanded (7-Seater) (2 Days) — Gas">Pick-up / Expanded</option>
-                                <option value="Expanded — Diesel">Expanded</option>
+                                @foreach($vehicleOptions['categories'] as $categoryOption)
+                                    <option value="{{ $categoryOption }}">{{ $categoryOption === 'Pick-up / Expanded (7-Seater) (2 Days) — Gas' ? 'Pick-up / Expanded' : ($categoryOption === 'Expanded — Diesel' ? 'Expanded' : $categoryOption) }}</option>
+                                @endforeach
                                 <option value="__custom__">Custom</option>
                             </select>
                             <input type="text" id="addCustomCategory" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom category" maxlength="255" oninput="syncVehicleCategoryPrice('add')">
@@ -307,24 +307,25 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Transmission Type</label>
                             <select id="addTransmission" class="form-select rounded-3">
-                                <option value="Manual">Manual</option>
-                                <option value="Automatic">Automatic</option>
+                                @foreach($vehicleOptions['transmissions'] as $transmissionOption)
+                                    <option value="{{ $transmissionOption }}" {{ $transmissionOption === 'Manual' ? 'selected' : '' }}>{{ $transmissionOption }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Fuel Type</label>
                             <select id="addFuel" class="form-select rounded-3">
-                                <option value="Gasoline">Gasoline</option>
-                                <option value="Diesel">Diesel</option>
+                                @foreach($vehicleOptions['fuelTypes'] as $fuelOption)
+                                    <option value="{{ $fuelOption }}" {{ $fuelOption === 'Gasoline' ? 'selected' : '' }}>{{ $fuelOption }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold">Capacity</label>
                             <select id="addCapacityType" class="form-select rounded-3" onchange="syncVehicleCapacity('add')">
-                                <option value="4 Seater">4 Seater</option>
-                                <option value="5 Seater" selected>5 Seater</option>
-                                <option value="6 Seater">6 Seater</option>
-                                <option value="7 Seater">7 Seater</option>
+                                @foreach($vehicleOptions['capacities'] as $capacityOption)
+                                    <option value="{{ $capacityOption }}" {{ $capacityOption === '5 Seater' ? 'selected' : '' }}>{{ $capacityOption }}</option>
+                                @endforeach
                                 <option value="__custom__">Custom</option>
                             </select>
                             <input type="text" id="addCustomCapacity" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom capacity" maxlength="50">
@@ -414,9 +415,9 @@
                         <div class="col-12">
                             <label class="form-label small fw-bold">Category</label>
                             <select id="editCategory" class="form-select rounded-3" onchange="syncVehicleCategoryPrice('edit')">
-                                <option value="Sedan">Sedan</option>
-                                <option value="Pick-up / Expanded (7-Seater) (2 Days) — Gas">Pick-up / Expanded</option>
-                                <option value="Expanded — Diesel">Expanded</option>
+                                @foreach($vehicleOptions['categories'] as $categoryOption)
+                                    <option value="{{ $categoryOption }}">{{ $categoryOption === 'Pick-up / Expanded (7-Seater) (2 Days) — Gas' ? 'Pick-up / Expanded' : ($categoryOption === 'Expanded — Diesel' ? 'Expanded' : $categoryOption) }}</option>
+                                @endforeach
                                 <option value="__custom__">Custom</option>
                             </select>
                             <input type="text" id="editCustomCategory" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom category" maxlength="255" oninput="syncVehicleCategoryPrice('edit')">
@@ -425,24 +426,25 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Transmission Type</label>
                             <select id="editTransmission" class="form-select rounded-3">
-                                <option value="Manual">Manual</option>
-                                <option value="Automatic">Automatic</option>
+                                @foreach($vehicleOptions['transmissions'] as $transmissionOption)
+                                    <option value="{{ $transmissionOption }}">{{ $transmissionOption }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Fuel Type</label>
                             <select id="editFuel" class="form-select rounded-3">
-                                <option value="Gasoline">Gasoline</option>
-                                <option value="Diesel">Diesel</option>
+                                @foreach($vehicleOptions['fuelTypes'] as $fuelOption)
+                                    <option value="{{ $fuelOption }}">{{ $fuelOption }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Capacity</label>
                             <select id="editCapacityType" class="form-select rounded-3" onchange="syncVehicleCapacity('edit')">
-                                <option value="4 Seater">4 Seater</option>
-                                <option value="5 Seater">5 Seater</option>
-                                <option value="6 Seater">6 Seater</option>
-                                <option value="7 Seater">7 Seater</option>
+                                @foreach($vehicleOptions['capacities'] as $capacityOption)
+                                    <option value="{{ $capacityOption }}">{{ $capacityOption }}</option>
+                                @endforeach
                                 <option value="__custom__">Custom</option>
                             </select>
                             <input type="text" id="editCustomCapacity" class="form-control rounded-3 mt-2 d-none" placeholder="Enter custom capacity" maxlength="50">
@@ -1476,8 +1478,8 @@
             document.getElementById('addVehicleModalTitle').textContent = 'ADD UNIT — ' + vehicle.name;
             document.getElementById('addBrandName').value = vehicle.brand_name || '';
             setVehicleCategory('add', vehicle.category, vehicle.price);
-            document.getElementById('addTransmission').value = vehicle.transmission || 'Manual';
-            document.getElementById('addFuel').value = vehicle.fuel || 'Gasoline';
+            setVehicleOption('addTransmission', vehicle.transmission || 'Manual');
+            setVehicleOption('addFuel', vehicle.fuel || 'Gasoline');
             setVehicleCapacity('add', vehicle.capacity_type || (vehicle.capacity ? vehicle.capacity + ' Seater' : ''));
             document.getElementById('addStatus').value = 'available';
             document.getElementById('addPhoto').value = vehicle.imagePath || '';
@@ -1558,11 +1560,15 @@
 
         function cityDrivingPrice(category) {
             const normalized = String(category || '').trim().toLowerCase();
-            if (normalized === 'expanded — diesel' || normalized === 'expanded diesel') return cityDrivingPrices['Expanded — Diesel'];
+            const exactGuideCategory = Object.keys(cityDrivingPrices).find(function (guideCategory) {
+                return guideCategory.toLowerCase() === normalized;
+            });
+            if (exactGuideCategory) return cityDrivingPrices[exactGuideCategory];
+            if (normalized === 'expanded — diesel' || normalized === 'expanded diesel') return cityDrivingPrices['Expanded — Diesel'] ?? null;
             if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas' || normalized === 'pick-up / expanded') {
-                return cityDrivingPrices['Pick-up / Expanded (7-Seater) (2 Days) — Gas'];
+                return cityDrivingPrices['Pick-up / Expanded (7-Seater) (2 Days) — Gas'] ?? null;
             }
-            if (normalized === 'sedan') return cityDrivingPrices.Sedan;
+            if (normalized === 'sedan') return cityDrivingPrices.Sedan ?? null;
             return null;
         }
 
@@ -1592,9 +1598,8 @@
         }
 
         function getVehiclePrice(prefix, category) {
-            if (!isCustomVehicleCategory(prefix) && document.getElementById(prefix + 'Category').value !== 'SUV') {
-                return cityDrivingPrice(category);
-            }
+            const guidePrice = cityDrivingPrice(category);
+            if (Number.isFinite(guidePrice)) return guidePrice;
             const value = document.getElementById(prefix + 'Price').value;
             return value === '' ? null : Number(value);
         }
@@ -1603,13 +1608,13 @@
             const select = document.getElementById(prefix + 'Category');
             const customCategory = document.getElementById(prefix + 'CustomCategory');
             const price = document.getElementById(prefix + 'Price');
-            const manualPrice = select.value === 'SUV' || select.value === '__custom__';
+            const manualPrice = select.value === '__custom__' || !Number.isFinite(cityDrivingPrice(select.value));
             customCategory.classList.toggle('d-none', select.value !== '__custom__');
             if (manualPrice) {
                 if (price.readOnly) price.value = '';
                 price.readOnly = false;
                 price.classList.remove('bg-light');
-                if (select.value === 'SUV') price.placeholder = 'Enter price per day';
+                price.placeholder = 'Enter price per day';
             } else {
                 price.readOnly = true;
                 price.classList.add('bg-light');
@@ -1618,26 +1623,40 @@
             }
         }
 
-        function normalizeVehicleCategory(category) {
+        function normalizeVehicleCategory(category, prefix) {
             const normalized = String(category || '').toLowerCase();
-            if (normalized === 'expanded — diesel' || normalized === 'expanded diesel') return 'Expanded — Diesel';
-            if (normalized === 'pick-up / expanded (7-seater) (2 days) — gas' || normalized === 'pick-up / expanded') {
-                return 'Pick-up / Expanded (7-Seater) (2 Days) — Gas';
+            let matchingCategory = category;
+            if (normalized === 'expanded diesel') matchingCategory = 'Expanded — Diesel';
+            if (normalized === 'pick-up / expanded') matchingCategory = 'Pick-up / Expanded (7-Seater) (2 Days) — Gas';
+            const select = document.getElementById(prefix + 'Category');
+            if (Array.from(select.options).some(function (option) { return option.value === matchingCategory; })) {
+                return matchingCategory;
             }
-            if (normalized === 'sedan') return 'Sedan';
             if (normalized === 'suv') return '__custom__';
+            if (matchingCategory) {
+                select.add(new Option(matchingCategory, matchingCategory));
+                return matchingCategory;
+            }
             return '__custom__';
         }
 
         function setVehicleCategory(prefix, category, priceValue) {
             const select = document.getElementById(prefix + 'Category');
             const customCategory = document.getElementById(prefix + 'CustomCategory');
-            select.value = normalizeVehicleCategory(category);
+            select.value = normalizeVehicleCategory(category, prefix);
             customCategory.value = select.value === '__custom__' ? (category || '') : '';
             syncVehicleCategoryPrice(prefix);
-            if (select.value === 'SUV' || select.value === '__custom__') {
+            if (select.value === '__custom__' || !Number.isFinite(cityDrivingPrice(select.value))) {
                 document.getElementById(prefix + 'Price').value = priceValue ?? '';
             }
+        }
+
+        function setVehicleOption(selectId, value) {
+            const select = document.getElementById(selectId);
+            if (value && !Array.from(select.options).some(function (option) { return option.value === value; })) {
+                select.add(new Option(value, value));
+            }
+            select.value = value || '';
         }
 
         function syncVehicleCapacity(prefix) {
@@ -1685,11 +1704,18 @@
             document.getElementById('addName').disabled = false;
             document.getElementById('addBrandName').value = '';
             document.getElementById('addPlate').value = '';
-            document.getElementById('addCategory').value = 'Sedan';
+            document.getElementById('addCategory').value = Array.from(document.getElementById('addCategory').options)
+                .find(function (option) { return option.value !== '__custom__'; })?.value || '__custom__';
             document.getElementById('addCustomCategory').value = '';
-            document.getElementById('addTransmission').value = 'Manual';
-            document.getElementById('addFuel').value = 'Gasoline';
-            document.getElementById('addCapacityType').value = '5 Seater';
+            setVehicleOption('addTransmission', Array.from(document.getElementById('addTransmission').options)
+                .find(function (option) { return option.value === 'Manual'; })?.value
+                || document.getElementById('addTransmission').options[0]?.value);
+            setVehicleOption('addFuel', Array.from(document.getElementById('addFuel').options)
+                .find(function (option) { return option.value === 'Gasoline'; })?.value
+                || document.getElementById('addFuel').options[0]?.value);
+            setVehicleCapacity('add', Array.from(document.getElementById('addCapacityType').options)
+                .find(function (option) { return option.value === '5 Seater'; })?.value
+                || document.getElementById('addCapacityType').options[0]?.value);
             document.getElementById('addCustomCapacity').value = '';
             syncVehicleCapacity('add');
             document.getElementById('addStatus').value = 'available';
@@ -1814,8 +1840,8 @@
             document.getElementById('editPrice').value = v.price;
             setVehicleCategory('edit', v.category, v.price);
             document.getElementById('editStatus').value = v.status;
-            document.getElementById('editTransmission').value = v.transmission;
-            document.getElementById('editFuel').value = v.fuel;
+            setVehicleOption('editTransmission', v.transmission);
+            setVehicleOption('editFuel', v.fuel);
             setVehicleCapacity('edit', v.capacity_type || (v.capacity ? v.capacity + ' Seater' : '5 Seater'));
             document.getElementById('editPhoto').value = v.photo;
             const currentSchedule = (v.schedule || []).find(function (entry) {

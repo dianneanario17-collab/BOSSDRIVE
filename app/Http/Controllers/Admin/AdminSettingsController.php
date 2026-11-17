@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\SystemSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AdminSettingsController extends Controller
@@ -38,12 +39,48 @@ class AdminSettingsController extends Controller
             'long_distance_surcharge' => ['required', 'numeric', 'min:0', 'max:100000'],
             'admin_page_notices' => ['nullable', 'array'],
             'admin_page_notices.*' => ['nullable', 'string', 'max:500'],
+            'vehicle_categories' => ['sometimes', 'required', 'string', 'max:5000'],
+            'vehicle_transmissions' => ['sometimes', 'required', 'string', 'max:5000'],
+            'vehicle_fuel_types' => ['sometimes', 'required', 'string', 'max:5000'],
+            'vehicle_capacities' => ['sometimes', 'required', 'string', 'max:5000'],
         ]);
+
+        foreach ([
+            'vehicle_categories' => 255,
+            'vehicle_transmissions' => 50,
+            'vehicle_fuel_types' => 50,
+            'vehicle_capacities' => 50,
+        ] as $field => $maxOptionLength) {
+            if (! array_key_exists($field, $data)) {
+                continue;
+            }
+
+            $options = collect(preg_split('/\R/u', $data[$field]) ?: [])
+                ->map(fn (string $option): string => trim($option))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($options === [] || in_array('__custom__', $options, true)) {
+                throw ValidationException::withMessages([
+                    $field => 'Enter at least one valid option, one per line. The reserved value "__custom__" cannot be used.',
+                ]);
+            }
+
+            if (count($options) > 40 || collect($options)->contains(fn (string $option): bool => mb_strlen($option) > $maxOptionLength)) {
+                throw ValidationException::withMessages([
+                    $field => 'Each option is too long or there are too many options.',
+                ]);
+            }
+
+            $data[$field] = $options;
+        }
 
         $settings = SystemSetting::current();
         $settings->fill($data)->save();
         AuditLog::record('system_settings.updated', $settings, [
-            'sections' => ['business', 'agreement', 'booking_policies', 'fees', 'admin_page_notices'],
+            'sections' => ['business', 'agreement', 'booking_policies', 'fees', 'admin_page_notices', 'vehicle_options'],
         ]);
 
         return back()->with('success', 'System settings updated.');

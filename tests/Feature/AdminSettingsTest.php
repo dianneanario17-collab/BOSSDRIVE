@@ -59,6 +59,10 @@ class AdminSettingsTest extends TestCase
                     'dashboard' => 'Admin dashboard notice',
                     'vehicles' => 'Check vehicle records before saving.',
                 ],
+                'vehicle_categories' => "Sedan\nMinibus\nSUV",
+                'vehicle_transmissions' => "Manual\nAutomatic\nCVT",
+                'vehicle_fuel_types' => "Gasoline\nDiesel\nHybrid",
+                'vehicle_capacities' => "4 Seater\n5 Seater\n8 Seater",
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -79,6 +83,10 @@ class AdminSettingsTest extends TestCase
             'long_distance_surcharge' => 1600,
         ]);
         $this->assertSame('Admin dashboard notice', SystemSetting::current()->admin_page_notices['dashboard']);
+        $this->assertSame(['Sedan', 'Minibus', 'SUV'], SystemSetting::current()->vehicle_categories);
+        $this->assertSame(['Manual', 'Automatic', 'CVT'], SystemSetting::current()->vehicle_transmissions);
+        $this->assertSame(['Gasoline', 'Diesel', 'Hybrid'], SystemSetting::current()->vehicle_fuel_types);
+        $this->assertSame(['4 Seater', '5 Seater', '8 Seater'], SystemSetting::current()->vehicle_capacities);
     }
 
     public function test_booking_window_setting_is_reflected_in_vehicle_availability(): void
@@ -204,5 +212,23 @@ class AdminSettingsTest extends TestCase
             ->assertOk()
             ->assertSee('₱3,700')
             ->assertSee('Long Distance (3 Days)');
+    }
+
+    public function test_custom_vehicle_options_are_available_in_add_and_edit_forms(): void
+    {
+        SystemSetting::current()->update([
+            'vehicle_categories' => ['Sedan', 'Minibus'],
+            'vehicle_transmissions' => ['Manual', 'CVT'],
+            'vehicle_fuel_types' => ['Gasoline', 'Hybrid'],
+            'vehicle_capacities' => ['5 Seater', '8 Seater'],
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->get(route('admin.vehicles'))
+            ->assertOk()
+            ->assertSee('value="Minibus"', false)
+            ->assertSee('value="CVT"', false)
+            ->assertSee('value="Hybrid"', false)
+            ->assertSee('value="8 Seater"', false);
     }
 }

@@ -25,6 +25,10 @@ class SystemSetting extends Model
         'province_diesel_surcharge',
         'long_distance_surcharge',
         'admin_page_notices',
+        'vehicle_categories',
+        'vehicle_transmissions',
+        'vehicle_fuel_types',
+        'vehicle_capacities',
     ];
 
     protected function casts(): array
@@ -41,6 +45,10 @@ class SystemSetting extends Model
             'province_diesel_surcharge' => 'decimal:2',
             'long_distance_surcharge' => 'decimal:2',
             'admin_page_notices' => 'array',
+            'vehicle_categories' => 'array',
+            'vehicle_transmissions' => 'array',
+            'vehicle_fuel_types' => 'array',
+            'vehicle_capacities' => 'array',
         ];
     }
 
@@ -78,6 +86,14 @@ class SystemSetting extends Model
             'province_diesel_surcharge' => 500,
             'long_distance_surcharge' => 1500,
             'admin_page_notices' => [],
+            'vehicle_categories' => [
+                'Sedan',
+                'Pick-up / Expanded (7-Seater) (2 Days) — Gas',
+                'Expanded — Diesel',
+            ],
+            'vehicle_transmissions' => ['Manual', 'Automatic'],
+            'vehicle_fuel_types' => ['Gasoline', 'Diesel'],
+            'vehicle_capacities' => ['4 Seater', '5 Seater', '6 Seater', '7 Seater'],
         ];
     }
 
@@ -94,6 +110,15 @@ class SystemSetting extends Model
 
     public static function current(): self
     {
-        return static::query()->firstOrCreate(['id' => 1], static::defaults());
+        $settings = static::query()->firstOrCreate(['id' => 1], static::defaults());
+        $missingDefaults = collect(static::defaults())
+            ->filter(fn ($value, string $key): bool => $settings->{$key} === null)
+            ->all();
+
+        if ($missingDefaults !== []) {
+            $settings->fill($missingDefaults)->save();
+        }
+
+        return $settings;
     }
 }
