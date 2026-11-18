@@ -33,6 +33,7 @@ class AdminSettingsController extends Controller
             'pickup_location' => ['required', 'string', 'max:255'],
             'agreement_text' => ['required', 'string', 'max:15000'],
             'rental_contract_text' => ['sometimes', 'required', 'string', 'max:15000'],
+            'rental_contract_template' => ['sometimes', 'required', 'string', 'max:30000'],
             'rental_location_guide' => ['required', 'string', 'max:5000'],
             'security_deposit' => ['required', 'integer', 'min:0', 'max:100000'],
             'booking_window_days' => ['required', 'integer', 'min:1', 'max:90'],

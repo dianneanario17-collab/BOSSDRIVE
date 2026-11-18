@@ -34,6 +34,7 @@ class RentalContractTest extends TestCase
             'pickup_location' => 'GMA Garage',
             'agreement_text' => 'Booking-only terms.',
             'rental_contract_text' => "Printable terms for {business_name}.\nDeposit: ₱{deposit_amount}",
+            'rental_contract_template' => "CUSTOM RENTAL AGREEMENT\nOwner: {owner_address}\nBooking: {control_number}\nRenter: {renter_name}\nVehicle: {vehicle_make} {vehicle_model}\nTerms:\n{agreement_terms}",
             'security_deposit' => 1500,
         ]);
 
@@ -44,7 +45,8 @@ class RentalContractTest extends TestCase
 
         $this->get(route('user.active-rental.contract', $reservation))
             ->assertOk()
-            ->assertSee('Vehicle Rental Agreement')
+            ->assertSee('CUSTOM RENTAL AGREEMENT')
+            ->assertSee($reservation->control_number)
             ->assertSee('Jamie Renter')
             ->assertSee('Toyota')
             ->assertSee('GMA Garage')

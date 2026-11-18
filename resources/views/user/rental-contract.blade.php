@@ -13,25 +13,13 @@
         .content-container{padding:24px}
         .contract-form,.contract-paper{max-width:980px;margin:0 auto 22px}
         .contract-paper{background:#fff;padding:38px 48px;box-shadow:0 4px 18px rgba(0,0,0,.12);color:#171717;font-family:Arial,sans-serif;font-size:14px;line-height:1.55}
-        .contract-paper h1{font-size:23px;letter-spacing:.04em}
-        .contract-paper h2{font-size:15px;margin-top:22px;text-transform:uppercase}
-        .contract-paper p{margin-bottom:10px}
-        .contract-line{display:inline-block;min-width:100px;border-bottom:1px solid #222;padding:0 4px;min-height:20px}
-        .contract-line.wide{min-width:240px}
-        .contract-line.full{display:block;width:100%;min-height:22px}
-        .contract-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 24px}
-        .grid-span{grid-column:1/-1}
-        .signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:42px}
-        .signature-line{border-top:1px solid #222;padding-top:5px;text-align:center}
-        .terms-text{white-space:normal}
-        @media(max-width:575.98px){.content-container{padding:12px}.contract-paper{padding:24px 18px}.contract-grid,.signature-grid{grid-template-columns:1fr;gap:12px}.contract-paper h1{font-size:19px}}
+        .contract-text{white-space:pre-wrap;overflow-wrap:anywhere}
+        @media(max-width:575.98px){.content-container{padding:12px}.contract-paper{padding:24px 18px}}
         @media print{
             @page{size:A4;margin:14mm}
             body *{visibility:hidden!important}
             .contract-paper,.contract-paper *{visibility:visible!important}
             .contract-paper{position:absolute;left:0;top:0;width:100%;max-width:none;margin:0;padding:0;box-shadow:none;font-size:11pt}
-            .contract-paper h1{font-size:18pt}
-            .contract-paper h2{font-size:12pt}
         }
     </style>
 </head>
@@ -107,53 +95,7 @@
     </div>
 
     <article class="contract-paper" id="contractPaper">
-        <header class="text-center border-bottom border-dark pb-3 mb-3">
-            <h1 class="fw-bold mb-1">{{ $settings->business_name }}</h1>
-            <p class="mb-1">{{ $settings->pickup_location }}</p>
-            <h2 class="fw-bold mt-3 mb-0">Vehicle Rental Agreement</h2>
-        </header>
-        <p>This Vehicle Rental Agreement is made on <strong>{{ \Illuminate\Support\Carbon::parse($contractData['agreement_date'])->format('F j, Y') }}</strong> between <strong>{{ $settings->business_name }}</strong> (“Owner”), located at <strong>{{ $settings->pickup_location }}</strong>, and <strong>{{ $reservation->customer_name ?: $user->name }}</strong> (“Renter”), residing at <span class="contract-line wide">{{ $contractData['renter_address'] ?: ' ' }}</span>.</p>
-
-        <h2>Renter and Booking Information</h2>
-        <div class="contract-grid">
-            <div><strong>Renter:</strong> {{ $reservation->customer_name ?: $user->name }}</div>
-            <div><strong>Contact:</strong> {{ $reservation->customer_phone ?: ($user->contact_number ?: ' ') }}</div>
-            <div><strong>Email:</strong> {{ $user->email }}</div>
-            <div><strong>Control No.:</strong> {{ $reservation->control_number }}</div>
-            <div class="grid-span"><strong>Address:</strong> {{ $contractData['renter_address'] ?: ' ' }}</div>
-        </div>
-
-        <h2>Vehicle and Rental Period</h2>
-        <div class="contract-grid">
-            <div><strong>Make:</strong> {{ $vehicle?->brand_name ?: $reservation->vehicle }}</div>
-            <div><strong>Model:</strong> {{ $vehicle?->brand_name ? $vehicle->name : ' ' }}</div>
-            <div><strong>Year:</strong> {{ $contractData['vehicle_year'] ?: ' ' }}</div>
-            <div><strong>Color:</strong> {{ $contractData['vehicle_color'] ?: ' ' }}</div>
-            <div><strong>Plate No.:</strong> {{ $vehicle?->plate ?: ' ' }}</div>
-            <div><strong>Starting Mileage:</strong> {{ $contractData['vehicle_mileage'] ?: ' ' }}</div>
-            <div class="grid-span"><strong>VIN / Chassis No.:</strong> {{ $contractData['vehicle_vin'] ?: ' ' }}</div>
-            <div><strong>Pickup:</strong> {{ $reservation->pickup_date->format('F j, Y') }}{{ $reservation->pickup_time ? ' at '.\Illuminate\Support\Carbon::parse($reservation->pickup_time)->format('g:i A') : '' }}</div>
-            <div><strong>Return:</strong> {{ $reservation->return_date->format('F j, Y') }}{{ $reservation->return_time ? ' at '.\Illuminate\Support\Carbon::parse($reservation->return_time)->format('g:i A') : '' }}</div>
-            <div class="grid-span"><strong>Agreed Rental Area / Destination:</strong> {{ $contractData['allowed_area'] ?: ' ' }}</div>
-            <div class="grid-span"><strong>Mileage Limit:</strong> {{ $contractData['mileage_unlimited'] === true ? 'No mileage limit' : ($contractData['mileage_limit'] !== '' ? number_format((float) $contractData['mileage_limit']).' kilometers' : ' ') }}</div>
-        </div>
-
-        <h2>Rental Fees and Deposit</h2>
-        <div class="contract-grid">
-            <div><strong>Rental Fee:</strong> ₱{{ number_format((float) $reservation->total_amount, 2) }}</div>
-            <div><strong>Amount Paid:</strong> ₱{{ number_format((float) $reservation->paid_amount, 2) }}</div>
-            <div><strong>Remaining Balance:</strong> ₱{{ number_format(max((float) $reservation->total_amount - (float) $reservation->paid_amount, 0), 2) }}</div>
-            <div><strong>Security Deposit:</strong> ₱{{ number_format((float) $settings->security_deposit, 2) }}</div>
-        </div>
-
-        <h2>Agreement Terms and Rules</h2>
-        <div class="terms-text">{!! nl2br(e($agreementText)) !!}</div>
-        <p class="mt-3"><strong>Vehicle condition report:</strong> Complete the Vehicle Pickup Condition Check separately.</p>
-
-        <div class="signature-grid">
-            <div class="signature-line"><strong>{{ $reservation->customer_name ?: $user->name }}</strong><br>Renter Signature &amp; Date</div>
-            <div class="signature-line"><strong>{{ $settings->business_name }}</strong><br>Owner / Authorized Representative &amp; Date</div>
-        </div>
+        <div class="contract-text">{{ $printableContract }}</div>
     </article>
 </div>
 </main>

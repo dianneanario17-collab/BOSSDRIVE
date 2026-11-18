@@ -41,7 +41,8 @@ class AdminSettingsTest extends TestCase
             ->assertSee('id="security_deposit" type="number" min="0" max="100000" step="1" name="security_deposit" class="form-control" value="1000"', false)
             ->assertSee('name="name"', false)
             ->assertSee('name="agreement_text"', false)
-            ->assertSee('name="rental_contract_text"', false);
+            ->assertSee('name="rental_contract_text"', false)
+            ->assertSee('name="rental_contract_template"', false);
     }
 
     public function test_admin_can_update_persistent_business_agreement_and_booking_settings(): void
@@ -55,6 +56,7 @@ class AdminSettingsTest extends TestCase
                 'pickup_location' => 'New Garage, Cavite',
                 'agreement_text' => "Read the rules.\nDeposit: ₱{deposit_amount}",
                 'rental_contract_text' => "Printed agreement terms.\nDeposit: ₱{deposit_amount}",
+                'rental_contract_template' => "CUSTOM AGREEMENT\nRenter: {renter_name}\n{agreement_terms}",
                 'rental_location_guide' => "City: nearby\nProvince: outside",
                 'security_deposit' => 1500,
                 'booking_window_days' => 10,
@@ -85,6 +87,7 @@ class AdminSettingsTest extends TestCase
             'business_name' => 'BossDrive Rentals',
             'agreement_text' => "Read the rules.\nDeposit: ₱{deposit_amount}",
             'rental_contract_text' => "Printed agreement terms.\nDeposit: ₱{deposit_amount}",
+            'rental_contract_template' => "CUSTOM AGREEMENT\nRenter: {renter_name}\n{agreement_terms}",
             'rental_location_guide' => "City: nearby\nProvince: outside",
             'security_deposit' => 1500,
             'booking_window_days' => 10,
