@@ -1663,14 +1663,27 @@ class AdminManagementController extends Controller
 
     public function reports(Request $request): View
     {
+        $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
         $from = $request->date('from') ?: now()->startOfYear();
         $to = $request->date('to') ?: now()->endOfYear();
-        $reservations = Reservation::with('user')
+        $reservations = Reservation::with(['user', 'vehicleUnit'])
             ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])->get();
         $voidedReservations = Reservation::with('user')
             ->where('status', 'void')
             ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])
             ->latest('updated_at')
+            ->get();
+        $returnConditionReports = Reservation::with(['user', 'vehicleUnit'])
+            ->whereNotNull('return_condition_checked_at')
+            ->whereBetween('return_condition_checked_at', [$from->startOfDay(), $to->endOfDay()])
+            ->latest('return_condition_checked_at')
+            ->get();
+        $extensions = RentalExtension::with(['reservation.user'])
+            ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])
+            ->latest()
             ->get();
         $pickupReports = PickupConditionReport::with(['user', 'reservation'])
             ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])
@@ -1684,6 +1697,49 @@ class AdminManagementController extends Controller
             ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])
             ->latest()
             ->get();
+        $vehicles = Vehicle::query()->orderBy('name')->orderBy('id')->get();
+        $customers = User::query()
+            ->where('role', 'user')
+            ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])
+            ->withCount('reservations')
+            ->latest()
+            ->get();
+        $driverReservations = $reservations
+            ->filter(fn (Reservation $reservation): bool => filled($reservation->assigned_driver_name))
+            ->values();
+        $settings = SystemSetting::current();
+        $driverDailyFee = (float) $settings->driver_daily_fee;
+        $paymentRows = $reservations->map(function (Reservation $reservation) use ($driverDailyFee): array {
+            $amount = (float) $reservation->total_amount;
+            if ($amount <= 0) {
+                $amount = (float) ($reservation->vehicleUnit?->price ?? 0) * $reservation->rentalDays()
+                    + ($reservation->driver_option === 'with_driver' ? $driverDailyFee * $reservation->rentalDays() : 0);
+            }
+
+            return [
+                'type' => 'Booking',
+                'reference' => $reservation->control_number,
+                'customer' => $reservation->customer_name ?: ($reservation->user?->name ?? 'Walk-in Customer'),
+                'date' => $reservation->created_at,
+                'amount' => $amount,
+                'paid' => (float) $reservation->paid_amount,
+                'status' => $reservation->payment_status ?: 'unpaid',
+                'payment_reference' => $reservation->payment_reference_id,
+            ];
+        })->concat($extensions->map(fn (RentalExtension $extension): array => [
+            'type' => 'Extension',
+            'reference' => $extension->reservation?->control_number ?? 'Unknown booking',
+            'customer' => $extension->reservation?->customer_name ?: ($extension->reservation?->user?->name ?? 'Walk-in Customer'),
+            'date' => $extension->created_at,
+            'amount' => (float) $extension->amount,
+            'paid' => (float) $extension->paid_amount,
+            'status' => $extension->status,
+            'payment_reference' => $extension->payment_reference_id,
+        ]))->sortByDesc('date')->values();
+        $vehicleReportRows = $vehicles->map(fn (Vehicle $vehicle): array => [
+            'vehicle' => $vehicle,
+            'reservation_count' => $reservations->where('vehicle_id', $vehicle->id)->count(),
+        ]);
 
         return view('admin.reports', [
             'from' => $from->toDateString(),
@@ -1705,6 +1761,20 @@ class AdminManagementController extends Controller
             'deletedVehicleCount' => $auditLogs->where('action', 'vehicle.deleted')->count(),
             'inquiries' => $inquiries,
             'inquiriesCount' => $inquiries->count(),
+            'returnConditionReports' => $returnConditionReports,
+            'returnConditionCount' => $returnConditionReports->count(),
+            'extensions' => $extensions,
+            'paymentRows' => $paymentRows,
+            'paymentTotal' => $paymentRows->sum('amount'),
+            'paymentPaid' => $paymentRows->sum('paid'),
+            'paymentBalance' => max(0, $paymentRows->sum('amount') - $paymentRows->sum('paid')),
+            'vehicles' => $vehicles,
+            'vehicleReportRows' => $vehicleReportRows,
+            'customers' => $customers,
+            'driverReservations' => $driverReservations,
+            'completedCount' => $reservations->where('status', 'completed')->count(),
+            'activeRentalCount' => $reservations->whereIn('status', ['processing', 'released'])->count(),
+            'settings' => $settings,
         ]);
     }
 

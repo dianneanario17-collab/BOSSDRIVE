@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PickupConditionReport;
+use App\Models\RentalExtension;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -52,6 +53,85 @@ class ReportDeletionTest extends TestCase
 
             $this->assertStringContainsString('class="management-sticky-overview"', $response->getContent());
         }
+    }
+
+    public function test_admin_reports_include_bookings_payments_fleet_customers_drivers_and_return_checks(): void
+    {
+        $user = User::factory()->create(['name' => 'Reports Customer']);
+        $vehicle = Vehicle::create([
+            'name' => 'Reports Sedan',
+            'brand_name' => 'Reports Brand',
+            'plate' => 'REPORTS-1',
+            'price' => 1800,
+            'category' => 'Sedan',
+            'status' => 'available',
+        ]);
+        $reservation = Reservation::create([
+            'user_id' => $user->id,
+            'vehicle_id' => $vehicle->id,
+            'booking_source' => 'user',
+            'customer_name' => $user->name,
+            'customer_phone' => '09123456789',
+            'vehicle' => $vehicle->name,
+            'service_option' => 'pickup',
+            'rate_type' => 'city',
+            'driver_option' => 'with_driver',
+            'assigned_driver_name' => 'Reports Driver',
+            'assigned_driver_contact' => '09987654321',
+            'pickup_date' => now()->toDateString(),
+            'return_date' => now()->addDay()->toDateString(),
+            'document_paths' => [],
+            'privacy_consent' => true,
+            'payment_mode' => 'deposit',
+            'payment_status' => 'pending',
+            'total_amount' => 3600,
+            'paid_amount' => 1000,
+            'control_number' => 'REPORTS-ALL-1',
+            'status' => 'completed',
+            'return_condition_checks' => ['Fuel recorded', 'Body inspected'],
+            'return_condition_notes' => 'No new damage.',
+            'return_condition_checked_at' => now(),
+            'return_condition_checked_by' => 'Reports Staff',
+            'return_condition_checked_by_role' => 'Staff',
+        ]);
+        RentalExtension::create([
+            'reservation_id' => $reservation->id,
+            'days' => 1,
+            'amount' => 500,
+            'paid_amount' => 200,
+            'requested_return_date' => now()->addDays(2)->toDateString(),
+            'status' => 'approved',
+            'payment_reference_id' => 'EXT-REPORT-1',
+        ]);
+        PickupConditionReport::create([
+            'reservation_id' => $reservation->id,
+            'user_id' => $user->id,
+            'checks' => ['Pickup check complete'],
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->get(route('admin.reports', [
+                'from' => now()->subDay()->toDateString(),
+                'to' => now()->addDay()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('name="from"', false)
+            ->assertSee('All Bookings')
+            ->assertSee('Payment Report')
+            ->assertSee('Vehicle Fleet Report')
+            ->assertSee('Driver Assignments')
+            ->assertSee('Customer Account Report')
+            ->assertSee('Vehicle Pickup Condition Reports')
+            ->assertSee('Vehicle Return Condition Reports')
+            ->assertSee('REPORTS-ALL-1')
+            ->assertSee('Reports Customer')
+            ->assertSee('Reports Driver')
+            ->assertSee('Reports Sedan')
+            ->assertSee('Reports Staff')
+            ->assertSee('EXT-REPORT-1')
+            ->assertSee('Fuel recorded')
+            ->assertSee('1/1 Checked')
+            ->assertSee('₱4,100.00');
     }
 
     public function test_admin_can_delete_cancelled_and_voided_reservations_and_pickup_report_records(): void

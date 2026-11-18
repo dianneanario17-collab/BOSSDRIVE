@@ -120,11 +120,55 @@
 
         <div class="container-fluid p-4">
 
+            <form method="GET" action="{{ route('admin.reports') }}" class="table-container mb-4 d-flex flex-wrap align-items-end gap-3">
+                <div>
+                    <label class="form-label small fw-bold mb-1" for="reportFrom">From</label>
+                    <input class="form-control form-control-sm" type="date" id="reportFrom" name="from" value="{{ $from }}" required>
+                </div>
+                <div>
+                    <label class="form-label small fw-bold mb-1" for="reportTo">To</label>
+                    <input class="form-control form-control-sm" type="date" id="reportTo" name="to" value="{{ $to }}" required>
+                </div>
+                <button class="btn btn-danger btn-sm rounded-pill fw-bold px-4" type="submit"><i class="fas fa-filter me-1"></i>Apply Date Range</button>
+                <a class="btn btn-outline-secondary btn-sm rounded-pill fw-bold px-4" href="{{ route('admin.reports') }}">Reset</a>
+                <span class="small text-muted ms-auto">Date range applies to bookings, payments, customers, driver assignments, inquiries, logs, and condition reports. Fleet is a current snapshot.</span>
+            </form>
+
             <!-- Report Category Buttons -->
             <div class="management-sticky-overview">
             <div class="row g-3 mb-4 row-cols-2 row-cols-lg-5">
                 <div class="col">
-                    <button class="report-tab-btn active d-flex align-items-center gap-3" onclick="showReportPanel('cancelled', this)">
+                    <button class="report-tab-btn active d-flex align-items-center gap-3" onclick="showReportPanel('bookings', this)">
+                        <div class="tab-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div><span class="tab-title d-block">All Bookings</span><span class="tab-count">{{ $total }}</span></div>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('payments', this)">
+                        <div class="tab-icon"><i class="fas fa-coins"></i></div>
+                        <div><span class="tab-title d-block">Payments</span><span class="tab-count">{{ $paymentRows->count() }}</span></div>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('fleet', this)">
+                        <div class="tab-icon"><i class="fas fa-car"></i></div>
+                        <div><span class="tab-title d-block">Vehicle Fleet</span><span class="tab-count">{{ $vehicles->count() }}</span></div>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('drivers', this)">
+                        <div class="tab-icon"><i class="fas fa-id-badge"></i></div>
+                        <div><span class="tab-title d-block">Driver Assignments</span><span class="tab-count">{{ $driverReservations->count() }}</span></div>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('customers', this)">
+                        <div class="tab-icon"><i class="fas fa-users"></i></div>
+                        <div><span class="tab-title d-block">Customer Accounts</span><span class="tab-count">{{ $customers->count() }}</span></div>
+                    </button>
+                </div>
+                <div class="col">
+                    <button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('cancelled', this)">
                         <div class="tab-icon"><i class="fas fa-ban"></i></div>
                         <div>
                             <span class="tab-title d-block">Cancelled Bookings</span>
@@ -168,11 +212,148 @@
                         </div>
                     </button>
                 </div>
+                <div class="col">
+                    <button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('return', this)">
+                        <div class="tab-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <div><span class="tab-title d-block">Return Condition Reports</span><span class="tab-count">{{ $returnConditionCount }}</span></div>
+                    </button>
+                </div>
             </div>
             </div>
 
+            <!-- Panel: All Bookings -->
+            <div class="report-panel active" id="panel-bookings">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-calendar-check me-2 text-danger"></i>All Bookings</h6><small class="text-muted">Reservation records created in the selected date range.</small></div>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $total }} Records</span>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-4"><div class="border rounded-3 p-3"><small class="text-muted">Completed</small><div class="h5 fw-bold mb-0">{{ $completedCount }}</div></div></div>
+                        <div class="col-sm-4"><div class="border rounded-3 p-3"><small class="text-muted">Active rentals</small><div class="h5 fw-bold mb-0">{{ $activeRentalCount }}</div></div></div>
+                        <div class="col-sm-4"><div class="border rounded-3 p-3"><small class="text-muted">Cancelled</small><div class="h5 fw-bold mb-0">{{ $cancelledCount }}</div></div></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="bookingsTable">
+                            <thead class="bg-light small text-muted text-uppercase"><tr><th>Control #</th><th>Customer</th><th>Vehicle</th><th>Rental Dates</th><th>Service / Rate</th><th>Driver</th><th class="text-end">Total</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @forelse($reservations as $reservation)
+                                    @php
+                                        $bookingAmount = (float) $reservation->total_amount;
+                                        if ($bookingAmount <= 0) {
+                                            $bookingAmount = (float) ($reservation->vehicleUnit?->price ?? 0) * $reservation->rentalDays()
+                                                + ($reservation->driver_option === 'with_driver' ? (float) $settings->driver_daily_fee * $reservation->rentalDays() : 0);
+                                        }
+                                    @endphp
+                                    <tr>
+                                        <td class="fw-bold">{{ $reservation->control_number }}</td>
+                                        <td>{{ $reservation->customer_name ?: ($reservation->user?->name ?? 'Walk-in Customer') }}</td>
+                                        <td>{{ $reservation->vehicle }}</td>
+                                        <td class="small">{{ $reservation->pickup_date?->format('M d, Y') }} – {{ $reservation->return_date?->format('M d, Y') }}</td>
+                                        <td class="small">{{ ucfirst($reservation->service_option) }} / {{ ucfirst(str_replace('_', ' ', $reservation->rate_type ?? 'city')) }}</td>
+                                        <td class="small">{{ $reservation->assigned_driver_name ?: ucfirst(str_replace('_', ' ', $reservation->driver_option)) }}</td>
+                                        <td class="text-end">₱{{ number_format($bookingAmount, 2) }}</td>
+                                        <td><span class="badge bg-secondary">{{ ucfirst($reservation->status) }}</span></td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="8" class="text-center text-muted py-4">No bookings in this period.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Payments -->
+            <div class="report-panel" id="panel-payments">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-coins me-2 text-danger"></i>Payment Report</h6><small class="text-muted">Booking payment balances are current totals for bookings created in the selected period; extensions are grouped by extension date.</small></div>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $paymentRows->count() }} Records</span>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4"><div class="border rounded-3 p-3"><small class="text-muted">Total amount</small><div class="h5 fw-bold mb-0">₱{{ number_format($paymentTotal, 2) }}</div></div></div>
+                        <div class="col-md-4"><div class="border rounded-3 p-3"><small class="text-muted">Paid</small><div class="h5 fw-bold text-success mb-0">₱{{ number_format($paymentPaid, 2) }}</div></div></div>
+                        <div class="col-md-4"><div class="border rounded-3 p-3"><small class="text-muted">Balance</small><div class="h5 fw-bold text-danger mb-0">₱{{ number_format($paymentBalance, 2) }}</div></div></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="paymentsTable">
+                            <thead class="bg-light small text-muted text-uppercase"><tr><th>Type</th><th>Control #</th><th>Customer</th><th>Date</th><th class="text-end">Amount</th><th class="text-end">Paid</th><th class="text-end">Balance</th><th>Status / Reference</th></tr></thead>
+                            <tbody>
+                                @forelse($paymentRows as $payment)
+                                    <tr>
+                                        <td>{{ $payment['type'] }}</td><td class="fw-bold">{{ $payment['reference'] }}</td><td>{{ $payment['customer'] }}</td><td class="small">{{ $payment['date']?->format('M d, Y') }}</td>
+                                        <td class="text-end">₱{{ number_format($payment['amount'], 2) }}</td><td class="text-end">₱{{ number_format($payment['paid'], 2) }}</td><td class="text-end">₱{{ number_format(max(0, $payment['amount'] - $payment['paid']), 2) }}</td>
+                                        <td><span class="badge bg-secondary">{{ ucfirst($payment['status']) }}</span><div class="small text-muted">{{ $payment['payment_reference'] ?: 'No reference' }}</div></td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="8" class="text-center text-muted py-4">No payment records in this period.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Vehicle Fleet -->
+            <div class="report-panel" id="panel-fleet">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4"><div><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-car me-2 text-danger"></i>Vehicle Fleet Report</h6><small class="text-muted">Current inventory snapshot; reservation counts use the selected period.</small></div><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $vehicles->count() }} Vehicles</span></div>
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="fleetTable">
+                            <thead class="bg-light small text-muted text-uppercase"><tr><th>Vehicle</th><th>Brand</th><th>Car No.</th><th>Category</th><th>Status</th><th class="text-end">Price / Day</th><th class="text-center">Bookings</th></tr></thead>
+                            <tbody>
+                                @forelse($vehicleReportRows as $row)
+                                    <tr><td class="fw-bold">{{ $row['vehicle']->name }}</td><td>{{ $row['vehicle']->brand_name ?: '—' }}</td><td>{{ $row['vehicle']->plate }}</td><td>{{ $row['vehicle']->category ?: '—' }}</td><td><span class="badge bg-{{ $row['vehicle']->status === 'available' ? 'success' : ($row['vehicle']->status === 'maintenance' ? 'warning' : 'secondary') }}">{{ ucfirst($row['vehicle']->status) }}</span></td><td class="text-end">₱{{ number_format((float) $row['vehicle']->price, 2) }}</td><td class="text-center">{{ $row['reservation_count'] }}</td></tr>
+                                @empty
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No vehicles found.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Driver Assignments -->
+            <div class="report-panel" id="panel-drivers">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4"><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-id-badge me-2 text-danger"></i>Driver Assignments</h6><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $driverReservations->count() }} Records</span></div>
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="driversTable">
+                            <thead class="bg-light small text-muted text-uppercase"><tr><th>Control #</th><th>Driver</th><th>Contact</th><th>Customer</th><th>Vehicle</th><th>Pickup Date</th><th>Status</th></tr></thead>
+                            <tbody>
+                                @forelse($driverReservations as $reservation)
+                                    <tr><td class="fw-bold">{{ $reservation->control_number }}</td><td>{{ $reservation->assigned_driver_name }}</td><td>{{ $reservation->assigned_driver_contact ?: '—' }}</td><td>{{ $reservation->customer_name ?: ($reservation->user?->name ?? 'Walk-in Customer') }}</td><td>{{ $reservation->vehicle }}</td><td>{{ $reservation->pickup_date?->format('M d, Y') }}</td><td><span class="badge bg-secondary">{{ ucfirst($reservation->status) }}</span></td></tr>
+                                @empty
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No driver assignments in this period.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Customer Accounts -->
+            <div class="report-panel" id="panel-customers">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4"><div><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-users me-2 text-danger"></i>Customer Account Report</h6><small class="text-muted">Customer accounts registered in the selected date range.</small></div><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $customers->count() }} Records</span></div>
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="customersTable">
+                            <thead class="bg-light small text-muted text-uppercase"><tr><th>Customer</th><th>Email</th><th>Contact</th><th>Registered</th><th class="text-center">Total Bookings</th></tr></thead>
+                            <tbody>
+                                @forelse($customers as $customer)
+                                    <tr><td class="fw-bold">{{ $customer->name }}</td><td>{{ $customer->email }}</td><td>{{ $customer->contact_number ?: '—' }}</td><td>{{ $customer->created_at->format('M d, Y') }}</td><td class="text-center">{{ $customer->reservations_count }}</td></tr>
+                                @empty
+                                    <tr><td colspan="5" class="text-center text-muted py-4">No customer accounts registered in this period.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Panel: Cancelled Bookings -->
-            <div class="report-panel active" id="panel-cancelled">
+            <div class="report-panel" id="panel-cancelled">
                 <div class="table-container">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-ban me-2 text-danger"></i> Cancelled Bookings</h6>
@@ -419,6 +600,32 @@
                             </tbody>
                         </table>
                         <p class="text-muted small mb-0 fst-italic" id="pickupEmptyMsg" style="display:none;">No pickup condition reports yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Vehicle Return Condition Reports -->
+            <div class="report-panel" id="panel-return">
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4"><div><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-clipboard-list me-2 text-danger"></i>Vehicle Return Condition Reports</h6><small class="text-muted">Completed return checks recorded by Admin or Staff in the selected date range.</small></div><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $returnConditionCount }} Records</span></div>
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="returnConditionTable">
+                            <thead class="bg-light small text-muted text-uppercase"><tr><th>Customer</th><th>Vehicle</th><th>Date Returned</th><th>Checklist</th><th>Notes</th><th>Checked By</th></tr></thead>
+                            <tbody>
+                                @forelse($returnConditionReports as $reservation)
+                                    <tr>
+                                        <td class="fw-bold">{{ $reservation->customer_name ?: ($reservation->user?->name ?? 'Walk-in Customer') }}</td>
+                                        <td>{{ $reservation->vehicle }}</td>
+                                        <td>{{ $reservation->return_condition_checked_at->format('M d, Y | g:i A') }}</td>
+                                        <td class="small">{{ collect($reservation->return_condition_checks ?? [])->implode(', ') ?: 'No checklist recorded' }}</td>
+                                        <td class="small">{{ $reservation->return_condition_notes ?: '—' }}</td>
+                                        <td>{{ $reservation->return_condition_checked_by ?: '—' }}<div class="small text-muted">{{ $reservation->return_condition_checked_by_role }}</div></td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="6" class="text-center text-muted py-4">No return condition reports in this period.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
