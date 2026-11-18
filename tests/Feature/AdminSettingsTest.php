@@ -38,6 +38,7 @@ class AdminSettingsTest extends TestCase
             ->assertSee('id="payment-settings"', false)
             ->assertSee('name="account_name"', false)
             ->assertSee('name="account_number"', false)
+            ->assertSee('id="security_deposit" type="number" min="0" max="100000" step="1" name="security_deposit" class="form-control" value="1000"', false)
             ->assertSee('name="name"', false)
             ->assertSee('name="agreement_text"', false);
     }

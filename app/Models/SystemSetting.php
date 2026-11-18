@@ -36,7 +36,7 @@ class SystemSetting extends Model
     protected function casts(): array
     {
         return [
-            'security_deposit' => 'decimal:2',
+            'security_deposit' => 'integer',
             'booking_window_days' => 'integer',
             'max_rental_days' => 'integer',
             'min_city_days' => 'integer',
