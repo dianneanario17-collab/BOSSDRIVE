@@ -215,7 +215,7 @@
                 <div class="col">
                     <button class="report-tab-btn d-flex align-items-center gap-3" onclick="showReportPanel('return', this)">
                         <div class="tab-icon"><i class="fas fa-clipboard-list"></i></div>
-                        <div><span class="tab-title d-block">Return Condition Reports</span><span class="tab-count">{{ $returnConditionCount }}</span></div>
+                        <div><span class="tab-title d-block">Return Condition Reports</span><span class="tab-count" id="returnCountBtn">{{ $returnConditionCount }}</span></div>
                     </button>
                 </div>
             </div>
@@ -359,7 +359,6 @@
                         <h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-ban me-2 text-danger"></i> Cancelled Bookings</h6>
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $cancelledCount }} Records</span>
-                            <button class="btn btn-danger btn-sm rounded-pill fw-bold" onclick="deleteAllReports('cancelled', 'Cancelled Bookings', '{{ route('admin.reports.delete-all', 'cancelled') }}', 'cancelledTable')"><i class="fas fa-trash me-1"></i>Delete All</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -370,7 +369,6 @@
                                     <th class="border-0">Vehicle</th>
                                     <th class="border-0">Date Cancelled</th>
                                     <th class="border-0 text-center">Reason</th>
-                                    <th class="border-0 text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -380,10 +378,9 @@
                                     <td class="text-muted small">{{ $reservation->vehicle }}</td>
                                     <td class="text-muted small">{{ $reservation->updated_at->format('M d, Y') }}</td>
                                     <td class="text-center"><span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary fw-bold">{{ ucfirst($reservation->payment_status ?? 'Customer Request') }}</span></td>
-                                    <td class="text-end"><button class="btn btn-outline-danger btn-sm border-0" onclick="deleteRow(this, 'Cancelled Booking', '{{ route('admin.reservations.destroy', $reservation) }}')"><i class="fas fa-trash"></i></button></td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="5" class="text-center text-muted py-4">No cancelled bookings in this period.</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted py-4">No cancelled bookings in this period.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -401,7 +398,6 @@
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $voidedCount ?? 0 }} Records</span>
-                            <button class="btn btn-danger btn-sm rounded-pill fw-bold" onclick="deleteAllReports('voided', 'Voided Bookings', '{{ route('admin.reports.delete-all', 'voided') }}', 'voidedTable')"><i class="fas fa-trash me-1"></i>Delete All</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -412,7 +408,6 @@
                                     <th class="border-0">Vehicle</th>
                                     <th class="border-0">Walk-in Time</th>
                                     <th class="border-0 text-center">Voided After</th>
-                                    <th class="border-0 text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -426,10 +421,9 @@
                                     <td class="text-muted small">{{ $reservation->vehicle }}</td>
                                     <td class="text-muted small">{{ $walkInTime->format('M d, Y | g:i A') }}</td>
                                     <td class="text-center"><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger fw-bold">{{ $voidedAfter }}</span></td>
-                                    <td class="text-end"><button class="btn btn-outline-danger btn-sm border-0" onclick="deleteRow(this, 'Voided Booking', '{{ route('admin.reservations.destroy', $reservation) }}')"><i class="fas fa-trash"></i></button></td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="5" class="text-center text-muted py-4">No voided bookings in this period.</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted py-4">No voided bookings in this period.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -455,7 +449,6 @@
                                     <th class="border-0">Entity</th>
                                     <th class="border-0">Date</th>
                                     <th class="border-0">Details</th>
-                                    <th class="border-0 text-end">Delete</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -482,10 +475,9 @@
                                     <td class="text-muted small">{{ class_basename($log->entity_type) }} #{{ $log->entity_id ?? '—' }}</td>
                                     <td class="text-muted small">{{ $log->created_at->format('M d, Y | g:i A') }}</td>
                                     <td class="small text-dark"><span class="badge bg-light text-dark text-wrap" style="white-space: normal; max-width: 340px;">{{ e($auditDetailText) }}</span></td>
-                                    <td class="text-end"><button class="btn btn-outline-danger btn-sm border-0" onclick="deleteRow(this, 'Audit Log', '{{ url('/admin/audit-logs') }}/{{ $log->id }}')" title="Delete audit log"><i class="fas fa-trash"></i></button></td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="5" class="text-center text-muted py-4">No audit logs in this period.</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted py-4">No audit logs in this period.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -518,7 +510,6 @@
                                     <th class="border-0">Sender Details</th>
                                     <th class="border-0">Message Preview</th>
                                     <th class="border-0 text-center">Status</th>
-                                    <th class="border-0 text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -537,12 +528,9 @@
                                         <td class="text-center">
                                             <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning fw-bold">{{ ucfirst($inquiry->status) }}</span>
                                         </td>
-                                        <td class="text-end">
-                                            <button class="btn btn-outline-danger btn-sm border-0" onclick="deleteRow(this, 'Inquiry', '{{ url('/admin/inquiries') }}/{{ $inquiry->id }}')"><i class="fas fa-trash"></i></button>
-                                        </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="4" class="text-center text-muted py-4">No unresolved inquiries in this period.</td></tr>
+                                    <tr><td colspan="3" class="text-center text-muted py-4">No unresolved inquiries in this period.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -573,7 +561,6 @@
                                     <th class="border-0 text-center">Checklist</th>
                                     <th class="border-0">Damage / Condition Notes</th>
                                     <th class="border-0 text-center">Photo</th>
-                                    <th class="border-0 text-end">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -592,10 +579,9 @@
                                         <span class="pickup-photo-empty" title="No photo uploaded"><i class="fas fa-image"></i></span>
                                         @endif
                                     </td>
-                                    <td class="text-end"><button class="btn btn-outline-danger btn-sm border-0" onclick="deleteRow(this, 'Pickup Condition Report', '{{ route('admin.reports.pickup.destroy', $report) }}')"><i class="fas fa-trash"></i></button></td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="7" class="text-center text-muted py-4">No pickup condition reports in this period.</td></tr>
+                                <tr><td colspan="6" class="text-center text-muted py-4">No pickup condition reports in this period.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -607,7 +593,7 @@
             <!-- Panel: Vehicle Return Condition Reports -->
             <div class="report-panel" id="panel-return">
                 <div class="table-container">
-                    <div class="d-flex justify-content-between align-items-center mb-4"><div><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-clipboard-list me-2 text-danger"></i>Vehicle Return Condition Reports</h6><small class="text-muted">Completed return checks recorded by Admin or Staff in the selected date range.</small></div><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2">{{ $returnConditionCount }} Records</span></div>
+                    <div class="d-flex justify-content-between align-items-center mb-4"><div><h6 class="fw-bold mb-0 text-uppercase text-muted small"><i class="fas fa-clipboard-list me-2 text-danger"></i>Vehicle Return Condition Reports</h6><small class="text-muted">Completed return checks recorded by Admin or Staff in the selected date range.</small></div><div class="d-flex align-items-center gap-2"><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2" id="returnConditionCountBtn">{{ $returnConditionCount }} Records</span><button class="btn btn-danger btn-sm rounded-pill fw-bold" onclick="deleteAllReports('return_condition', 'Return Condition Reports', '{{ route('admin.reports.delete-all', 'return_condition') }}', 'returnConditionTable')"><i class="fas fa-trash me-1"></i>Delete All</button></div></div>
                     <div class="table-responsive">
                         <table class="table align-middle" id="returnConditionTable">
                             <thead class="bg-light small text-muted text-uppercase"><tr><th>Customer</th><th>Vehicle</th><th>Date Returned</th><th>Checklist</th><th>Notes</th><th>Checked By</th></tr></thead>
@@ -780,10 +766,14 @@
                     voidedTable: 'voidedCountBtn',
                     deletedVehiclesTable: 'deletedCountBtn',
                     inquiriesTable: 'inquiriesCountBtn',
-                    pickupTable: 'pickupCountBtn'
+                    pickupTable: 'pickupCountBtn',
+                    returnConditionTable: 'returnConditionCountBtn'
                 };
                 const counter = document.getElementById(counterIds[tableId]);
                 if (counter) counter.innerText = '0';
+                if (tableId === 'returnConditionTable') {
+                    document.getElementById('returnCountBtn').innerText = '0';
+                }
                 const recordsBadge = table ? table.closest('.table-container').querySelector('.badge.bg-secondary') : null;
                 if (recordsBadge) recordsBadge.innerText = '0 Records';
 

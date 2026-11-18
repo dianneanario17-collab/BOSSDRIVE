@@ -1519,19 +1519,7 @@ class AdminManagementController extends Controller
     {
         $deleted = 0;
 
-        if ($type === 'cancelled') {
-            $cancelledReservations = Reservation::where('status', 'cancelled')->get();
-            foreach ($cancelledReservations as $reservation) {
-                $this->syncReservationSchedule($reservation, 'cancelled');
-            }
-            $deleted = Reservation::where('status', 'cancelled')->delete();
-        } elseif ($type === 'voided') {
-            $voidedReservations = Reservation::where('status', 'void')->get();
-            foreach ($voidedReservations as $reservation) {
-                $this->syncReservationSchedule($reservation, 'void');
-            }
-            $deleted = Reservation::where('status', 'void')->delete();
-        } elseif ($type === 'audit') {
+        if ($type === 'audit') {
             $deleted = AuditLog::query()->delete();
         } elseif ($type === 'inquiries') {
             $deleted = ContactInquiry::query()->delete();
@@ -1543,6 +1531,25 @@ class AdminManagementController extends Controller
                 }
             }
             $deleted = PickupConditionReport::query()->delete();
+        } elseif ($type === 'return_condition') {
+            $reservations = Reservation::query()
+                ->whereNotNull('return_condition_checked_at')
+                ->get(['id', 'return_condition_photo_path']);
+            $deleted = Reservation::query()
+                ->whereIn('id', $reservations->pluck('id'))
+                ->update([
+                    'return_condition_checks' => null,
+                    'return_condition_notes' => null,
+                    'return_condition_photo_path' => null,
+                    'return_condition_checked_at' => null,
+                    'return_condition_checked_by' => null,
+                    'return_condition_checked_by_role' => null,
+                ]);
+            foreach ($reservations as $reservation) {
+                if ($reservation->return_condition_photo_path) {
+                    Storage::disk('public')->delete($reservation->return_condition_photo_path);
+                }
+            }
         } else {
             abort(404, 'Unknown report type.');
         }

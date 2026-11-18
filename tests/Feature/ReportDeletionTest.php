@@ -15,29 +15,23 @@ class ReportDeletionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_report_delete_buttons_are_wired_to_persistent_delete_routes(): void
+    public function test_admin_reports_offer_bulk_only_delete_controls_for_report_data(): void
     {
         Storage::fake('public');
         $user = User::factory()->create();
-        $cancelled = $this->createReservation($user, 'cancelled');
-        $voided = $this->createReservation($user, 'void');
-        $pickupReservation = $this->createReservation($user, 'released');
-        $photoPath = 'reservations/conditions/report-photo.jpg';
-        Storage::disk('public')->put($photoPath, 'photo');
-        $pickupReport = PickupConditionReport::create([
-            'reservation_id' => $pickupReservation->id,
-            'user_id' => $user->id,
-            'checks' => ['Vehicle checked'],
-            'photo_path' => $photoPath,
-        ]);
-
         $this->withSession(['is_admin' => true])
             ->get(route('admin.reports'))
             ->assertOk()
             ->assertSee('class="management-sticky-overview"', false)
-            ->assertSee("deleteRow(this, 'Cancelled Booking', '".route('admin.reservations.destroy', $cancelled), false)
-            ->assertSee("deleteRow(this, 'Voided Booking', '".route('admin.reservations.destroy', $voided), false)
-            ->assertSee("deleteRow(this, 'Pickup Condition Report', '".route('admin.reports.pickup.destroy', $pickupReport), false);
+            ->assertSee("deleteAllReports('audit'", false)
+            ->assertSee("deleteAllReports('inquiries'", false)
+            ->assertSee("deleteAllReports('pickup'", false)
+            ->assertSee("deleteAllReports('return_condition'", false)
+            ->assertDontSee("deleteAllReports('cancelled'", false)
+            ->assertDontSee("deleteAllReports('voided'", false)
+            ->assertDontSee("deleteRow(this, 'Cancelled Booking'", false)
+            ->assertDontSee("deleteRow(this, 'Voided Booking'", false)
+            ->assertDontSee("deleteRow(this, 'Pickup Condition Report'", false);
     }
 
     public function test_admin_and_staff_report_categories_render_in_sticky_overviews(): void
@@ -164,6 +158,51 @@ class ReportDeletionTest extends TestCase
             ->deleteJson(route('admin.reports.pickup.destroy', $pickupReport))
             ->assertOk();
         $this->assertDatabaseMissing('pickup_condition_reports', ['id' => $pickupReport->id]);
+        Storage::disk('public')->assertMissing($photoPath);
+    }
+
+    public function test_bulk_report_deletion_rejects_booking_categories(): void
+    {
+        $reservation = $this->createReservation(User::factory()->create(), 'cancelled');
+
+        $this->withSession(['is_admin' => true])
+            ->deleteJson(route('admin.reports.delete-all', 'cancelled'))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('reservations', ['id' => $reservation->id]);
+    }
+
+    public function test_bulk_deleting_return_condition_reports_preserves_reservations(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $reservation = $this->createReservation($user, 'completed');
+        $photoPath = 'reservations/conditions/return-report-photo.jpg';
+        Storage::disk('public')->put($photoPath, 'photo');
+        $reservation->update([
+            'return_condition_checks' => ['Vehicle checked'],
+            'return_condition_notes' => 'No new damage.',
+            'return_condition_photo_path' => $photoPath,
+            'return_condition_checked_at' => now(),
+            'return_condition_checked_by' => 'Admin',
+            'return_condition_checked_by_role' => 'Admin',
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->deleteJson(route('admin.reports.delete-all', 'return_condition'))
+            ->assertOk()
+            ->assertJsonPath('deleted', 1);
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservation->id,
+            'status' => 'completed',
+            'return_condition_checks' => null,
+            'return_condition_notes' => null,
+            'return_condition_photo_path' => null,
+            'return_condition_checked_at' => null,
+            'return_condition_checked_by' => null,
+            'return_condition_checked_by_role' => null,
+        ]);
         Storage::disk('public')->assertMissing($photoPath);
     }
 
