@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
+use App\Models\ContactInquiry;
 use App\Models\PickupConditionReport;
 use App\Models\RentalExtension;
 use App\Models\Reservation;
@@ -15,23 +17,24 @@ class ReportDeletionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_reports_offer_bulk_only_delete_controls_for_report_data(): void
+    public function test_admin_reports_offer_bulk_delete_controls_in_every_category(): void
     {
-        Storage::fake('public');
-        $user = User::factory()->create();
         $this->withSession(['is_admin' => true])
             ->get(route('admin.reports'))
             ->assertOk()
             ->assertSee('class="management-sticky-overview"', false)
+            ->assertSee("deleteAllReports('bookings'", false)
+            ->assertSee("deleteAllReports('payments'", false)
+            ->assertSee("deleteAllReports('fleet'", false)
+            ->assertSee("deleteAllReports('drivers'", false)
+            ->assertSee("deleteAllReports('customers'", false)
+            ->assertSee("deleteAllReports('cancelled'", false)
+            ->assertSee("deleteAllReports('voided'", false)
             ->assertSee("deleteAllReports('audit'", false)
             ->assertSee("deleteAllReports('inquiries'", false)
             ->assertSee("deleteAllReports('pickup'", false)
             ->assertSee("deleteAllReports('return_condition'", false)
-            ->assertDontSee("deleteAllReports('cancelled'", false)
-            ->assertDontSee("deleteAllReports('voided'", false)
-            ->assertDontSee("deleteRow(this, 'Cancelled Booking'", false)
-            ->assertDontSee("deleteRow(this, 'Voided Booking'", false)
-            ->assertDontSee("deleteRow(this, 'Pickup Condition Report'", false);
+            ->assertSee('Delete All');
     }
 
     public function test_admin_and_staff_report_categories_render_in_sticky_overviews(): void
@@ -102,6 +105,20 @@ class ReportDeletionTest extends TestCase
             'user_id' => $user->id,
             'checks' => ['Pickup check complete'],
         ]);
+        $this->createReservation($user, 'cancelled');
+        $this->createReservation($user, 'void');
+        AuditLog::create([
+            'action' => 'report.test',
+            'entity_type' => Reservation::class,
+            'entity_id' => $reservation->id,
+        ]);
+        ContactInquiry::create([
+            'name' => 'Report Inquiry',
+            'email' => 'inquiry@example.test',
+            'subject' => 'Report test',
+            'message' => 'Inquiry from report test.',
+            'status' => 'unread',
+        ]);
 
         $this->withSession(['is_admin' => true])
             ->get(route('admin.reports', [
@@ -125,6 +142,17 @@ class ReportDeletionTest extends TestCase
             ->assertSee('EXT-REPORT-1')
             ->assertSee('Fuel recorded')
             ->assertSee('1/1 Checked')
+            ->assertSee("deleteRow(this, 'Booking'", false)
+            ->assertSee("deleteRow(this, 'Payment Details'", false)
+            ->assertSee("deleteRow(this, 'Vehicle'", false)
+            ->assertSee("deleteRow(this, 'Driver Assignment Booking'", false)
+            ->assertSee("deleteRow(this, 'Customer Account (including linked records)'", false)
+            ->assertSee("deleteRow(this, 'Cancelled Booking'", false)
+            ->assertSee("deleteRow(this, 'Voided Booking'", false)
+            ->assertSee("deleteRow(this, 'Audit Log'", false)
+            ->assertSee("deleteRow(this, 'Inquiry'", false)
+            ->assertSee("deleteRow(this, 'Pickup Condition Report'", false)
+            ->assertSee("deleteRow(this, 'Return Condition Report'", false)
             ->assertSee('₱4,100.00');
     }
 
@@ -161,15 +189,22 @@ class ReportDeletionTest extends TestCase
         Storage::disk('public')->assertMissing($photoPath);
     }
 
-    public function test_bulk_report_deletion_rejects_booking_categories(): void
+    public function test_bulk_report_deletion_removes_bookings_in_the_selected_date_range(): void
     {
         $reservation = $this->createReservation(User::factory()->create(), 'cancelled');
+        $outsideRange = $this->createReservation(User::factory()->create(), 'cancelled');
+        $outsideRange->forceFill(['created_at' => now()->subYears(2)])->save();
 
         $this->withSession(['is_admin' => true])
-            ->deleteJson(route('admin.reports.delete-all', 'cancelled'))
-            ->assertNotFound();
+            ->deleteJson(route('admin.reports.delete-all', 'cancelled'), [
+                'from' => now()->startOfYear()->toDateString(),
+                'to' => now()->endOfYear()->toDateString(),
+            ])
+            ->assertOk()
+            ->assertJsonPath('deleted', 1);
 
-        $this->assertDatabaseHas('reservations', ['id' => $reservation->id]);
+        $this->assertDatabaseMissing('reservations', ['id' => $reservation->id]);
+        $this->assertDatabaseHas('reservations', ['id' => $outsideRange->id]);
     }
 
     public function test_bulk_deleting_return_condition_reports_preserves_reservations(): void
@@ -204,6 +239,97 @@ class ReportDeletionTest extends TestCase
             'return_condition_checked_by_role' => null,
         ]);
         Storage::disk('public')->assertMissing($photoPath);
+    }
+
+    public function test_deleting_payment_details_keeps_the_booking_and_clears_its_proof(): void
+    {
+        Storage::fake('public');
+        $reservation = $this->createReservation(User::factory()->create(), 'pending');
+        $proofPath = 'payments/booking-proof.jpg';
+        Storage::disk('public')->put($proofPath, 'proof');
+        $reservation->update([
+            'payment_status' => 'approved',
+            'payment_proof_path' => $proofPath,
+            'payment_reference_id' => 'PAYMENT-1',
+            'payment_submitted_amount' => 1000,
+            'paid_amount' => 1000,
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->deleteJson(route('admin.reports.payments.reservation.destroy', $reservation))
+            ->assertOk();
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservation->id,
+            'payment_status' => 'unpaid',
+            'payment_proof_path' => null,
+            'payment_reference_id' => null,
+            'payment_submitted_amount' => null,
+            'paid_amount' => 0,
+        ]);
+        Storage::disk('public')->assertMissing($proofPath);
+    }
+
+    public function test_bulk_payment_deletion_clears_visible_payment_details_only(): void
+    {
+        Storage::fake('public');
+        $reservation = $this->createReservation(User::factory()->create(), 'pending');
+        $bookingProof = 'payments/bulk-booking-proof.jpg';
+        $extensionProof = 'payments/bulk-extension-proof.jpg';
+        Storage::disk('public')->put($bookingProof, 'proof');
+        Storage::disk('public')->put($extensionProof, 'proof');
+        $reservation->update([
+            'payment_status' => 'approved',
+            'payment_proof_path' => $bookingProof,
+            'payment_reference_id' => 'PAYMENT-BULK',
+            'payment_submitted_amount' => 1000,
+            'paid_amount' => 1000,
+        ]);
+        $extension = RentalExtension::create([
+            'reservation_id' => $reservation->id,
+            'days' => 1,
+            'amount' => 500,
+            'paid_amount' => 200,
+            'payment_proof_path' => $extensionProof,
+            'payment_reference_id' => 'EXT-BULK',
+            'payment_submitted_amount' => 200,
+            'requested_return_date' => now()->addDays(2)->toDateString(),
+            'status' => 'approved',
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->deleteJson(route('admin.reports.delete-all', 'payments'), [
+                'from' => now()->startOfYear()->toDateString(),
+                'to' => now()->endOfYear()->toDateString(),
+            ])
+            ->assertOk()
+            ->assertJsonPath('deleted', 2);
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservation->id,
+            'payment_status' => 'unpaid',
+            'paid_amount' => 0,
+        ]);
+        $this->assertDatabaseHas('rental_extensions', [
+            'id' => $extension->id,
+            'status' => 'approved',
+            'paid_amount' => 0,
+        ]);
+        Storage::disk('public')->assertMissing($bookingProof);
+        Storage::disk('public')->assertMissing($extensionProof);
+    }
+
+    public function test_customer_report_deletion_cleans_up_linked_reservations(): void
+    {
+        $customer = User::factory()->create(['role' => 'user']);
+        $reservation = $this->createReservation($customer, 'pending');
+
+        $this->withSession(['is_admin' => true])
+            ->deleteJson(route('admin.reports.customers.destroy', $customer))
+            ->assertOk();
+
+        $this->assertDatabaseMissing('users', ['id' => $customer->id]);
+        $this->assertDatabaseMissing('reservations', ['id' => $reservation->id]);
     }
 
     public function test_admin_can_persistently_remove_a_vehicle_feedback_reply(): void

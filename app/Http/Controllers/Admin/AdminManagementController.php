@@ -630,6 +630,16 @@ class AdminManagementController extends Controller
             Storage::disk('public')->delete($reservation->payment_proof_path);
         }
 
+        if ($reservation->return_condition_photo_path) {
+            Storage::disk('public')->delete($reservation->return_condition_photo_path);
+        }
+
+        foreach ($reservation->extensions as $extension) {
+            if ($extension->payment_proof_path) {
+                Storage::disk('public')->delete($extension->payment_proof_path);
+            }
+        }
+
         $vehicle = $reservation->vehicleUnit;
         if ($vehicle) {
             $hasActiveReservation = $vehicle->reservations()
@@ -1457,6 +1467,9 @@ class AdminManagementController extends Controller
     public function destroyVehicle(Request $request, Vehicle $vehicle): RedirectResponse|JsonResponse
     {
         AuditLog::record('vehicle.deleted', $vehicle, ['name' => $vehicle->name, 'plate' => $vehicle->plate]);
+        if ($vehicle->image_path) {
+            Storage::disk('public')->delete($vehicle->image_path);
+        }
         $vehicle->delete();
 
         if ($request->expectsJson()) {
@@ -1515,48 +1528,196 @@ class AdminManagementController extends Controller
         return response()->json(['message' => 'Pickup condition report deleted.']);
     }
 
-    public function destroyAllReportRecords(string $type): JsonResponse
+    public function destroyReservationPayment(Reservation $reservation): JsonResponse
     {
-        $deleted = 0;
-
-        if ($type === 'audit') {
-            $deleted = AuditLog::query()->delete();
-        } elseif ($type === 'inquiries') {
-            $deleted = ContactInquiry::query()->delete();
-        } elseif ($type === 'pickup') {
-            $reports = PickupConditionReport::query()->get();
-            foreach ($reports as $report) {
-                if ($report->photo_path) {
-                    Storage::disk('public')->delete($report->photo_path);
-                }
-            }
-            $deleted = PickupConditionReport::query()->delete();
-        } elseif ($type === 'return_condition') {
-            $reservations = Reservation::query()
-                ->whereNotNull('return_condition_checked_at')
-                ->get(['id', 'return_condition_photo_path']);
-            $deleted = Reservation::query()
-                ->whereIn('id', $reservations->pluck('id'))
-                ->update([
-                    'return_condition_checks' => null,
-                    'return_condition_notes' => null,
-                    'return_condition_photo_path' => null,
-                    'return_condition_checked_at' => null,
-                    'return_condition_checked_by' => null,
-                    'return_condition_checked_by_role' => null,
-                ]);
-            foreach ($reservations as $reservation) {
-                if ($reservation->return_condition_photo_path) {
-                    Storage::disk('public')->delete($reservation->return_condition_photo_path);
-                }
-            }
-        } else {
-            abort(404, 'Unknown report type.');
+        if ($reservation->payment_proof_path) {
+            Storage::disk('public')->delete($reservation->payment_proof_path);
         }
+        $reservation->update([
+            'payment_proof_path' => null,
+            'payment_reference_id' => null,
+            'payment_status' => 'unpaid',
+            'payment_submitted_amount' => null,
+            'paid_amount' => 0,
+        ]);
+
+        return response()->json(['message' => 'Booking payment details cleared.']);
+    }
+
+    public function destroyExtensionPayment(RentalExtension $extension): JsonResponse
+    {
+        if ($extension->payment_proof_path) {
+            Storage::disk('public')->delete($extension->payment_proof_path);
+        }
+        $extension->update([
+            'payment_proof_path' => null,
+            'payment_reference_id' => null,
+            'payment_submitted_amount' => null,
+            'paid_amount' => 0,
+        ]);
+
+        return response()->json(['message' => 'Extension payment details cleared.']);
+    }
+
+    public function destroyReturnConditionReport(Reservation $reservation): JsonResponse
+    {
+        abort_unless($reservation->return_condition_checked_at, 404, 'Return condition report not found.');
+        $this->clearReturnConditionReport($reservation);
+
+        return response()->json(['message' => 'Return condition report deleted.']);
+    }
+
+    public function destroyAllReportRecords(Request $request, string $type): JsonResponse
+    {
+        $data = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
+        $from = isset($data['from']) ? Carbon::parse($data['from'])->startOfDay() : now()->startOfYear();
+        $to = isset($data['to']) ? Carbon::parse($data['to'])->endOfDay() : now()->endOfYear();
+
+        $deleted = match ($type) {
+            'bookings' => $this->deleteReservationsInReportRange($request, $from, $to),
+            'cancelled' => $this->deleteReservationsInReportRange($request, $from, $to, 'cancelled'),
+            'voided' => $this->deleteReservationsInReportRange($request, $from, $to, 'void'),
+            'drivers' => $this->deleteReservationsInReportRange($request, $from, $to, null, true),
+            'payments' => $this->clearReportPayments($from, $to),
+            'fleet' => $this->deleteReportVehicles($request),
+            'customers' => $this->deleteReportCustomers($request, $from, $to),
+            'audit' => AuditLog::query()->whereBetween('created_at', [$from, $to])->delete(),
+            'inquiries' => ContactInquiry::query()->whereBetween('created_at', [$from, $to])->delete(),
+            'pickup' => $this->deletePickupReportsInRange($from, $to),
+            'return_condition' => $this->clearReturnConditionReportsInRange($from, $to),
+            default => abort(404, 'Unknown report type.'),
+        };
 
         return response()->json([
             'message' => $deleted.' report record(s) deleted.',
             'deleted' => $deleted,
+        ]);
+    }
+
+    private function deleteReservationsInReportRange(Request $request, Carbon $from, Carbon $to, ?string $status = null, bool $assignedDriverOnly = false): int
+    {
+        $query = Reservation::query()->whereBetween('created_at', [$from, $to]);
+        if ($status !== null) {
+            $query->where('status', $status);
+        }
+        if ($assignedDriverOnly) {
+            $query->whereNotNull('assigned_driver_name')->where('assigned_driver_name', '<>', '');
+        }
+
+        $reservations = $query->get();
+        foreach ($reservations as $reservation) {
+            $this->destroyReservation($request, $reservation);
+        }
+
+        return $reservations->count();
+    }
+
+    private function clearReportPayments(Carbon $from, Carbon $to): int
+    {
+        $reservations = Reservation::query()->whereBetween('created_at', [$from, $to])->get();
+        $extensions = RentalExtension::query()->whereBetween('created_at', [$from, $to])->get();
+
+        foreach ($reservations as $reservation) {
+            $this->clearReservationPaymentData($reservation);
+        }
+        foreach ($extensions as $extension) {
+            $this->clearExtensionPaymentData($extension);
+        }
+
+        return $reservations->count() + $extensions->count();
+    }
+
+    private function deleteReportVehicles(Request $request): int
+    {
+        $vehicles = Vehicle::query()->get();
+        foreach ($vehicles as $vehicle) {
+            $this->destroyVehicle($request, $vehicle);
+        }
+
+        return $vehicles->count();
+    }
+
+    private function deleteReportCustomers(Request $request, Carbon $from, Carbon $to): int
+    {
+        $customers = User::query()
+            ->where('role', 'user')
+            ->whereBetween('created_at', [$from, $to])
+            ->get();
+        foreach ($customers as $customer) {
+            $this->destroyReportCustomer($request, $customer);
+        }
+
+        return $customers->count();
+    }
+
+    private function deletePickupReportsInRange(Carbon $from, Carbon $to): int
+    {
+        $reports = PickupConditionReport::query()->whereBetween('created_at', [$from, $to])->get();
+        foreach ($reports as $report) {
+            if ($report->photo_path) {
+                Storage::disk('public')->delete($report->photo_path);
+            }
+            $report->delete();
+        }
+
+        return $reports->count();
+    }
+
+    private function clearReturnConditionReportsInRange(Carbon $from, Carbon $to): int
+    {
+        $reservations = Reservation::query()
+            ->whereNotNull('return_condition_checked_at')
+            ->whereBetween('return_condition_checked_at', [$from, $to])
+            ->get();
+        foreach ($reservations as $reservation) {
+            $this->clearReturnConditionReport($reservation);
+        }
+
+        return $reservations->count();
+    }
+
+    private function clearReservationPaymentData(Reservation $reservation): void
+    {
+        if ($reservation->payment_proof_path) {
+            Storage::disk('public')->delete($reservation->payment_proof_path);
+        }
+        $reservation->update([
+            'payment_proof_path' => null,
+            'payment_reference_id' => null,
+            'payment_status' => 'unpaid',
+            'payment_submitted_amount' => null,
+            'paid_amount' => 0,
+        ]);
+    }
+
+    private function clearExtensionPaymentData(RentalExtension $extension): void
+    {
+        if ($extension->payment_proof_path) {
+            Storage::disk('public')->delete($extension->payment_proof_path);
+        }
+        $extension->update([
+            'payment_proof_path' => null,
+            'payment_reference_id' => null,
+            'payment_submitted_amount' => null,
+            'paid_amount' => 0,
+        ]);
+    }
+
+    private function clearReturnConditionReport(Reservation $reservation): void
+    {
+        if ($reservation->return_condition_photo_path) {
+            Storage::disk('public')->delete($reservation->return_condition_photo_path);
+        }
+        $reservation->update([
+            'return_condition_checks' => null,
+            'return_condition_notes' => null,
+            'return_condition_photo_path' => null,
+            'return_condition_checked_at' => null,
+            'return_condition_checked_by' => null,
+            'return_condition_checked_by_role' => null,
         ]);
     }
 
@@ -1668,6 +1829,17 @@ class AdminManagementController extends Controller
         return back()->with('success', 'User deleted.');
     }
 
+    public function destroyReportCustomer(Request $request, User $customer): JsonResponse
+    {
+        abort_unless($customer->role === 'user', 404, 'Customer account not found.');
+        foreach ($customer->reservations()->get() as $reservation) {
+            $this->destroyReservation($request, $reservation);
+        }
+        $this->destroyUser($request, $customer);
+
+        return response()->json(['message' => 'Customer account and linked records deleted.']);
+    }
+
     public function reports(Request $request): View
     {
         $request->validate([
@@ -1726,6 +1898,7 @@ class AdminManagementController extends Controller
             return [
                 'type' => 'Booking',
                 'reference' => $reservation->control_number,
+                'delete_url' => route('admin.reports.payments.reservation.destroy', $reservation),
                 'customer' => $reservation->customer_name ?: ($reservation->user?->name ?? 'Walk-in Customer'),
                 'date' => $reservation->created_at,
                 'amount' => $amount,
@@ -1736,6 +1909,7 @@ class AdminManagementController extends Controller
         })->concat($extensions->map(fn (RentalExtension $extension): array => [
             'type' => 'Extension',
             'reference' => $extension->reservation?->control_number ?? 'Unknown booking',
+            'delete_url' => route('admin.reports.payments.extension.destroy', $extension),
             'customer' => $extension->reservation?->customer_name ?: ($extension->reservation?->user?->name ?? 'Walk-in Customer'),
             'date' => $extension->created_at,
             'amount' => (float) $extension->amount,

@@ -514,6 +514,14 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/inquiries/{inquiry}', [AdminManagementController::class, 'destroyInquiry'])->name('inquiries.destroy');
     Route::delete('/reports/pickup-reports/{report}', [AdminManagementController::class, 'destroyPickupReport'])
         ->name('reports.pickup.destroy');
+    Route::delete('/reports/return-reports/{reservation}', [AdminManagementController::class, 'destroyReturnConditionReport'])
+        ->name('reports.return-condition.destroy');
+    Route::delete('/reports/payments/bookings/{reservation}', [AdminManagementController::class, 'destroyReservationPayment'])
+        ->name('reports.payments.reservation.destroy');
+    Route::delete('/reports/payments/extensions/{extension}', [AdminManagementController::class, 'destroyExtensionPayment'])
+        ->name('reports.payments.extension.destroy');
+    Route::delete('/reports/customers/{customer}', [AdminManagementController::class, 'destroyReportCustomer'])
+        ->name('reports.customers.destroy');
     Route::delete('/audit-logs/{auditLog}', [AdminManagementController::class, 'destroyAuditLog'])->name('audit-logs.destroy');
     Route::delete('/reports/{type}/all', [AdminManagementController::class, 'destroyAllReportRecords'])->name('reports.delete-all');
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
