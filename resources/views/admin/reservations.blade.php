@@ -524,11 +524,9 @@
             <div id="returnConditionSummary" class="border rounded-3 bg-light p-3 mb-3 small d-none"></div>
             <form id="returnConditionForm" data-no-page-loader>
                 <div class="border rounded-3 p-3 bg-light" id="returnConditionChecklist">
-                    <label class="d-block border-bottom py-2"><input type="checkbox" name="return_condition_checks[]" value="Fuel level checked" required> Fuel level checked</label>
-                    <label class="d-block border-bottom py-2"><input type="checkbox" name="return_condition_checks[]" value="Exterior/body inspected" required> Exterior/body inspected</label>
-                    <label class="d-block border-bottom py-2"><input type="checkbox" name="return_condition_checks[]" value="Interior checked and clean" required> Interior checked and clean</label>
-                    <label class="d-block border-bottom py-2"><input type="checkbox" name="return_condition_checks[]" value="Accessories/tools verified" required> Accessories/tools verified</label>
-                    <label class="d-block py-2"><input type="checkbox" name="return_condition_checks[]" value="I confirm the vehicle condition" required> I confirm the vehicle condition</label>
+                    @foreach($returnConditionChecks as $check)
+                        <label class="d-block border-bottom py-2"><input type="checkbox" name="return_condition_checks[]" value="{{ $check }}" required> {{ $check }}</label>
+                    @endforeach
                 </div>
                 <textarea name="return_condition_notes" class="form-control mt-3" rows="2" placeholder="New damage or comparison notes (optional)" id="returnConditionNotes"></textarea>
                 <button class="btn btn-dark w-100 rounded-pill fw-bold mt-3" type="submit" id="returnConditionSubmit">SUBMIT CHECK & RETURN</button>

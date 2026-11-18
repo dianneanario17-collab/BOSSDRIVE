@@ -21,7 +21,7 @@
     @include('admin.partials.navigation', ['adminPageTitle' => 'System', 'adminPageAccent' => 'Settings'])
     <main class="main-content">
         <div class="content-container">
-            @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+            @if(session('success'))<div class="alert alert-success" id="settingsSavedAlert" role="status">{{ session('success') }}</div>@endif
             @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             <form method="POST" action="{{ route('admin.settings.update') }}">
                 @csrf
@@ -83,6 +83,22 @@
                 </section>
 
                 <section class="settings-card mb-4">
+                    <h2 class="section-title"><i class="fas fa-clipboard-check me-2"></i>Condition Report Checklists</h2>
+                    <p class="small text-muted">Edit one required checklist item per line. These options update the customer pickup form and the Admin/Staff vehicle return forms. Previously submitted reports keep their original checklist.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="pickup_condition_checks">Customer pickup checklist</label>
+                            <textarea id="pickup_condition_checks" name="pickup_condition_checks" class="form-control" rows="6" maxlength="5000" required>{{ old('pickup_condition_checks', implode("\n", $settings->pickup_condition_checks ?? [])) }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="return_condition_checks">Admin/Staff return checklist</label>
+                            <textarea id="return_condition_checks" name="return_condition_checks" class="form-control" rows="6" maxlength="5000" required>{{ old('return_condition_checks', implode("\n", $settings->return_condition_checks ?? [])) }}</textarea>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-2">Use 1–40 items per checklist; each item can be up to 100 characters. All listed items must be checked before submitting.</small>
+                </section>
+
+                <section class="settings-card mb-4">
                     <h2 class="section-title"><i class="fas fa-message me-2"></i>Admin Page Information</h2>
                     <p class="small text-muted">Optional notices shown at the top of each Admin page. Leave a field blank to hide its notice. These do not change button labels or form-field names.</p>
                     <div class="row g-3">
@@ -95,6 +111,7 @@
                             'vehicles' => 'Vehicle Management notice',
                             'drivers' => 'Driver Management notice',
                             'reports' => 'Reports notice',
+                            'condition_reports' => 'Condition Reports notice',
                         ] as $noticeKey => $noticeLabel)
                             <div class="col-md-6">
                                 <label class="form-label" for="admin_notice_{{ $noticeKey }}">{{ $noticeLabel }}</label>
@@ -109,12 +126,52 @@
                     <p class="text-muted mb-3">Vehicle records and their details are edited on Vehicle Management. The Price Guide controls the base vehicle rates. Add or manage drivers on Driver Management.</p>
                     <a class="btn btn-outline-dark rounded-pill me-2 mb-2" href="{{ route('admin.vehicles') }}"><i class="fas fa-car me-1"></i>Add Vehicle / Edit Vehicle Details</a>
                     <a class="btn btn-outline-dark rounded-pill me-2 mb-2" href="{{ route('admin.drivers') }}"><i class="fas fa-id-badge me-1"></i>Driver Management</a>
-                    <a class="btn btn-outline-danger rounded-pill me-2 mb-2" href="{{ route('admin.billing') }}"><i class="fas fa-credit-card me-1"></i>Payment Settings</a>
-                    <a class="btn btn-outline-danger rounded-pill mb-2" href="{{ route('admin.vehicles') }}"><i class="fas fa-tags me-1"></i>Price Guide</a>
+                    <a class="btn btn-outline-danger rounded-pill me-2 mb-2" href="#payment-settings"><i class="fas fa-credit-card me-1"></i>Payment Settings</a>
+                    <a class="btn btn-outline-danger rounded-pill mb-2" href="#price-guide"><i class="fas fa-tags me-1"></i>Price Guide</a>
                 </section>
 
                 <div class="text-end"><button class="btn btn-danger rounded-pill px-5 fw-bold" type="submit"><i class="fas fa-save me-2"></i>Save Settings</button></div>
             </form>
+
+            <section class="settings-card mb-4" id="price-guide">
+                <h2 class="section-title"><i class="fas fa-tags me-2"></i>Price Guide</h2>
+                <p class="small text-muted">Update City Driving and hourly base rates here. Province and Long Distance rates use the surcharges above and update automatically; matching vehicle daily prices are updated too.</p>
+                <form method="POST" action="{{ route('admin.price-guide.update') }}">
+                    @csrf
+                    @method('PUT')
+                    @foreach($priceGuides as $guide)
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="fw-bold text-danger mb-2">{{ $guide->category }}</div>
+                            <input type="hidden" name="prices[{{ $loop->index }}][id]" value="{{ $guide->id }}">
+                            <div class="row g-3">
+                                <div class="col-md-3"><label class="form-label">City Driving (₱)</label><input type="number" min="0" step="0.01" name="prices[{{ $loop->index }}][city_driving]" value="{{ $guide->city_driving }}" class="form-control" required></div>
+                                <div class="col-md-3"><label class="form-label">Province (₱)</label><input type="number" value="{{ (float) $guide->city_driving + $settings->rateSurcharge('province', $guide->category) }}" class="form-control" readonly></div>
+                                <div class="col-md-3"><label class="form-label">Long Distance (₱)</label><input type="number" value="{{ (float) $guide->city_driving + $settings->rateSurcharge('long_distance', $guide->category) }}" class="form-control" readonly></div>
+                                <div class="col-md-3"><label class="form-label">Hourly (₱)</label><input type="number" min="0" step="0.01" name="prices[{{ $loop->index }}][hourly]" value="{{ $guide->hourly }}" class="form-control" required></div>
+                            </div>
+                        </div>
+                    @endforeach
+                    <button type="submit" class="btn btn-outline-danger rounded-pill fw-bold"><i class="fas fa-save me-1"></i>Save Price Guide</button>
+                </form>
+            </section>
+
+            <section class="settings-card mb-4" id="payment-settings">
+                <h2 class="section-title"><i class="fas fa-qrcode me-2"></i>GCash Payment Settings</h2>
+                <p class="small text-muted">These details and the optional QR image are shown to customers during checkout.</p>
+                <form method="POST" action="{{ route('admin.payment-settings.update') }}" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4"><label class="form-label" for="gcash_account_name">Account name</label><input id="gcash_account_name" name="account_name" class="form-control" maxlength="255" value="{{ old('account_name', $paymentSettings->account_name) }}"></div>
+                        <div class="col-md-4"><label class="form-label" for="gcash_account_number">GCash number</label><input id="gcash_account_number" name="account_number" class="form-control" maxlength="32" value="{{ old('account_number', $paymentSettings->account_number) }}"></div>
+                        <div class="col-md-4"><label class="form-label" for="gcash_qr">Replace QR image (optional)</label><input id="gcash_qr" type="file" name="gcash_qr" accept="image/jpeg,image/png" class="form-control"></div>
+                    </div>
+                    @if($paymentSettings->gcash_qr_path)
+                        <div class="mt-3"><img src="{{ asset('storage/'.$paymentSettings->gcash_qr_path) }}" alt="Current GCash QR code" style="max-width:140px;max-height:140px"></div>
+                    @endif
+                    <button type="submit" class="btn btn-outline-danger rounded-pill fw-bold mt-3"><i class="fas fa-save me-1"></i>Save GCash Settings</button>
+                </form>
+            </section>
 
             <section class="settings-card mt-4" id="add-driver">
                 <h2 class="section-title"><i class="fas fa-user-plus me-2"></i>Add Driver</h2>
@@ -129,5 +186,15 @@
             </section>
         </div>
     </main>
+<script>
+    const savedAlert = document.getElementById('settingsSavedAlert');
+    if (savedAlert) {
+        window.setTimeout(() => {
+            savedAlert.style.transition = 'opacity 0.3s ease';
+            savedAlert.style.opacity = '0';
+            window.setTimeout(() => savedAlert.remove(), 300);
+        }, 3000);
+    }
+</script>
 </body>
 </html>

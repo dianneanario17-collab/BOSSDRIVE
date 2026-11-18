@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\Vehicle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,11 @@ class StaffReservationController extends Controller
         $query->where('booking_source', $walkInOnly ? 'admin_staff' : 'user');
         $reservations = $query->get();
 
-        return view('staff.reservations', compact('reservations', 'walkInOnly'));
+        return view('staff.reservations', [
+            'reservations' => $reservations,
+            'walkInOnly' => $walkInOnly,
+            'returnConditionChecks' => SystemSetting::current()->return_condition_checks,
+        ]);
     }
 
     public function walkInReservations(Request $request): View
@@ -92,6 +97,14 @@ class StaffReservationController extends Controller
                 'Updated customer documents must be reviewed before this reservation can be returned.'
             );
             abort_unless(! empty($data['return_condition_checks']), 422, 'Complete the vehicle return condition check before returning this reservation.');
+            abort_unless(
+                SystemSetting::hasCompleteChecklist(
+                    SystemSetting::current()->return_condition_checks ?? [],
+                    $data['return_condition_checks']
+                ),
+                422,
+                'Complete every vehicle return condition check before returning this reservation.'
+            );
         }
 
         $inspectorName = $request->user()?->name
@@ -105,7 +118,9 @@ class StaffReservationController extends Controller
                 'released_at' => $data['status'] === 'released'
                     ? ($reservation->released_at ?? now())
                     : $reservation->released_at,
-                'return_condition_checks' => $data['return_condition_checks'] ?? $reservation->return_condition_checks,
+                'return_condition_checks' => $data['status'] === 'completed'
+                    ? ($data['return_condition_checks'] ?? $reservation->return_condition_checks)
+                    : $reservation->return_condition_checks,
                 'return_condition_notes' => $data['return_condition_notes'] ?? $reservation->return_condition_notes,
                 'return_condition_checked_at' => $data['status'] === 'completed'
                     ? now()

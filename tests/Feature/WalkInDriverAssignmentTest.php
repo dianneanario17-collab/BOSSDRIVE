@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\OnCallDriver;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -608,6 +609,7 @@ class WalkInDriverAssignmentTest extends TestCase
 
     public function test_completing_a_user_reservation_keeps_its_uploaded_documents_available(): void
     {
+        SystemSetting::current()->update(['return_condition_checks' => ['Clean']]);
         Storage::fake('public');
         $admin = User::factory()->create(['name' => 'Test Admin', 'role' => 'admin']);
         $user = User::factory()->create(['role' => 'user']);
@@ -660,6 +662,7 @@ class WalkInDriverAssignmentTest extends TestCase
 
     public function test_admin_can_return_walk_in_booking_using_the_session_admin_identity(): void
     {
+        SystemSetting::current()->update(['return_condition_checks' => ['Clean', 'No new damage']]);
         $admin = User::factory()->create(['name' => 'Test Admin', 'role' => 'admin']);
         $vehicle = $this->createVehicle();
         $reservation = $this->createReleasedWalkInReservation($vehicle);
@@ -696,8 +699,28 @@ class WalkInDriverAssignmentTest extends TestCase
         ]);
     }
 
+    public function test_admin_cannot_return_a_vehicle_until_every_configured_check_is_completed(): void
+    {
+        SystemSetting::current()->update(['return_condition_checks' => ['Fuel recorded', 'Body inspected']]);
+        $reservation = $this->createReleasedWalkInReservation($this->createVehicle());
+
+        $this->withSession(['is_admin' => true])
+            ->patchJson(route('admin.reservations.status', $reservation), [
+                'status' => 'completed',
+                'return_condition_checks' => ['Fuel recorded'],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Complete every vehicle return condition check before returning this reservation.');
+
+        $this->assertDatabaseHas('reservations', [
+            'id' => $reservation->id,
+            'status' => 'released',
+        ]);
+    }
+
     public function test_staff_can_return_walk_in_booking_using_the_session_staff_identity(): void
     {
+        SystemSetting::current()->update(['return_condition_checks' => ['Clean', 'No new damage']]);
         $staff = User::factory()->create(['name' => 'Test Staff', 'role' => 'staff']);
         $vehicle = $this->createVehicle();
         $reservation = $this->createReleasedWalkInReservation($vehicle);

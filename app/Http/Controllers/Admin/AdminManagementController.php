@@ -57,6 +57,7 @@ class AdminManagementController extends Controller
         return view('admin.reservations', [
             'reservations' => $reservations,
             'walkInOnly' => $walkInOnly,
+            'returnConditionChecks' => SystemSetting::current()->return_condition_checks,
             'driverCatalog' => $this->driverCatalog(),
             'reservationRows' => $reservations->getCollection()->map(function ($reservation) {
                 $user = $reservation->user;
@@ -517,6 +518,14 @@ class AdminManagementController extends Controller
                 422,
                 'Complete the vehicle return condition check before returning this reservation.'
             );
+            abort_unless(
+                SystemSetting::hasCompleteChecklist(
+                    SystemSetting::current()->return_condition_checks ?? [],
+                    $data['return_condition_checks']
+                ),
+                422,
+                'Complete every vehicle return condition check before returning this reservation.'
+            );
         }
 
         $inspectorName = $request->user()?->name
@@ -533,7 +542,9 @@ class AdminManagementController extends Controller
                 'released_at' => $data['status'] === 'released'
                     ? ($reservation->released_at ?? now())
                     : $reservation->released_at,
-                'return_condition_checks' => $data['return_condition_checks'] ?? $reservation->return_condition_checks,
+                'return_condition_checks' => $data['status'] === 'completed'
+                    ? ($data['return_condition_checks'] ?? $reservation->return_condition_checks)
+                    : $reservation->return_condition_checks,
                 'return_condition_notes' => $data['return_condition_notes'] ?? $reservation->return_condition_notes,
                 'return_condition_checked_at' => $data['status'] === 'completed'
                     ? now()

@@ -198,6 +198,7 @@
     <div class="main-content">
         <div class="content-container">
             @include('admin.partials.page-notice', ['noticeKey' => 'vehicles'])
+            @include('admin.partials.page-notice', ['noticeKey' => 'condition_reports'])
             <div class="management-sticky-overview">
             <div class="row g-4 mb-4 text-center">
                 <div class="col-md-3">

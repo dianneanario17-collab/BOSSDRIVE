@@ -29,6 +29,8 @@ class SystemSetting extends Model
         'vehicle_transmissions',
         'vehicle_fuel_types',
         'vehicle_capacities',
+        'pickup_condition_checks',
+        'return_condition_checks',
     ];
 
     protected function casts(): array
@@ -49,6 +51,8 @@ class SystemSetting extends Model
             'vehicle_transmissions' => 'array',
             'vehicle_fuel_types' => 'array',
             'vehicle_capacities' => 'array',
+            'pickup_condition_checks' => 'array',
+            'return_condition_checks' => 'array',
         ];
     }
 
@@ -94,6 +98,20 @@ class SystemSetting extends Model
             'vehicle_transmissions' => ['Manual', 'Automatic'],
             'vehicle_fuel_types' => ['Gasoline', 'Diesel'],
             'vehicle_capacities' => ['4 Seater', '5 Seater', '6 Seater', '7 Seater'],
+            'pickup_condition_checks' => [
+                'Fuel level checked and noted',
+                'Exterior/body inspected',
+                'Interior checked and clean',
+                'Accessories/tools verified',
+                'I confirm the vehicle condition',
+            ],
+            'return_condition_checks' => [
+                'Fuel level checked',
+                'Exterior/body inspected',
+                'Interior checked and clean',
+                'Accessories/tools verified',
+                'I confirm the vehicle condition',
+            ],
         ];
     }
 
@@ -106,6 +124,13 @@ class SystemSetting extends Model
             'long_distance' => (float) $this->long_distance_surcharge,
             default => 0.0,
         };
+    }
+
+    public static function hasCompleteChecklist(array $configuredChecks, array $submittedChecks): bool
+    {
+        return count($submittedChecks) === count($configuredChecks)
+            && array_diff($configuredChecks, $submittedChecks) === []
+            && array_diff($submittedChecks, $configuredChecks) === [];
     }
 
     public static function current(): self

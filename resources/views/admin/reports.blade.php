@@ -115,6 +115,7 @@
     <div class="main-content">
         <div class="container-fluid pt-3 px-4">
             @include('admin.partials.page-notice', ['noticeKey' => 'reports'])
+            @include('admin.partials.page-notice', ['noticeKey' => 'condition_reports'])
         </div>
 
         <div class="container-fluid p-4">

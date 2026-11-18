@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Reservation;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -30,6 +31,13 @@ class AdminSettingsTest extends TestCase
             ->assertSee('Driver Management')
             ->assertSee('name="driver_daily_fee"', false)
             ->assertSee('name="admin_page_notices[dashboard]"', false)
+            ->assertSee('name="pickup_condition_checks"', false)
+            ->assertSee('name="return_condition_checks"', false)
+            ->assertSee('id="price-guide"', false)
+            ->assertSee('name="prices[0][city_driving]"', false)
+            ->assertSee('id="payment-settings"', false)
+            ->assertSee('name="account_name"', false)
+            ->assertSee('name="account_number"', false)
             ->assertSee('name="name"', false)
             ->assertSee('name="agreement_text"', false);
     }
@@ -63,6 +71,8 @@ class AdminSettingsTest extends TestCase
                 'vehicle_transmissions' => "Manual\nAutomatic\nCVT",
                 'vehicle_fuel_types' => "Gasoline\nDiesel\nHybrid",
                 'vehicle_capacities' => "4 Seater\n5 Seater\n8 Seater",
+                'pickup_condition_checks' => "Fuel checked\nPickup photos taken",
+                'return_condition_checks' => "Fuel checked\nReturn photos taken",
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
@@ -87,6 +97,63 @@ class AdminSettingsTest extends TestCase
         $this->assertSame(['Manual', 'Automatic', 'CVT'], SystemSetting::current()->vehicle_transmissions);
         $this->assertSame(['Gasoline', 'Diesel', 'Hybrid'], SystemSetting::current()->vehicle_fuel_types);
         $this->assertSame(['4 Seater', '5 Seater', '8 Seater'], SystemSetting::current()->vehicle_capacities);
+        $this->assertSame(['Fuel checked', 'Pickup photos taken'], SystemSetting::current()->pickup_condition_checks);
+        $this->assertSame(['Fuel checked', 'Return photos taken'], SystemSetting::current()->return_condition_checks);
+    }
+
+    public function test_configured_condition_checklists_are_used_and_required_on_customer_and_staff_forms(): void
+    {
+        SystemSetting::current()->update([
+            'pickup_condition_checks' => ['Pickup fuel recorded', 'Pickup body inspected'],
+            'return_condition_checks' => ['Return fuel recorded', 'Return body inspected'],
+        ]);
+        $user = User::factory()->create();
+        $reservation = Reservation::create([
+            'user_id' => $user->id,
+            'vehicle' => 'Settings Checklist Vehicle',
+            'service_option' => 'pickup',
+            'driver_option' => 'self_drive',
+            'pickup_date' => now()->subDay()->toDateString(),
+            'return_date' => now()->addDay()->toDateString(),
+            'document_paths' => [],
+            'privacy_consent' => true,
+            'payment_mode' => 'deposit',
+            'control_number' => 'SETTINGS-CHECKLIST-1',
+            'status' => 'released',
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->get(route('admin.reservations'))
+            ->assertOk()
+            ->assertSee('Return fuel recorded')
+            ->assertSee('Return body inspected');
+
+        $this->withSession(['is_staff' => true])
+            ->get(route('staff.reservations'))
+            ->assertOk()
+            ->assertSee('Return fuel recorded')
+            ->assertSee('Return body inspected');
+
+        $this->actingAs($user)
+            ->get(route('user.active-rental'))
+            ->assertOk()
+            ->assertSee('Pickup fuel recorded')
+            ->assertSee('Pickup body inspected');
+
+        $this->actingAs($user)
+            ->post(route('user.active-rental.condition', $reservation), [
+                'checks' => ['Pickup fuel recorded'],
+            ])
+            ->assertUnprocessable();
+        $this->assertDatabaseCount('pickup_condition_reports', 0);
+
+        $this->post(route('user.active-rental.condition', $reservation), [
+            'checks' => ['Pickup fuel recorded', 'Pickup body inspected'],
+        ])->assertRedirect();
+        $this->assertDatabaseHas('pickup_condition_reports', [
+            'reservation_id' => $reservation->id,
+            'checks' => json_encode(['Pickup fuel recorded', 'Pickup body inspected']),
+        ]);
     }
 
     public function test_booking_window_setting_is_reflected_in_vehicle_availability(): void

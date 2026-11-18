@@ -43,12 +43,17 @@ class ActiveRentalController extends Controller
             $vehicleDailyPrice = (float) ($activeVehicle?->price ?? 0);
         }
 
+        $settings = SystemSetting::current();
+
         return view('user.active-rental', compact(
             'reservation',
             'vehicleDailyPrice',
             'activeVehicle',
             'activeReservations',
-        ) + ['driverDailyFee' => (float) SystemSetting::current()->driver_daily_fee]);
+        ) + [
+            'driverDailyFee' => (float) $settings->driver_daily_fee,
+            'pickupConditionChecks' => $settings->pickup_condition_checks,
+        ]);
     }
 
     public function verify(Request $request): RedirectResponse
@@ -91,6 +96,14 @@ class ActiveRentalController extends Controller
             'damage_part' => ['nullable', 'string', 'max:255'],
             'damage_description' => ['nullable', 'string', 'max:2000'],
         ]);
+        abort_unless(
+            SystemSetting::hasCompleteChecklist(
+                SystemSetting::current()->pickup_condition_checks ?? [],
+                $data['checks']
+            ),
+            422,
+            'Complete every vehicle pickup condition check before submitting.'
+        );
 
         $path = $request->hasFile('photo')
             ? $request->file('photo')->store('reservations/conditions', 'public')
