@@ -31,15 +31,20 @@ class StaffBillingController extends Controller
             $query->where('payment_status', $paymentStatus);
         }
 
-        $reservations = $query->with('extensions')->paginate(20)->withQueryString();
+        $reservations = $query->with(['extensions', 'vehicleUnit'])->paginate(20)->withQueryString();
+        $systemSettings = SystemSetting::current();
+        $driverDailyFee = (float) $systemSettings->driver_daily_fee;
 
-        $invoiceRows = $reservations->getCollection()->map(function (Reservation $reservation): array {
+        $invoiceRows = $reservations->getCollection()->map(function (Reservation $reservation) use ($driverDailyFee, $systemSettings): array {
             $vehicle = $reservation->vehicleUnit;
-            $days = $reservation->rentalDays();
+            $extensionDays = (int) $reservation->extensions->sum('days');
+            $days = max(1, $reservation->rentalDays() - $extensionDays);
             $total = (float) $reservation->total_amount;
             if ($total <= 0) {
-                $total = ($vehicle?->price ?? 0) * $days
-                    + ($reservation->driver_option === 'with_driver' ? (float) SystemSetting::current()->driver_daily_fee * $days : 0);
+                $dailyVehicleRate = (float) ($vehicle?->price ?? 0)
+                    + $systemSettings->rateSurcharge($reservation->rate_type, $vehicle?->category);
+                $total = $dailyVehicleRate * $days
+                    + ($reservation->driver_option === 'with_driver' ? $driverDailyFee * $days : 0);
             }
 
             return [
@@ -51,6 +56,9 @@ class StaffBillingController extends Controller
                 'phone' => $reservation->customer_phone ?: ($reservation->user?->contact_number ?? 'No contact'),
                 'vehicle' => $reservation->vehicle,
                 'vehiclePlate' => $vehicle?->plate,
+                'rentalDays' => $days,
+                'driverOption' => $reservation->driver_option,
+                'driverDailyFee' => $driverDailyFee,
                 'total' => $total,
                 'paid' => (float) $reservation->paid_amount,
                 'submittedAmount' => (float) $reservation->payment_submitted_amount,

@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\RentalExtension;
 use App\Models\Reservation;
+use App\Models\SystemSetting;
 use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -464,6 +466,51 @@ class PaymentCenterTest extends TestCase
             ->assertSee('class="management-sticky-overview"', false)
             ->assertDontSee('id="qrUploadModal"', false)
             ->assertDontSee('Click or drag a new QR image here');
+    }
+
+    public function test_billing_summary_breaks_down_rental_days_driver_fee_and_extension_days(): void
+    {
+        SystemSetting::current()->update(['driver_daily_fee' => 500]);
+        $user = User::factory()->create(['name' => 'Breakdown Billing Customer']);
+        $vehicle = Vehicle::create([
+            'name' => 'Breakdown Sedan',
+            'plate' => 'BRK-100',
+            'price' => 1500,
+            'status' => 'rented',
+        ]);
+        $reservation = $this->createReservation($user);
+        $reservation->update([
+            'vehicle_id' => $vehicle->id,
+            'driver_option' => 'with_driver',
+            'pickup_date' => today()->toDateString(),
+            'pickup_time' => null,
+            'return_date' => today()->addDays(5)->toDateString(),
+            'return_time' => null,
+            'total_amount' => 8000,
+        ]);
+        RentalExtension::create([
+            'reservation_id' => $reservation->id,
+            'days' => 2,
+            'amount' => 3000,
+            'requested_return_date' => today()->addDays(7)->toDateString(),
+            'status' => 'approved',
+        ]);
+
+        foreach ([
+            ['is_admin' => true, 'route' => 'admin.billing'],
+            ['is_staff' => true, 'route' => 'staff.billing'],
+        ] as $billingPage) {
+            $this->withSession(array_diff_key($billingPage, ['route' => true]))
+                ->get(route($billingPage['route']))
+                ->assertOk()
+                ->assertSee('"rentalDays":4', false)
+                ->assertSee('"driverOption":"with_driver"', false)
+                ->assertSee('"driverDailyFee":500', false)
+                ->assertSee('"days":2', false)
+                ->assertSee('function invoiceBreakdownHtml(inv)', false)
+                ->assertSee('mChargeBreakdown', false)
+                ->assertSee('Grand Total (including extensions):', false);
+        }
     }
 
     public function test_pending_extension_payment_is_excluded_from_paid_bookings_and_counted_for_admin_and_staff(): void

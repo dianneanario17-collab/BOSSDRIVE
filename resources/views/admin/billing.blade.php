@@ -363,6 +363,7 @@
                                 <span class="text-muted" id="mTotalBillLabel">Total Rental Fee:</span>
                                 <span class="fw-bold fs-5" id="mTotalBill"></span>
                             </div>
+                            <div id="mChargeBreakdown" class="border rounded-3 bg-light p-3 mb-3 small"></div>
                             <div class="d-flex justify-content-between mb-4">
                                 <span class="text-muted">Amount Paid:</span>
                                 <span class="fw-bold text-success fs-5" id="mPaidAmt"></span>
@@ -427,6 +428,44 @@
             }, 0);
 
             return { total: total, paid: paid, balance: Math.max(total - paid, 0) };
+        }
+
+        function invoiceBreakdownHtml(inv) {
+            const days = Math.max(Number(inv.rentalDays) || 1, 1);
+            const bookingTotal = Number(inv.total) || 0;
+            const driverDailyFee = Number(inv.driverDailyFee) || 0;
+            const driverFee = inv.driverOption === 'with_driver'
+                ? Math.min(bookingTotal, driverDailyFee * days)
+                : 0;
+            const rentalCharge = Math.max(bookingTotal - driverFee, 0);
+            const extensions = inv.extensionPayments || [];
+            let html = '<div class="d-flex justify-content-between gap-2">' +
+                '<span>Vehicle rental &amp; rate charges (' + days + ' days)</span>' +
+                '<strong>' + peso(rentalCharge) + '</strong></div>';
+
+            if (inv.driverOption === 'with_driver') {
+                html += '<div class="d-flex justify-content-between gap-2 mt-1">' +
+                    '<span>Driver service (' + days + ' days × ' + peso(driverDailyFee) + '/day)</span>' +
+                    '<strong>' + peso(driverFee) + '</strong></div>';
+            } else {
+                html += '<div class="d-flex justify-content-between gap-2 mt-1">' +
+                    '<span>Driver service</span><strong>Self-drive</strong></div>';
+            }
+
+            if (extensions.length) {
+                html += '<div class="border-top mt-2 pt-2"><strong>Rental extensions</strong></div>' +
+                    extensions.map(function (extension, index) {
+                        const extensionDriverNote = inv.driverOption === 'with_driver' ? ' · driver included' : '';
+                        return '<div class="d-flex justify-content-between gap-2 mt-1">' +
+                            '<span>Extension ' + (index + 1) + ' (' + (Number(extension.days) || 0) + ' days' + extensionDriverNote + ')</span>' +
+                            '<strong>' + peso(Number(extension.amount) || 0) + '</strong></div>';
+                    }).join('');
+            } else {
+                html += '<div class="d-flex justify-content-between gap-2 mt-1">' +
+                    '<span>Rental extensions</span><strong>None</strong></div>';
+            }
+
+            return html;
         }
 
         function invoiceIsPaid(inv) {
@@ -696,6 +735,7 @@
             document.getElementById('mTotalBill').innerText = peso(totals.total);
             document.getElementById('mPaidAmt').innerText = peso(totals.paid);
             document.getElementById('mBalance').innerText = peso(totals.balance);
+            document.getElementById('mChargeBreakdown').innerHTML = invoiceBreakdownHtml(inv);
             document.getElementById('mRef').innerText = "Ref ID: " + inv.ref;
             document.getElementById('mPayMethod').innerText = inv.method;
             document.getElementById('mTotalBillLabel').innerText = 'Grand Total (including extensions):';
