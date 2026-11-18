@@ -312,6 +312,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/user/account/password', [AccountController::class, 'updatePassword'])->name('user.account.password');
     Route::get('/user/active-rental', [ActiveRentalController::class, 'show'])->name('user.active-rental');
     Route::post('/user/active-rental/verify', [ActiveRentalController::class, 'verify'])->name('user.active-rental.verify');
+    Route::get('/user/active-rental/{reservation}/contract', [ActiveRentalController::class, 'contract'])
+        ->name('user.active-rental.contract');
+    Route::put('/user/active-rental/{reservation}/contract', [ActiveRentalController::class, 'updateContract'])
+        ->name('user.active-rental.contract.update');
     Route::post('/user/active-rental/{reservation}/condition', [ActiveRentalController::class, 'submitCondition'])
         ->name('user.active-rental.condition');
     Route::post('/user/active-rental/{reservation}/extension', [ActiveRentalController::class, 'requestExtension'])

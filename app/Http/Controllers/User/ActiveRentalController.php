@@ -56,6 +56,76 @@ class ActiveRentalController extends Controller
         ]);
     }
 
+    public function contract(Request $request, Reservation $reservation): View
+    {
+        abort_unless($reservation->user_id === $request->user()->id, 403);
+        abort_unless(in_array($reservation->status, ['verified', 'processing', 'released'], true), 422);
+
+        $user = $request->user();
+        $vehicle = $reservation->vehicleUnit;
+        $settings = SystemSetting::current();
+        $address = collect([
+            $user->address,
+            $user->barangay,
+            $user->city,
+            $user->province,
+        ])->filter()->implode(', ');
+        $contractData = array_merge([
+            'agreement_date' => today()->toDateString(),
+            'renter_address' => $address,
+            'vehicle_year' => '',
+            'vehicle_color' => '',
+            'vehicle_vin' => '',
+            'vehicle_mileage' => '',
+            'mileage_unlimited' => null,
+            'mileage_limit' => '',
+            'allowed_area' => '',
+        ], $reservation->rental_contract_data ?? []);
+        $agreementText = str_replace(
+            ['{business_name}', '{deposit_amount}'],
+            [$settings->business_name, number_format((float) $settings->security_deposit, 2)],
+            $settings->agreement_text
+        );
+
+        return view('user.rental-contract', [
+            'reservation' => $reservation,
+            'user' => $user,
+            'vehicle' => $vehicle,
+            'settings' => $settings,
+            'contractData' => $contractData,
+            'agreementText' => $agreementText,
+        ]);
+    }
+
+    public function updateContract(Request $request, Reservation $reservation): RedirectResponse
+    {
+        abort_unless($reservation->user_id === $request->user()->id, 403);
+        abort_unless(in_array($reservation->status, ['verified', 'processing', 'released'], true), 422);
+
+        $data = $request->validate([
+            'agreement_date' => ['required', 'date'],
+            'renter_address' => ['required', 'string', 'max:1000'],
+            'vehicle_year' => ['nullable', 'string', 'max:20'],
+            'vehicle_color' => ['nullable', 'string', 'max:100'],
+            'vehicle_vin' => ['nullable', 'string', 'max:100'],
+            'vehicle_mileage' => ['nullable', 'string', 'max:50'],
+            'mileage_unlimited' => ['required', 'boolean'],
+            'mileage_limit' => ['nullable', 'required_if:mileage_unlimited,0', 'numeric', 'min:0', 'max:1000000'],
+            'allowed_area' => ['required', 'string', 'max:500'],
+            'print_after_save' => ['nullable', 'boolean'],
+        ]);
+        $shouldPrint = $request->boolean('print_after_save');
+        unset($data['print_after_save']);
+        $data['mileage_unlimited'] = (bool) $data['mileage_unlimited'];
+        $data['mileage_limit'] = $data['mileage_limit'] ?? '';
+        $reservation->update(['rental_contract_data' => $data]);
+
+        $redirectUrl = route('user.active-rental.contract', $reservation);
+
+        return redirect()->to($redirectUrl.($shouldPrint ? '?print=1' : ''))
+            ->with('success', 'Rental agreement details saved.');
+    }
+
     public function verify(Request $request): RedirectResponse
     {
         $data = $request->validate([

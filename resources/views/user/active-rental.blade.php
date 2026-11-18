@@ -56,7 +56,8 @@
                 <div class="info-box"><span class="label-text">Start Date</span><span class="data-text">{{ $reservation->pickup_date->format('F j, Y') }}</span></div>
                 <div class="info-box"><span class="label-text">Current Return Date</span><span class="data-text text-danger">{{ $reservation->return_date->format('F j, Y') }}</span></div>
                 <div class="info-box"><span class="label-text">Service</span><span class="data-text">{{ ucfirst($reservation->service_option) }}</span></div>
-                <button type="button" class="btn btn-outline-danger w-100 mt-4 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#pickupConditionModal"><i class="fas fa-car-side me-2"></i>VEHICLE PICKUP CONDITION CHECK</button>
+                <a href="{{ route('user.active-rental.contract', $reservation) }}" class="btn btn-outline-dark w-100 mt-4 rounded-pill fw-bold"><i class="fas fa-file-contract me-2"></i>FILL OUT / PRINT RENTAL AGREEMENT</a>
+                <button type="button" class="btn btn-outline-danger w-100 mt-2 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#pickupConditionModal"><i class="fas fa-car-side me-2"></i>VEHICLE PICKUP CONDITION CHECK</button>
                 <button type="button" class="btn btn-dark w-100 mt-2 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#extendModal" {{ $released ? '' : 'disabled' }}><i class="fas fa-clock me-2"></i>REQUEST EXTENSION</button>
                 <button type="button" class="btn btn-outline-warning w-100 mt-2 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#ratingModal" {{ $released && $activeVehicle ? '' : 'disabled' }}><i class="fas fa-star me-2"></i>RATE YOUR RENTAL</button>
             </div>
