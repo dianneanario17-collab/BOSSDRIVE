@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PickupConditionReport extends Model
 {
-    protected $fillable = ['reservation_id', 'user_id', 'checks', 'notes', 'photo_path'];
+    protected $fillable = ['reservation_id', 'user_id', 'checks', 'check_details', 'notes', 'photo_path'];
 
-    protected $casts = ['checks' => 'array'];
+    protected $casts = [
+        'checks' => 'array',
+        'check_details' => 'array',
+    ];
 
     public function reservation(): BelongsTo
     {

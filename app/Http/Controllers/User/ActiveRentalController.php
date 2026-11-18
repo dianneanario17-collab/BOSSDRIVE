@@ -210,19 +210,26 @@ class ActiveRentalController extends Controller
         $data = $request->validate([
             'checks' => ['required', 'array', 'min:1'],
             'checks.*' => ['string', 'max:100'],
+            'check_details' => ['nullable', 'array', 'max:40'],
+            'check_details.*' => ['nullable', 'string', 'max:500'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
             'damage_part' => ['nullable', 'string', 'max:255'],
             'damage_description' => ['nullable', 'string', 'max:2000'],
         ]);
+        $configuredChecks = SystemSetting::current()->pickup_condition_checks ?? [];
         abort_unless(
-            SystemSetting::hasCompleteChecklist(
-                SystemSetting::current()->pickup_condition_checks ?? [],
-                $data['checks']
-            ),
+            SystemSetting::hasCompleteChecklist($configuredChecks, $data['checks']),
             422,
             'Complete every vehicle pickup condition check before submitting.'
         );
+        $checkDetails = [];
+        foreach ($configuredChecks as $index => $check) {
+            $detail = trim((string) ($data['check_details'][$index] ?? ''));
+            if ($detail !== '') {
+                $checkDetails[$check] = $detail;
+            }
+        }
 
         $path = $request->hasFile('photo')
             ? $request->file('photo')->store('reservations/conditions', 'public')
@@ -232,6 +239,7 @@ class ActiveRentalController extends Controller
             'reservation_id' => $reservation->id,
             'user_id' => $request->user()->id,
             'checks' => $data['checks'],
+            'check_details' => $checkDetails,
             'notes' => collect([
                 $data['notes'] ?? null,
                 filled($data['damage_part'] ?? null) ? 'Part: '.$data['damage_part'] : null,

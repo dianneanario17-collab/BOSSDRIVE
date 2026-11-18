@@ -488,6 +488,7 @@
                         ->sortByDesc('created_at')
                         ->map(fn ($report) => [
                             'checks' => $report->checks ?? [],
+                            'checkDetails' => $report->check_details ?? [],
                             'notes' => $report->notes,
                             'photo' => $report->photo_path ? \Illuminate\Support\Facades\Storage::url($report->photo_path) : null,
                             'date' => $report->created_at?->format('M j, Y g:i A'),
@@ -1023,6 +1024,12 @@
             handleRentalStatus(reservationId, payload);
         });
 
+        function renderPickupConditionDetails(details) {
+            return Object.entries(details || {}).map(([item, detail]) =>
+                '<div><b>' + escapeHtml(item) + ':</b> ' + escapeHtml(detail) + '</div>'
+            ).join('');
+        }
+
         function renderUserPickupCondition(report) {
             const summary = document.getElementById('userPickupConditionSummary');
             if (!report) {
@@ -1030,8 +1037,10 @@
                 return;
             }
 
+            const details = renderPickupConditionDetails(report.checkDetails);
             summary.innerHTML = '<strong class="d-block mb-2 text-danger">User Vehicle Pickup Condition Check</strong>' +
                 '<div class="mb-2">' + (report.checks || []).map(item => '<span class="badge bg-success me-1 mb-1">' + escapeHtml(item) + '</span>').join('') + '</div>' +
+                (details ? '<div class="mb-2"><b>Checklist details:</b>' + details + '</div>' : '') +
                 (report.notes ? '<div><b>Notes:</b> ' + escapeHtml(report.notes) + '</div>' : '<div class="text-muted">No damage notes submitted.</div>') +
                 (report.date ? '<small class="text-muted d-block mt-2">Submitted: ' + escapeHtml(report.date) + '</small>' : '') +
                 (report.photo ? '<a class="d-block mt-2" href="' + escapeHtml(report.photo) + '" target="_blank" rel="noopener">View user condition photo</a>' : '');

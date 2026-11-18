@@ -124,6 +124,7 @@ class AdminManagementController extends Controller
                     ],
                     'pickupConditionReport' => $reservation->pickupConditionReports->sortByDesc('created_at')->first(fn ($report) => true) ? [
                         'checks' => $reservation->pickupConditionReports->sortByDesc('created_at')->first()->checks ?? [],
+                        'checkDetails' => $reservation->pickupConditionReports->sortByDesc('created_at')->first()->check_details ?? [],
                         'notes' => $reservation->pickupConditionReports->sortByDesc('created_at')->first()->notes,
                         'photo' => $this->uploadedFileUrl($reservation->pickupConditionReports->sortByDesc('created_at')->first()->photo_path),
                         'date' => $reservation->pickupConditionReports->sortByDesc('created_at')->first()->created_at?->format('M j, Y g:i A'),
@@ -235,6 +236,7 @@ class AdminManagementController extends Controller
                     ->sortByDesc('created_at')
                     ->map(fn ($report) => [
                         'checks' => $report->checks ?? [],
+                        'checkDetails' => $report->check_details ?? [],
                         'notes' => $report->notes,
                         'photo' => $this->uploadedFileUrl($report->photo_path),
                         'date' => $report->created_at?->format('M j, Y g:i A'),

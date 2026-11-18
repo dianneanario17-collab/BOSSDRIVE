@@ -117,6 +117,7 @@ class AdminSettingsTest extends TestCase
         $user = User::factory()->create();
         $reservation = Reservation::create([
             'user_id' => $user->id,
+            'booking_source' => 'user',
             'vehicle' => 'Settings Checklist Vehicle',
             'service_option' => 'pickup',
             'driver_option' => 'self_drive',
@@ -145,7 +146,9 @@ class AdminSettingsTest extends TestCase
             ->get(route('user.active-rental'))
             ->assertOk()
             ->assertSee('Pickup fuel recorded')
-            ->assertSee('Pickup body inspected');
+            ->assertSee('Pickup body inspected')
+            ->assertSee('name="check_details[0]"', false)
+            ->assertSee('e.g. Full (100%), 3/4 tank, or 1/2 tank');
 
         $this->actingAs($user)
             ->post(route('user.active-rental.condition', $reservation), [
@@ -156,11 +159,29 @@ class AdminSettingsTest extends TestCase
 
         $this->post(route('user.active-rental.condition', $reservation), [
             'checks' => ['Pickup fuel recorded', 'Pickup body inspected'],
+            'check_details' => [
+                0 => 'Fuel at 3/4 tank (75%)',
+                1 => 'Small scratch on front bumper',
+            ],
         ])->assertRedirect();
         $this->assertDatabaseHas('pickup_condition_reports', [
             'reservation_id' => $reservation->id,
             'checks' => json_encode(['Pickup fuel recorded', 'Pickup body inspected']),
+            'check_details' => json_encode([
+                'Pickup fuel recorded' => 'Fuel at 3/4 tank (75%)',
+                'Pickup body inspected' => 'Small scratch on front bumper',
+            ]),
         ]);
+
+        $this->withSession(['is_admin' => true])
+            ->getJson(route('admin.reservations.live'))
+            ->assertOk()
+            ->assertJsonPath('0.pickupConditionReport.checkDetails.Pickup fuel recorded', 'Fuel at 3/4 tank (75%)');
+
+        $this->withSession(['is_staff' => true])
+            ->getJson(route('staff.reservations.live'))
+            ->assertOk()
+            ->assertJsonPath('0.pickupConditionReport.checkDetails.Pickup body inspected', 'Small scratch on front bumper');
     }
 
     public function test_booking_window_setting_is_reflected_in_vehicle_availability(): void
