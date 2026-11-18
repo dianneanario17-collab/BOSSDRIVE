@@ -42,6 +42,9 @@
                     <label class="form-label" for="agreement_text">Agreement shown before booking</label>
                     <textarea id="agreement_text" name="agreement_text" class="form-control" rows="12" maxlength="15000" required>{{ old('agreement_text', $settings->agreement_text) }}</textarea>
                     <small class="text-muted">Plain text is supported. Use a new line for each rule. Tokens <code>{business_name}</code> and <code>{deposit_amount}</code> are replaced with the current settings.</small>
+                    <label class="form-label mt-3" for="rental_contract_text">Terms shown on the printable rental agreement</label>
+                    <textarea id="rental_contract_text" name="rental_contract_text" class="form-control" rows="8" maxlength="15000" required>{{ old('rental_contract_text', $settings->rental_contract_text ?? $settings->agreement_text) }}</textarea>
+                    <small class="text-muted">This text appears in the printable agreement. Use a new line for each term. Tokens <code>{business_name}</code> and <code>{deposit_amount}</code> are replaced with the current settings.</small>
                     <label class="form-label mt-3" for="rental_location_guide">Rental location guide shown to customers and staff</label>
                     <textarea id="rental_location_guide" name="rental_location_guide" class="form-control" rows="4" maxlength="5000" required>{{ old('rental_location_guide', $settings->rental_location_guide) }}</textarea>
                     <small class="text-muted">Plain text; put each location/rate description on its own line.</small>

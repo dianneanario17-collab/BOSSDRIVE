@@ -32,7 +32,8 @@ class RentalContractTest extends TestCase
         SystemSetting::current()->update([
             'business_name' => 'BossDrive Rentals',
             'pickup_location' => 'GMA Garage',
-            'agreement_text' => "Read the rules.\nDeposit: ₱{deposit_amount}",
+            'agreement_text' => 'Booking-only terms.',
+            'rental_contract_text' => "Printable terms for {business_name}.\nDeposit: ₱{deposit_amount}",
             'security_deposit' => 1500,
         ]);
 
@@ -48,6 +49,7 @@ class RentalContractTest extends TestCase
             ->assertSee('Toyota')
             ->assertSee('GMA Garage')
             ->assertSee('₱1,500.00')
+            ->assertSee('Printable terms for BossDrive Rentals.')
             ->assertSee('12 Main Street');
 
         $response = $this->put(route('user.active-rental.contract.update', $reservation), [

@@ -13,6 +13,7 @@ class SystemSetting extends Model
         'messenger_url',
         'pickup_location',
         'agreement_text',
+        'rental_contract_text',
         'rental_location_guide',
         'security_deposit',
         'booking_window_days',
@@ -58,22 +59,25 @@ class SystemSetting extends Model
 
     public static function defaults(): array
     {
+        $agreementText = implode("\n", [
+            'Please read carefully before proceeding:',
+            'Document Requirements: Renter must provide two (2) valid Government IDs and a Proof of Billing (Electric/Water bill) under their name or immediate family.',
+            'Accidents & Damages: Any damage to the vehicle during the rental period is the sole responsibility of the renter. The renter shall pay for all repair costs and a Loss of Use fee equivalent to the daily rate while the vehicle is in the shop.',
+            'Liability: The Renter shall be held liable for any loss or damage to the Vehicle parts, body, tools, or accessories, as well as any personal belongings of the Owner left inside the Vehicle, sustained during the rental period. The Renter shall likewise be liable for any traffic violations incurred while the vehicle is in their possession; {business_name} reserves the right to collect the equivalent penalty from the Renter. Use of the Vehicle for illegal purposes, towing, or driving instruction/training is strictly prohibited. Additional mileage and/or time charges apply when the vehicle is used beyond the agreed place or rental time without prior arrangement.',
+            'Payment Policy: We strictly implement a Pay Before Drive policy. A ₱{deposit_amount} security deposit is required for reservation. Online payments are accepted via GCash only.',
+            'Late Returns: Overtime returns will be charged an additional hourly rate. If the delay exceeds 5 hours, a full day rate will be applied.',
+            'Carnapping Policy: Failure to return the vehicle or contact management within 24 hours of the deadline will be reported to the PNP-HPG as a Carnapping/Theft case.',
+            'Maintenance: The renter must ensure the vehicle has enough oil and coolant. Negligence leading to engine failure will be charged to the renter.',
+        ]);
+
         return [
             'business_name' => 'Big Boss Car Rental',
             'support_name' => 'Big Boss Dispatcher',
             'support_phone' => '+63 912 345 6789',
             'messenger_url' => 'https://www.facebook.com/profile.php?id=100064277850431',
             'pickup_location' => 'Big Boss Garage, GMA, Cavite',
-            'agreement_text' => implode("\n", [
-                'Please read carefully before proceeding:',
-                'Document Requirements: Renter must provide two (2) valid Government IDs and a Proof of Billing (Electric/Water bill) under their name or immediate family.',
-                'Accidents & Damages: Any damage to the vehicle during the rental period is the sole responsibility of the renter. The renter shall pay for all repair costs and a Loss of Use fee equivalent to the daily rate while the vehicle is in the shop.',
-                'Liability: The Renter shall be held liable for any loss or damage to the Vehicle parts, body, tools, or accessories, as well as any personal belongings of the Owner left inside the Vehicle, sustained during the rental period. The Renter shall likewise be liable for any traffic violations incurred while the vehicle is in their possession; {business_name} reserves the right to collect the equivalent penalty from the Renter. Use of the Vehicle for illegal purposes, towing, or driving instruction/training is strictly prohibited. Additional mileage and/or time charges apply when the vehicle is used beyond the agreed place or rental time without prior arrangement.',
-                'Payment Policy: We strictly implement a Pay Before Drive policy. A ₱{deposit_amount} security deposit is required for reservation. Online payments are accepted via GCash only.',
-                'Late Returns: Overtime returns will be charged an additional hourly rate. If the delay exceeds 5 hours, a full day rate will be applied.',
-                'Carnapping Policy: Failure to return the vehicle or contact management within 24 hours of the deadline will be reported to the PNP-HPG as a Carnapping/Theft case.',
-                'Maintenance: The renter must ensure the vehicle has enough oil and coolant. Negligence leading to engine failure will be charged to the renter.',
-            ]),
+            'agreement_text' => $agreementText,
+            'rental_contract_text' => $agreementText,
             'rental_location_guide' => implode("\n", [
                 'City Driving: GMA, Carmona, Biñan, San Pedro, Dasmariñas, Silang, General Trias, Imus, Bacoor, Muntinlupa, Parañaque, Pasay, Makati, Taguig',
                 'Province: Tagaytay, Batangas, Laguna, Rizal, Cavite farther areas, Quezon',

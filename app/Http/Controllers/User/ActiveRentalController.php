@@ -84,7 +84,7 @@ class ActiveRentalController extends Controller
         $agreementText = str_replace(
             ['{business_name}', '{deposit_amount}'],
             [$settings->business_name, number_format((float) $settings->security_deposit, 2)],
-            $settings->agreement_text
+            $settings->rental_contract_text ?? $settings->agreement_text
         );
 
         return view('user.rental-contract', [
