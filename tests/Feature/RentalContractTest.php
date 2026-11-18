@@ -105,6 +105,45 @@ class RentalContractTest extends TestCase
         $this->assertNull($reservation->fresh()->rental_contract_data);
     }
 
+    public function test_admin_can_open_a_renters_saved_agreement_from_reservations(): void
+    {
+        $user = User::factory()->create(['name' => 'Jamie Renter']);
+        $reservation = $this->createReservation($user);
+        $reservation->update([
+            'rental_contract_data' => [
+                'agreement_date' => '2026-11-18',
+                'renter_address' => '12 Main Street, GMA, Cavite',
+                'vehicle_year' => '2024',
+                'vehicle_color' => 'Silver',
+                'vehicle_vin' => 'VIN-123',
+                'vehicle_mileage' => '23500',
+                'mileage_unlimited' => false,
+                'mileage_limit' => '200',
+                'allowed_area' => 'GMA to Tagaytay',
+            ],
+        ]);
+
+        $this->withSession(['is_admin' => true])
+            ->get(route('admin.reservations'))
+            ->assertOk()
+            ->assertSee('View Agreement')
+            ->assertSee('reservation-action-agreement');
+
+        $this->withSession(['is_admin' => true])
+            ->getJson(route('admin.reservations.live'))
+            ->assertOk()
+            ->assertJsonPath('0.rentalContractUrl', route('admin.reservations.contract', $reservation));
+
+        $this->withSession(['is_admin' => true])
+            ->get(route('admin.reservations.contract', $reservation))
+            ->assertOk()
+            ->assertSee('Jamie Renter')
+            ->assertSee('12 Main Street, GMA, Cavite')
+            ->assertSee('VIN-123')
+            ->assertSee('GMA to Tagaytay')
+            ->assertSee('Print Agreement');
+    }
+
     public function test_limited_mileage_requires_a_limit_before_saving(): void
     {
         $user = User::factory()->create();

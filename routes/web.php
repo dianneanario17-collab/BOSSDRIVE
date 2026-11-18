@@ -435,6 +435,8 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/settings', [AdminSettingsController::class, 'update'])->name('settings.update');
     Route::post('/reservations', [AdminManagementController::class, 'storeReservation'])->name('reservations.store');
     Route::get('/reservations', [AdminManagementController::class, 'reservations'])->name('reservations');
+    Route::get('/reservations/{reservation}/contract', [AdminManagementController::class, 'rentalContract'])
+        ->name('reservations.contract');
     Route::get('/walk-in-bookings', [AdminManagementController::class, 'walkInReservations'])->name('walk-in-bookings');
     Route::get('/reservations/live', [AdminManagementController::class, 'liveReservations'])
         ->name('reservations.live');

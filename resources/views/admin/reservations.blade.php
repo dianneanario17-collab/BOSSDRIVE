@@ -96,6 +96,7 @@
         .reservation-action-group > .reservation-action-status { grid-column: 2; }
         .reservation-action-group > .reservation-action-delete { grid-column: 3; }
         .reservation-action-group > button { width: 100%; min-width: 0; white-space: nowrap; padding-left: .35rem !important; padding-right: .35rem !important; }
+        .reservation-action-group > .reservation-action-agreement { grid-column: 1 / -1; width: 100%; min-width: 0; white-space: nowrap; padding-left: .35rem !important; padding-right: .35rem !important; }
 
         #verifyModal .modal-dialog { width: calc(100vw - 4rem); max-width: 1100px; margin: 1rem auto; }
         #verifyModal .modal-content { max-width: 100%; overflow: hidden; }
@@ -592,6 +593,9 @@
                 const hasLifecycleAction = Object.prototype.hasOwnProperty.call(actionLabels, status);
                 const showButton = hasLifecycleAction ? '' : 'display: none;';
                 const actionHandler = status === 'completed' ? 'openCompletedInspection' : 'handleRentalStatus';
+                const agreementButton = reservation.rentalContractUrl
+                    ? '<a class="btn btn-sm btn-outline-danger fw-bold rounded-pill reservation-action-agreement" href="' + escapeHtml(reservation.rentalContractUrl) + '" target="_blank" rel="noopener" data-no-page-loader><i class="fas fa-file-contract me-1"></i>View Agreement</a>'
+                    : '<button type="button" class="btn btn-sm btn-outline-secondary fw-bold rounded-pill reservation-action-agreement" disabled title="The renter has not submitted agreement details">Not Submitted</button>';
                 return '<tr class="res-row" data-control="' + escapeHtml(reservation.control) + '" data-payment="' + escapeHtml(reservation.paymentStatus) + '" data-walkin="' + (reservation.payment === 'Walkin' ? 'yes' : 'no') + '" data-status="' + escapeHtml(status) + '">' +
                     '<td><span class="fw-bold text-dark">' + escapeHtml(reservation.name) + '</span><br><small class="text-danger fw-bold">' + escapeHtml(reservation.phone) + '</small></td>' +
                     '<td><span class="control-tag">' + escapeHtml(reservation.control) + '</span></td>' +
@@ -599,7 +603,7 @@
                     '<td id="logi-' + reservation.id + '"><span class="badge bg-' + (reservation.service === 'Delivery' ? 'primary' : 'secondary') + ' rounded-pill px-3">' + reservation.service + '</span></td>' +
                     '<td><span class="pay-tag ' + paymentClass + '">' + escapeHtml(paymentLabel) + '</span></td>' +
                     '<td class="text-center"><span id="status-' + reservation.id + '" class="status-pill ' + statusClassFor(status) + ' text-uppercase">' + escapeHtml(statusLabel) + '</span>' + (reservation.documentsNeedReview ? '<small class="d-block text-warning fw-bold">Updated ID needs review</small>' : '') + '</td>' +
-                    '<td class="text-center"><div class="reservation-action-group admin-reservation-action-group"><button class="btn btn-sm btn-outline-danger fw-bold rounded-pill reservation-action-review" onclick="openServerReservation(' + reservation.id + ')">Review</button><button id="btn-' + reservation.id + '" class="btn btn-sm ' + (status === 'completed' ? 'btn-outline-secondary' : 'btn-dark') + ' fw-bold rounded-pill reservation-action-status" onclick="' + actionHandler + '(' + reservation.id + ')" style="' + showButton + '" title="' + escapeHtml(buttonLabel) + '">' + buttonLabel + '</button><button class="btn btn-sm btn-outline-secondary fw-bold rounded-pill reservation-action-delete" onclick="deleteReservation(' + reservation.id + ')" title="Delete reservation"><i class="fas fa-trash"></i></button></div></td>' +
+                    '<td class="text-center"><div class="reservation-action-group admin-reservation-action-group"><button class="btn btn-sm btn-outline-danger fw-bold rounded-pill reservation-action-review" onclick="openServerReservation(' + reservation.id + ')">Review</button><button id="btn-' + reservation.id + '" class="btn btn-sm ' + (status === 'completed' ? 'btn-outline-secondary' : 'btn-dark') + ' fw-bold rounded-pill reservation-action-status" onclick="' + actionHandler + '(' + reservation.id + ')" style="' + showButton + '" title="' + escapeHtml(buttonLabel) + '">' + buttonLabel + '</button><button class="btn btn-sm btn-outline-secondary fw-bold rounded-pill reservation-action-delete" onclick="deleteReservation(' + reservation.id + ')" title="Delete reservation"><i class="fas fa-trash"></i></button>' + agreementButton + '</div></td>' +
                     '</tr>';
             }).join('');
         }

@@ -15,6 +15,7 @@ use App\Models\Reservation;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\RentalContractBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -108,6 +109,9 @@ class AdminManagementController extends Controller
                     'bookedByName' => $reservation->walk_in_created_by_name,
                     'status' => $reservation->status,
                     'documentsNeedReview' => $this->documentsNeedReview($reservation),
+                    'rentalContractUrl' => $reservation->rental_contract_data
+                        ? route('admin.reservations.contract', $reservation)
+                        : null,
                     'pickupDate' => $reservation->pickup_date?->format('F j, Y'),
                     'pickupDateIso' => $reservation->pickup_date?->toDateString(),
                     'pickupTime' => $reservation->pickup_time ? substr($reservation->pickup_time, 0, 5) : null,
@@ -147,6 +151,15 @@ class AdminManagementController extends Controller
             'status' => $status,
             'statuses' => self::RESERVATION_STATUSES,
         ]);
+    }
+
+    public function rentalContract(
+        Reservation $reservation,
+        RentalContractBuilder $contractBuilder
+    ): View {
+        abort_unless($reservation->rental_contract_data, 404);
+
+        return view('admin.rental-contract', $contractBuilder->build($reservation));
     }
 
     public function walkInReservations(Request $request): View
@@ -219,6 +232,9 @@ class AdminManagementController extends Controller
                 'bookedByName' => $reservation->walk_in_created_by_name,
                 'status' => $reservation->status,
                 'documentsNeedReview' => $this->documentsNeedReview($reservation),
+                'rentalContractUrl' => $reservation->rental_contract_data
+                    ? route('admin.reservations.contract', $reservation)
+                    : null,
                 'pickupDate' => $reservation->pickup_date?->format('F j, Y'),
                 'pickupDateIso' => $reservation->pickup_date?->toDateString(),
                 'pickupTime' => $reservation->pickup_time ? substr($reservation->pickup_time, 0, 5) : null,
